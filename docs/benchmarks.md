@@ -292,6 +292,8 @@ yolo benchmark task=detect model=yolov8s.pt device=0 data=coco128.yaml fp16=True
 | **本页（基准数据）** | 数字 → 量化选型 | 想根据具体数字决策 |
 | **[choose-a-model](/choose-a-model)** | 场景 → 经验推荐 | 想快速定位版本 |
 | **[compare-matrix](/compare-matrix)** | 版本 → 结构差异 | 想理解版本差异 |
+| **[evolution-story](/evolution-story)** | 决策 → 为什么这么改 | 想知道"为什么 v11 又退回 NMS"这类问题 |
+| **[for-beginners](/for-beginners)** | 5 页入门路线 | 完全没入门，先看那 5 页 |
 | **[cases/compare](/cases/compare)** | 案例 → TCO 反哺 | 想看真实项目成本 |
 | **[data-flow](/data-flow)** | 端到端流水线 | 想看完整工程链路 |
 
