@@ -65,6 +65,7 @@ export default defineConfig({
       { text: '选型决策', link: '/choose-a-model' },
       { text: '基准数据', link: '/benchmarks' },
       { text: '数据流', link: '/data-flow' },
+      { text: '故障排查', link: '/troubleshooting' },
       { text: '概念索引', link: '/concepts' },
       { text: '术语表', link: '/glossary' },
       { text: '时间线', link: '/global/timeline' },
@@ -124,6 +125,7 @@ export default defineConfig({
             { text: '选型决策树', link: '/choose-a-model' },
             { text: '基准数据', link: '/benchmarks' },
             { text: '数据流全景', link: '/data-flow' },
+            { text: '故障排查', link: '/troubleshooting' },
             { text: '概念反向索引', link: '/concepts' }
           ]
         },
@@ -153,6 +155,7 @@ export default defineConfig({
             { text: '选型决策树', link: '/choose-a-model' },
             { text: '基准数据', link: '/benchmarks' },
             { text: '数据流全景', link: '/data-flow' },
+            { text: '故障排查', link: '/troubleshooting' },
             { text: '概念反向索引', link: '/concepts' }
           ]
         }

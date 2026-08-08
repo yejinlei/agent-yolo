@@ -4,6 +4,8 @@
 
 > **这一页存在的意义**：[choose-a-model](/choose-a-model) 给的是"经验推荐"，[compare-matrix](/compare-matrix) 给的是"结构差异"，但**读者真正需要的是数字**：在目标硬件上跑同一档输入，谁更快、准多少、贵多少。这里把本站点已知的**可验证数字**汇总成可查表，并标注每条数据的来源与采集状态。
 
+**配合阅读**：数字背后的决策 → [选型决策树](/choose-a-model) · 结构差异 → [对比矩阵](/compare-matrix) · 为什么这么改 → [演化故事](/evolution-story) · 阈值踩坑 → [故障排查](/troubleshooting)
+
 ---
 
 ## 一句话总纲
