@@ -63,6 +63,7 @@ export default defineConfig({
       { text: '演进故事', link: '/evolution-story' },
       { text: '对比矩阵', link: '/compare-matrix' },
       { text: '选型决策', link: '/choose-a-model' },
+      { text: '基准数据', link: '/benchmarks' },
       { text: '数据流', link: '/data-flow' },
       { text: '概念索引', link: '/concepts' },
       { text: '术语表', link: '/glossary' },
@@ -121,6 +122,7 @@ export default defineConfig({
           text: '横向使用页',
           items: [
             { text: '选型决策树', link: '/choose-a-model' },
+            { text: '基准数据', link: '/benchmarks' },
             { text: '数据流全景', link: '/data-flow' },
             { text: '概念反向索引', link: '/concepts' }
           ]
@@ -149,6 +151,7 @@ export default defineConfig({
           text: '横向使用页',
           items: [
             { text: '选型决策树', link: '/choose-a-model' },
+            { text: '基准数据', link: '/benchmarks' },
             { text: '数据流全景', link: '/data-flow' },
             { text: '概念反向索引', link: '/concepts' }
           ]
