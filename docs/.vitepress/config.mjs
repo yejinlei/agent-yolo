@@ -62,6 +62,9 @@ export default defineConfig({
       { text: '系列演化', link: '/global/family' },
       { text: '演进故事', link: '/evolution-story' },
       { text: '对比矩阵', link: '/compare-matrix' },
+      { text: '选型决策', link: '/choose-a-model' },
+      { text: '数据流', link: '/data-flow' },
+      { text: '概念索引', link: '/concepts' },
       { text: '术语表', link: '/glossary' },
       { text: '时间线', link: '/global/timeline' },
       { text: '本体 Schema', link: '/ontology/schema' },
@@ -94,6 +97,42 @@ export default defineConfig({
     ],
 
     sidebar: {
+      '/': [
+        {
+          text: '入口',
+          items: [
+            { text: '首页', link: '/' },
+            { text: '小白入门', link: '/for-beginners' },
+            { text: '实战案例总览', link: '/cases' }
+          ]
+        },
+        {
+          text: '全局视图',
+          items: [
+            { text: '系列家族', link: '/global/family' },
+            { text: '演进故事', link: '/evolution-story' },
+            { text: '对比矩阵', link: '/compare-matrix' },
+            { text: '演化事件', link: '/global/evolutions' },
+            { text: '时间线', link: '/global/timeline' },
+            { text: '传统 CV 谱系', link: '/global/external-techniques' }
+          ]
+        },
+        {
+          text: '横向使用页',
+          items: [
+            { text: '选型决策树', link: '/choose-a-model' },
+            { text: '数据流全景', link: '/data-flow' },
+            { text: '概念反向索引', link: '/concepts' }
+          ]
+        },
+        {
+          text: '参考',
+          items: [
+            { text: '术语表', link: '/glossary' },
+            { text: '本体 Schema', link: '/ontology/schema' }
+          ]
+        }
+      ],
       '/global/': [
         {
           text: '全局视图',
@@ -104,6 +143,14 @@ export default defineConfig({
             { text: '演化事件', link: '/global/evolutions' },
             { text: '时间线', link: '/global/timeline' },
             { text: '传统 CV 谱系', link: '/global/external-techniques' }
+          ]
+        },
+        {
+          text: '横向使用页',
+          items: [
+            { text: '选型决策树', link: '/choose-a-model' },
+            { text: '数据流全景', link: '/data-flow' },
+            { text: '概念反向索引', link: '/concepts' }
           ]
         }
       ],
