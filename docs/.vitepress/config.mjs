@@ -60,6 +60,8 @@ export default defineConfig({
       { text: '首页', link: '/' },
       { text: '小白入门', link: '/for-beginners' },
       { text: '系列演化', link: '/global/family' },
+      { text: '演进故事', link: '/evolution-story' },
+      { text: '对比矩阵', link: '/compare-matrix' },
       { text: '术语表', link: '/glossary' },
       { text: '时间线', link: '/global/timeline' },
       { text: '本体 Schema', link: '/ontology/schema' },
@@ -97,6 +99,8 @@ export default defineConfig({
           text: '全局视图',
           items: [
             { text: '系列家族', link: '/global/family' },
+            { text: '演进故事', link: '/evolution-story' },
+            { text: '对比矩阵', link: '/compare-matrix' },
             { text: '演化事件', link: '/global/evolutions' },
             { text: '时间线', link: '/global/timeline' },
             { text: '传统 CV 谱系', link: '/global/external-techniques' }
@@ -501,6 +505,7 @@ export default defineConfig({
           items: [
             { text: '案例总览', link: '/cases' },
             { text: '横向对比（选型速查）', link: '/cases/compare' },
+            { text: '案例模板（新案例写作）', link: '/cases/_template' },
             { divider: true },
             { text: '边缘部署', link: '/cases/edge-deployment' },
             { text: '工业质检', link: '/cases/industrial-defect' },
