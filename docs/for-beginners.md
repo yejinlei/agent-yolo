@@ -83,7 +83,7 @@
 
 ---
 
-## 第 4 页 · v9~v14 各记一句
+## 第 4 页 · v9~v26 各记一句
 
 从 v8 之后，每一版只做**一件事**——记住这个"只做一件事"就够了：
 
@@ -95,6 +95,9 @@
 | **v12** | 2024 | **A2C2f 内嵌注意力** + 去 SPPF | "把注意力塞进 C2f" |
 | **v13** | 2025 | **HyperACE 超图融合** | "普通图不够，用超图" |
 | **v14** | 2026 | **DeformableAAttn + ViewEmbedding + DAL + SphereAAttn** | "鱼眼/无人机/全景/游戏画面全吃" |
+| **v26** | 2026 | **8 任务统一**（检测/分割/OBB/Pose/分类 + 开放词汇 + 深度 + 语义） | "别搞 N 个模型，一个 yolo26 全接" |
+
+> **两条线要分清**：**v14 是学术线**（iMoonLab 的多视角感知），**v26 是 Ultralytics 官方最新线**（多任务统一）。两者都是 2026 年发布，但走的是完全不同的方向。
 
 **衍生分支**（不属于主线，但很热门）：
 
@@ -102,7 +105,7 @@
 - **YOLOE**（2025）：文本 / 视觉 / 无 prompt 三合一
 - **YOLO-Master**（2026）：MoE 稀疏专家 + Transformer 专家
 
-跳：[v9](/versions/v9/index) · [v10](/versions/v10/index) · [v11](/versions/v11/index) · [v12](/versions/v12/index) · [v13](/versions/v13/index) · [v14](/versions/v14/index) · [衍生分支总览](/derivatives/index)
+跳：[v9](/versions/v9/index) · [v10](/versions/v10/index) · [v11](/versions/v11/index) · [v12](/versions/v12/index) · [v13](/versions/v13/index) · [v14](/versions/v14/index) · [v26](/versions/v26/index) · [衍生分支总览](/derivatives/index)
 
 ---
 
@@ -122,6 +125,7 @@
 | 🏭 **生产部署（固定类别）** | 直接看 [v8·index](/versions/v8/index) | **v8** 或 **v11**（更瘦） |
 | 📱 **边缘设备（Jetson / 手机）** | 读 [v8](/versions/v8/index) 后跳 [v11](/versions/v11/index) | **v11-n/s** 或 **v12** |
 | 🎯 **换类别不想重训** | 读 [YOLOv8](/versions/v8/index) → [YOLO-World](/derivatives/yoloworld/index) | **YOLO-Worldv2** 或 **YOLOE** |
+| 🔀 **多任务统一（检测+分割+OBB+姿态+分类）** | 直接看 [v26·index](/versions/v26/index) | **v26**（官方多任务） |
 | 🏆 **精度优先（学术评测）** | 读 [v11](/versions/v11/index) → [v12](/versions/v12/index) → [v13](/versions/v13/index) | **v13** / **v14** / **YOLO-Master** |
 | 🔬 **研究创新点** | 先看 [系列家族](/global/family) → [演化事件](/global/evolutions) | 挑感兴趣的版本深挖 |
 
@@ -144,8 +148,8 @@
 **Q：我完全没入门，应该从哪儿开始？**
 A：先看这一页的**第 1 页**（目标检测是什么），再看**第 2 页**（版本演化），然后**跳去 v8**，中间版本可以跳过。
 
-**Q：v8、v11、v12、v13 我该选哪个？**
-A：**学习选 v8**（文档最全、社区最大）；**生产选 v8 或 v11**（v11 更瘦，v8 最稳）；**要 SOTA 精度选 v13**（Apache-2.0 可商用）。
+**Q：v8、v11、v13、v26 我该选哪个？**
+A：**学习选 v8**（文档最全、社区最大）；**生产选 v8 或 v11**（v11 更瘦，v8 最稳）；**要 SOTA 精度选 v13**（Apache-2.0 可商用）；**要"一个模型干所有活"选 v26**（官方多任务）。
 
 **Q：v14、YOLO26、YOLO-Master 是不是官方版？**
 A：**v14 是第三方学术 fork**（iMoonLab），非 Ultralytics 官方；**YOLO26**（2026-01）是 Ultralytics 官方最新版；**YOLO-Master** 是腾讯学术线，未合并进 Ultralytics 主线。看 [系列家族](/global/family) 里的"官方线 vs 学术线"标签。
