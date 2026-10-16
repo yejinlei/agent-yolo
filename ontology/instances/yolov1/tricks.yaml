@@ -1,0 +1,93 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 训练/推理/架构技巧，每个对应一个可复现的 knob。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: trick-sqrt-one
+    type: Trick
+    name: "sqrt=1 加速收敛"
+    category: loss_design
+    rationale: "w/h 直接回归 L2 时，大目标梯度量级远大于小目标，收敛慢；开方后量级均衡。"
+    pros: ["一行配置即可启用", "显著加快早期收敛"]
+    cons: ["只在 v1 loss 结构下有效", "v3 转 CIoU 后不再需要"]
+    introducedIn: "yolo-v1"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        quote: "sqrt=1"
+
+  - id: trick-loss-weight-balance
+    type: Trick
+    name: "损失权重 5/1/1/0.5"
+    category: loss_design
+    rationale: "手工平衡四类 loss 的量级，避免背景格子淹没有目标信号。"
+    pros: ["简单直观", "对小数据集够用"]
+    cons: ["不同数据集需重新搜", "无理论最优性"]
+    introducedIn: "yolo-v1"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        quote: "coord_scale=5, object_scale=1, noobject_scale=.5, class_scale=1"
+
+  - id: trick-random-best-index
+    type: Trick
+    name: "前 100k 迭代随机 best_index"
+    category: training
+    rationale: "防止两个 box 抢同一个 GT 导致梯度塌缩。"
+    pros: ["缓解多 box 训练不稳定"]
+    cons: ["100k 是硬编码魔数", "v2 anchor 后彻底废弃"]
+    introducedIn: "yolo-v1"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "73-75"
+
+  - id: trick-region-jitter
+    type: Trick
+    name: "Region Jitter (jitter=0.2)"
+    category: data_aug
+    rationale: "训练时随机平移/缩放 20%，缓解 grid 位置敏感性。"
+    pros: ["提升泛化"]
+    cons: ["增强幅度有限", "v4+ 被 Mosaic 取代"]
+    introducedIn: "yolo-v1"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/data.c"
+        quote: "random_distort, jitter"
+
+  - id: trick-dropout-fc
+    type: Trick
+    name: "全连接 Dropout 0.25"
+    category: regularization
+    rationale: "缓解检测任务样本量少的过拟合。"
+    pros: ["简单有效"]
+    cons: ["推理时需要额外处理", "v2+ 去掉全连接后不再需要"]
+    introducedIn: "yolo-v1"
+
+  - id: trick-nms-iou05
+    type: Trick
+    name: "NMS IoU 阈值 0.5"
+    category: inference
+    rationale: "对每类 box 按 confidence 排序，IoU>0.5 的合并保留高分。"
+    pros: ["经典、简单"]
+    cons: ["IoU 阈值敏感", "NMS 本身耗时"]
+    introducedIn: "yolo-v1"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/box.c"
+        quote: "do_nms_sort"
+
+  - id: trick-pretrained-from-imagenet
+    type: Trick
+    name: "ImageNet 预训练热启动"
+    category: training
+    rationale: "从 ImageNet 分类模型加载前 22 层，仅微调 fc+dropout+detection 头。"
+    pros: ["VOC 训练 23 轮即可到 63.4 mAP", "显著降低冷启动成本"]
+    cons: ["依赖 ImageNet 与 VOC 类别分布差异"]
+    introducedIn: "yolo-v1"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        quote: "load=..."

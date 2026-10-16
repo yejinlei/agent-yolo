@@ -1,0 +1,188 @@
+meta:
+  version: "yolo-global"
+  schemaVersion: "0.3.0"
+  description: "YOLO 系列跨版本演化事件。每条事件描述从 vN 到 vN+1 引入/淘汰了什么。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: evo-v1-to-v2
+    type: Evolution
+    name: "v1 → v2"
+    from: "yolo-v1"
+    to: "yolo-v2"
+    kind: "version_up"
+    rationale: "v1 定位粗糙、无 anchor 且 grid cell 只有 2 box，需要更强的先验和骨干。"
+    introduced:
+      concepts:
+        - "concept-anchor-grid"
+        - "concept-batch-norm"
+        - "concept-shortcut-connection"
+      layers:
+        - "layer-batchnorm"
+        - "layer-upsample"
+        - "layer-route"
+      losses:
+        - "loss-ciou-predecessor"
+      tricks:
+        - "trick-anchor-introduction"
+        - "trick-bn-introduction"
+        - "trick-random-translate"
+    removed:
+      tricks:
+        - "trick-random-best-index"
+        - "trick-sqrt-one"
+    quantitativeDelta:
+      mAP@0.5_VOC2007: { from: 63.4, to: 69.4 }
+      FPS: { from: 35, to: 160 }
+
+  - id: evo-v2-to-v3
+    type: Evolution
+    name: "v2 → v3"
+    from: "yolo-v2"
+    to: "yolo-v3"
+    kind: "version_up"
+    rationale: "引入多尺度预测，一次推理出 3 种分辨率，大幅提升小目标召回。"
+    introduced:
+      concepts:
+        - "concept-fpn-multi-scale"
+        - "concept-anchor-free"
+      layers:
+        - "layer-fpn"
+        - "layer-yolo-head-v3"
+      tricks:
+        - "trick-9-anchors"
+    quantitativeDelta:
+      mAP@0.5_COCO: { from: 0, to: 57.9 }
+      FPS: { from: 0, to: 51 }
+
+  - id: evo-v3-to-v4
+    type: Evolution
+    name: "v3 → v4"
+    from: "yolo-v3"
+    to: "yolo-v4"
+    kind: "version_up"
+    rationale: "组合大量已知技巧（Mosaic、SPP、CIoU、DPN、WAM），把 COCO mAP 推到 44.8。"
+    introduced:
+      tricks:
+        - "trick-mosaic-aug"
+        - "trick-ciou-loss"
+        - "trick-dcn"
+        - "trick-mixup"
+    quantitativeDelta:
+      mAP@0.5_COCO: { from: 57.9, to: 44.8 }
+
+  - id: evo-v4-to-v5
+    type: Evolution
+    name: "v4 → v5"
+    from: "yolo-v4"
+    to: "yolo-v5"
+    kind: "fork"
+    rationale: "Ultralytics 用 PyTorch 重写，工程化优先，牺牲部分精度换取易用性。"
+    introduced:
+      layers:
+        - "layer-focus"
+      tricks:
+        - "trick-python-e2e"
+    quantitativeDelta:
+      mAP@0.5:0.95_COCO: { from: 50.4, to: 44.9 }
+
+  - id: evo-v5-to-v6
+    type: Evolution
+    name: "v5 → v6"
+    from: "yolo-v5"
+    to: "yolo-v6"
+    kind: "fork"
+    rationale: "Megvii 引入 RepVDconv + RepOptimizer，训练/推理双阶段结构。"
+    introduced:
+      layers:
+        - "layer-repvdconv"
+      tricks:
+        - "trick-two-stage-training"
+        - "trick-reparameterization"
+
+  - id: evo-v5-to-v7
+    type: Evolution
+    name: "v5 → v7"
+    from: "yolo-v5"
+    to: "yolo-v7"
+    kind: "fork"
+    rationale: "WongKinYiu 提出 Model Scaling，EVA 注意力融合。"
+    introduced:
+      concepts:
+        - "concept-model-scaling"
+        - "concept-eva-attention"
+      tricks:
+        - "trick-epe"
+
+  - id: evo-v5-to-v8
+    type: Evolution
+    name: "v5 → v8"
+    from: "yolo-v5"
+    to: "yolo-v8"
+    kind: "version_up"
+    rationale: "回到主线命名，切换到 anchor-free + decoupled head + C2f，成为新版默认。"
+    introduced:
+      concepts:
+        - "concept-anchor-free"
+        - "concept-decoupled-head"
+      layers:
+        - "layer-c2f"
+        - "layer-decoupled-head"
+      losses:
+        - "loss-varifocal"
+        - "loss-dfl"
+
+  - id: evo-v8-to-v9
+    type: Evolution
+    name: "v8 → v9"
+    from: "yolo-v8"
+    to: "yolo-v9"
+    kind: "version_up"
+    rationale: "引入 PGT (Program Guided Training) 提升小目标，GELAN backbone 增强表达力。"
+    introduced:
+      concepts:
+        - "concept-pgt"
+      layers:
+        - "layer-gelan"
+
+  - id: evo-v9-to-v10
+    type: Evolution
+    name: "v9 → v10"
+    from: "yolo-v9"
+    to: "yolo-v10"
+    kind: "version_up"
+    rationale: "彻底去掉 NMS，用 NWD + Assigner + FreqLoss 端到端解耦。"
+    introduced:
+      concepts:
+        - "concept-nms-free"
+      losses:
+        - "loss-nwd"
+        - "loss-freq"
+      tricks:
+        - "trick-nms-free"
+
+  - id: evo-v8-to-v11
+    type: Evolution
+    name: "v8 → v11"
+    from: "yolo-v8"
+    to: "yolo-v11"
+    kind: "version_up"
+    rationale: "EMA (Efficient Model Architecture) + C3k2 块，参数效率显著提升。"
+    introduced:
+      concepts:
+        - "concept-ema"
+      layers:
+        - "layer-c3k2"
+
+  - id: evo-v11-to-v12
+    type: Evolution
+    name: "v11 → v12"
+    from: "yolo-v11"
+    to: "yolo-v12"
+    kind: "version_up"
+    rationale: "引入 Global Attention 和 Spatial Attention，进一步提升特征表征。"
+    introduced:
+      concepts:
+        - "concept-global-attention"
+      layers:
+        - "layer-spatial-attention"

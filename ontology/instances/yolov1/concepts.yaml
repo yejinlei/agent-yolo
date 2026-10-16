@@ -1,0 +1,181 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 理论层——论文提出的核心 idea 与设计选择，对应论文→理论的 L2 层。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: concept-single-shot
+    type: Concept
+    name: "Single-Shot 端到端检测"
+    aliases: ["single look", "one-pass detection"]
+    kind: innovation
+    paper: "paper-2015-yolo-single-shot"
+    summary: "把目标检测重定义为单次前向的回归问题：一张图过一次网络，直接输出所有位置的 (x, y, w, h) + 类别 + 置信度。"
+    formalDefinition: |
+      给定输入 I，网络 f 直接输出 R^(N, 4+1+C)，
+      N = grid^2 * num_boxes = 7*7*2 = 98，C=20。
+      每个预测 = (cx, cy, w, h, confidence, p_1...p_20)。
+    whyItWorks: "去掉了两阶段方法的分类器，把空间分解和类别预测合并到同一个网络，避免了 region proposal 阶段的高延迟。"
+    tradeoffs:
+      - "位置精度下降：相比 R-CNN/Fast R-CNN，边界框更粗糙"
+      - "小目标召回差：7×7 grid 分辨率不够"
+      - "相似形状不同类物体难以区分（如 zebra vs horse）"
+    practicalImplication: "首次把 FPS 推到 30+，为实时检测打开大门；精度换来速度的取舍贯穿整个 YOLO 系列。"
+    relatedConcepts:
+      - "concept-grid-spatial-decomposition"
+      - "concept-confidence-as-poc"
+    tags: ["foundation", "paradigm-shift"]
+    source:
+      - kind: paper
+        section: "1. Introduction"
+        quote: "We propose to detect objects using a single convolutional network."
+
+  - id: concept-grid-spatial-decomposition
+    type: Concept
+    name: "网格化空间分解 (Grid-based Spatial Decomposition)"
+    kind: innovation
+    paper: "paper-2015-yolo-single-shot"
+    summary: "把输入图像划分成 7×7=49 个 grid cell，每个 cell 独立负责检测位于该 cell 中心的物体，并把检测问题从整图分解成 49 个局部任务。"
+    formalDefinition: |
+      grid_size = 7, boxes_per_cell = 2
+      total_detections = 7 * 7 * 2 = 98
+      每格预测: [cx, cy, w, h, confidence, class_probs(20)]
+    whyItWorks: "把全局检测分解成局部回归，每 cell 只看自己区域，降低搜索空间。等价于给网络提供显式的位置先验。"
+    tradeoffs:
+      - "物体太大或跨多 cell 时精度下降"
+      - "每格固定 2 个 box，重叠物体无法区分"
+      - "物体中心必须落在 grid 中心，边界位置受限"
+    practicalImplication: "7×7 grid 是 v1 速度/精度上限的硬约束，v2 起引入 anchor 突破每格 2 box 限制。"
+    relatedConcepts:
+      - "concept-single-shot"
+      - "concept-multi-box-per-cell"
+    source:
+      - kind: paper
+        section: "2. YOLO"
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "55-120"
+
+  - id: concept-multi-box-per-cell
+    type: Concept
+    name: "每格多 Box 预测 (num=2)"
+    kind: design_choice
+    paper: "paper-2015-yolo-single-shot"
+    summary: "每个 grid cell 预测 2 个 box，不同 box 学到不同尺寸/长宽比的偏好，缓解同一 cell 多物体的问题。"
+    formalDefinition: |
+      l.num = 2
+      l.side = 7
+      l.classes = 20
+      output_dim = 7*7*(2*(4+1+20)) = 7*7*110 = 5390
+      但 v1 输出实际为 1470，因为 num=2 的第二个 box 用 [4+1+20] 单独一组，
+      即 7*7*(4+1+20+2*5) = 1470（第二个 box 只复用 4+1 位置，不重复类）
+    tradeoffs:
+      - "简单扩展，不改结构；但 2 个 box 是启发式，非全局最优"
+    practicalImplication: "在 v2 中被 anchors 取代，anchors 提供更细的宽高比覆盖。"
+    relatedConcepts:
+      - "concept-grid-spatial-decomposition"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        quote: "num=2"
+
+  - id: concept-confidence-as-poc
+    type: Concept
+    name: "置信度 = P(Object) * IoU(预测, GT)"
+    aliases: ["joint confidence"]
+    kind: innovation
+    paper: "paper-2015-yolo-single-shot"
+    summary: "每个 box 输出一个 confidence，含义不是简单的 P(Object)，而是 P(Object)*IoU(pred,GT)。当框偏严重时自动降权，等效于把定位质量嵌入到分类分数里。"
+    formalDefinition: "confidence = P(Object) * IoU(pred, GT)"
+    whyItWorks: "让 NMS 前的排序自动惩罚定位差的框，无需显式的定位分支；也是 no-object loss 只惩罚无目标格子、有目标格子 loss 包含 IoU 的原因。"
+    tradeoffs:
+      - "推理时 confidence 无法计算 IoU，实际退化为 learned P(Object)"
+      - "和分类概率耦合，训练信号复杂"
+    practicalImplication: "v3+ 的 anchor-based 方案里，'objectness' 独立成头，IoU 由 anchors 的宽高比先验吸收。"
+    source:
+      - kind: paper
+        section: "2. YOLO (Confidence scores)"
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "78-92"
+
+  - id: concept-sqrt-loss
+    type: Concept
+    name: "sqrt 加速收敛（宽高开根号回归）"
+    aliases: ["sqrt=1 trick"]
+    kind: design_choice
+    paper: "paper-2015-yolo-single-shot"
+    summary: "训练时对 w 和 h 的开方值回归，让大目标和小目标在损失里的量级接近。因为 IoU 本身对 w、h 是二次的，开方后损失对大小目标的敏感度更均衡。"
+    formalDefinition: |
+      if sqrt=1:
+        pred_w = pred_w^2
+        pred_h = pred_h^2
+        loss 用开方值计算
+    whyItWorks: "log 尺度上的均匀采样，避免大目标主导梯度。"
+    tradeoffs:
+      - "仅在 L2 回归下有效，v3+ 转 CIoU 后不再需要"
+    practicalImplication: "yolo.cfg 里 `sqrt=1` 是一行配置，但论文里没有明确解释，是 pjreddie 的实践 trick。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        quote: "if (l.sqrt){box.w = pow(boxes[i].w, .5); box.h = pow(boxes[i].h, .5);}"
+
+  - id: concept-balance-loss
+    type: Concept
+    name: "四项损失加权平衡"
+    kind: design_choice
+    paper: "paper-2015-yolo-single-shot"
+    summary: "总损失 = 5·L_coord + 1·L_box + 1·L_class + 0.5·L_noobj。coord 权重 5 是因为它最难优化；noobj 权重 0.5 是因为无目标格子占绝大多数，不加权会导致梯度被淹没。"
+    formalDefinition: |
+      L = 5·Σ(box_rmse_wx,wx)² + Σ(1 - IoU)²·√w·√h
+        + Σ(p_c - t_c)² + 0.5·Σ(p_c)²·[no object]
+    tradeoffs:
+      - "权重是手工调的，不同数据集可能需要重新搜"
+    practicalImplication: "v2 起引入 anchor 后，loss 结构变成 CIoU + focal loss + objectness，不再需要 5/0.5 这种手工平衡。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        quote: "coord_scale=5, object_scale=1, noobject_scale=.5, class_scale=1"
+
+  - id: concept-random-best-index-warmup
+    type: Concept
+    name: "前 100k 迭代强制随机 best_index"
+    kind: design_choice
+    paper: "paper-2015-yolo-single-shot"
+    summary: "训练前 10 万迭代，随机选一个 box 作为 GT 归属（而不是 IoU 最大的），防止两个 box 都抢同一个 GT 导致收敛失败。"
+    formalDefinition: |
+      if (l.count < 100000) best_index = rand() % l.n
+      else best_index = argmax(IoU)
+    whyItWorks: "强制两个 box 都训练到，避免梯度塌缩到一个 box。"
+    practicalImplication: "代码里唯一的 trick 类魔数，v2 用 anchor 后彻底删掉。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "73-75"
+
+  - id: concept-region-jitter-aug
+    type: Concept
+    name: "Region Jitter 数据增强 (jitter=0.2)"
+    kind: design_choice
+    paper: "paper-2015-yolo-single-shot"
+    summary: "训练时对每个 batch 随机平移、缩放 20%，改变 grid cell 分配，缓解 grid 对位置的敏感性。"
+    formalDefinition: "dx = random(0.8, 1.2), dy = random(0.8, 1.2), dx=1/(random+1-2·jitter)"
+    practicalImplication: "v1 时代的主要增强手段；v4 后被 Mosaic 取代。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/data.c"
+        quote: "random_distort"
+    tags: ["data_aug"]
+
+  - id: concept-dropout-fc
+    type: Concept
+    name: "全连接层前的 Dropout (p=0.25)"
+    kind: design_choice
+    paper: "paper-2015-yolo-single-shot"
+    summary: "在 fc(4096) 和 fc(1470) 之间插一层 dropout，缓解检测任务数据量小的过拟合。"
+    practicalImplication: "现代 YOLO 全部换成卷积 + BN，不再需要全连接 dropout。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        quote: "weights=0.25 dropout"

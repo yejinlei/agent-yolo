@@ -1,0 +1,131 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 用到的所有层。ID 用 layer-*，跨版本可复用同一 Layer。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: layer-conv-7x64
+    type: Layer
+    name: "Conv 7×7 Stride 2"
+    aliases: ["alexnet-first-conv"]
+    category: conv
+    signature: "conv-7x64, stride=2"
+    inputChannels: 3
+    outputChannels: 64
+    kernel: 7
+    stride: 2
+    padding: 3
+    activation: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "输入 448×448→224×224。借鉴 AlexNet 第一层，用大 kernel 一步完成下采样。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+        lines: "1-6"
+
+  - id: layer-conv-3x256
+    type: Layer
+    name: "Conv 3×3 Stride 1 (256)"
+    category: conv
+    signature: "conv-3x256, stride=1"
+    inputChannels: 256
+    outputChannels: 256
+    kernel: 3
+    stride: 1
+    padding: 1
+    activation: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "v1 中最多的层，共 3 层，全部 stride=1，堆叠提升感受野而不降分辨率。"
+
+  - id: layer-conv-5x512
+    type: Layer
+    name: "Conv 3×3 Stride 1 (512)"
+    category: conv
+    signature: "conv-3x512, stride=1"
+    outputChannels: 512
+    kernel: 3
+    stride: 1
+    padding: 1
+    activation: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "共 5 层。"
+
+  - id: layer-conv-1x1024
+    type: Layer
+    name: "Conv 3×3 Stride 1 (1024)"
+    category: conv
+    signature: "conv-3x1024, stride=1"
+    outputChannels: 1024
+    kernel: 3
+    stride: 1
+    padding: 1
+    activation: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "共 2 层，最后两层是 v1 backbone 末端。"
+
+  - id: layer-conv-5x1024
+    type: Layer
+    name: "Conv 3×3 Stride 1 (1024, 5×5 pattern)"
+    category: conv
+    signature: "conv-3x1024-pattern"
+    outputChannels: 1024
+    kernel: 3
+    stride: 1
+    padding: 1
+    activation: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "论文里说的 5×1024 指的是 conv 层数 5 个而非 kernel size。共 3 个 5×1024 pattern。"
+
+  - id: layer-fc-4096
+    type: Layer
+    name: "FC 4096"
+    aliases: ["fully-connected", "dense"]
+    category: fc
+    signature: "fc-4096"
+    outputChannels: 4096
+    activation: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "检测任务保留全连接是 v1 的特征，v2/v3 全部换回卷积保持空间结构。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+
+  - id: layer-dropout-025
+    type: Layer
+    name: "Dropout 0.25"
+    category: activation
+    signature: "dropout-0.25"
+    firstVersionIntroduced: "v1"
+    notes: "只作用于全连接之后。"
+
+  - id: layer-fc-1470
+    type: Layer
+    name: "FC 1470"
+    category: fc
+    signature: "fc-1470"
+    outputChannels: 1470
+    firstVersionIntroduced: "v1"
+    notes: "1470 = 7×7×(4+1+20+2×5)。第二组 box 只复用 4+1=5 个 slot，不重复 20 类，节省参数量。"
+
+  - id: layer-detection-v1
+    type: Layer
+    name: "Detection Layer (v1)"
+    aliases: ["detection_layer", "region_layer predecessor"]
+    category: detection_head
+    signature: "detection, side=7, classes=20, coords=4, num=2, rescore=1, sqrt=1, jitter=0.2"
+    firstVersionIntroduced: "v1"
+    notes: "把 fc 输出的 1470 向量切分成 49 格 × 2 box 的预测张量，计算 IoU/loss/NMS。v2 时被 region_layer 取代，v3 时进一步演进为 yolo_layer。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.h"
+
+  - id: layer-activation-leakyrelu
+    type: Layer
+    name: "Leaky ReLU"
+    category: activation
+    signature: "lrelu"
+    firstVersionIntroduced: "v1"
+    notes: "整个 v1 用的都是 LReLU，slope=0.1（默认）。"

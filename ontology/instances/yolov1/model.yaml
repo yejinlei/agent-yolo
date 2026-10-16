@@ -1,0 +1,55 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 模型实例，证据全部来自 pjreddie/darknet commit 8322a58 快照。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: yolo-v1
+    type: Model
+    name: "YOLOv1"
+    aliases: ["YOLO", "You Only Look Once", "yolo9000-precursor"]
+    description: "首个将目标检测作为单次前向回归问题提出的端到端模型。2015 年 ECCV 论文提出，2016 年在 pjreddie/darknet 开源。"
+    version: "v1"
+    year: 2015
+    authors:
+      - "Joseph Redmon"
+      - "Santosh Divvala"
+      - "Ross Girshick"
+      - "Ali Farhadi"
+    paper: "paper-2015-yolo-single-shot"
+    repo: "https://github.com/pjreddie/darknet"
+    framework: "darknet (C/CUDA)"
+    inputSize: [448, 448]
+    numClasses: 20
+    parameters: 62000000
+    backbone: "yolo-v1"
+    losses:
+      - "loss-coord-l2"
+      - "loss-object-l2"
+      - "loss-class-l2"
+      - "loss-noobject-l2"
+    metrics:
+      - metric: "metric-map-05"
+        dataset: "ds-pascal-voc-2007"
+        value: 63.4
+        inputSize: 448
+      - metric: "metric-fps"
+        value: 35
+        inputSize: 448
+      - metric: "metric-map-05"
+        dataset: "ds-pascal-voc-2012"
+        value: 67.5
+        inputSize: 448
+      - metric: "metric-map-05"
+        dataset: "ds-pascal-voc-2007-val"
+        value: 63.4
+    source:
+      - kind: paper
+        path: "papers/yolov1/2015-yolo-single-shot.md"
+        quote: "Detect objects using a single convolutional network"
+      - kind: code
+        path: "source/yolov1/snapshot/cfg/yolo.cfg"
+      - kind: commit
+        repo: "pjreddie/darknet"
+        commit: "8322a58"

@@ -1,0 +1,507 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agent-yolo.local/ontology/yolo-ontology.schema.json",
+  "title": "YOLO Series Ontology Schema",
+  "description": "自定义本体 Schema，按「论文 → 理论 → 实现 → 实战」四层闭环组织 YOLO 系列（v1–v12/11）。非 OWL/RDF，采用 JSON Schema 校验 YAML 实例文件。四层对应：L1 Paper（论文）/ L2 Concept（理论，知识点+创新点）/ L3 Layer+Loss+Trick+SourceFile（实现）/ L4 CaseStudy（实战）。",
+  "version": "0.2.0",
+  "author": "agent-yolo",
+  "lastUpdated": "2026-10-16",
+
+  "definitions": {
+
+    "Entity": {
+      "type": "object",
+      "required": ["id", "type", "name", "aliases"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "全局唯一 ID，kebab-case。例如 yolo-v1, layer-conv-3x256, loss-coord-l2。"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Model", "Layer", "Loss", "Trick", "Dataset", "Metric", "Paper", "SourceFile", "Author", "Task", "Benchmark", "Concept", "CaseStudy", "Family", "Evolution", "Timeline", "ExternalTechnique", "PainPoint"]
+        },
+        "name": {
+          "type": "string",
+          "description": "人类可读名称，允许中文。"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "别名列表，用于跨版本对齐（如 yolo_layer 在 v1 叫 detection_layer）。"
+        },
+        "description": {
+          "type": "string",
+          "description": "一句话摘要。"
+        },
+        "tags": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "source": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/SourceRef"},
+          "description": "证据来源（论文段落、代码文件行号、commit）。"
+        }
+      }
+    },
+
+    "SourceRef": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["paper", "code", "commit", "url", "note"]
+        },
+        "path": {"type": "string"},
+        "lines": {"type": "string", "description": "例如 123-145。"},
+        "commit": {"type": "string"},
+        "section": {"type": "string"},
+        "url": {"type": "string"},
+        "quote": {"type": "string"}
+      }
+    },
+
+    "Model": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Model"},
+        "version": {"type": "string", "description": "例如 v1, v5, v8, v11, v12。"},
+        "year": {"type": "integer"},
+        "authors": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/Ref"}
+        },
+        "paper": {"$ref": "#/definitions/Ref"},
+        "repo": {"type": "string", "description": "GitHub 仓库 URL。"},
+        "framework": {"type": "string", "description": "例如 darknet, ultralytics, torchvision。"},
+        "inputSize": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+        "numClasses": {"type": "integer"},
+        "parameters": {"type": "number"},
+        "flops": {"type": "number"},
+        "backbone": {"$ref": "#/definitions/Ref"},
+        "neck": {"$ref": "#/definitions/Ref"},
+        "head": {"$ref": "#/definitions/Ref"},
+        "losses": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/Ref"}
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["metric", "value"],
+            "properties": {
+              "metric": {"$ref": "#/definitions/Ref"},
+              "dataset": {"$ref": "#/definitions/Ref"},
+              "value": {"type": "number"},
+              "inputSize": {"type": "integer"}
+            }
+          }
+        }
+      },
+      "required": ["version", "year", "framework"]
+    },
+
+    "Layer": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Layer"},
+        "category": {
+          "type": "string",
+          "enum": ["conv", "pool", "fc", "activation", "norm", "shortcut", "upsample", "reorg", "route", "yolo_head", "detection_head", "anchor_head", "decoder", "other"]
+        },
+        "signature": {"type": "string", "description": "参数签名，例如 conv-3x256, fc-4096。"},
+        "inputChannels": {"type": "integer"},
+        "outputChannels": {"type": "integer"},
+        "kernel": {"type": "integer"},
+        "stride": {"type": "integer"},
+        "padding": {"type": "integer"},
+        "activation": {"type": "string"},
+        "firstVersionIntroduced": {"type": "string"},
+        "notes": {"type": "string"}
+      },
+      "required": ["category"]
+    },
+
+    "Loss": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Loss"},
+        "formula": {"type": "string", "description": "LaTeX 或伪代码。"},
+        "weight": {"type": "number", "description": "在整体损失中的缩放系数。"},
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["box", "objectness", "class", "noobject", "anchor", "pose", "seg"]
+          }
+        },
+        "firstVersionIntroduced": {"type": "string"}
+      },
+      "required": ["formula"]
+    },
+
+    "Trick": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Trick"},
+        "category": {
+          "type": "string",
+          "enum": ["training", "inference", "architecture", "loss_design", "data_aug", "regularization", "optimization", "quantization"]
+        },
+        "rationale": {"type": "string", "description": "为什么这样做。"},
+        "pros": {"type": "array", "items": {"type": "string"}},
+        "cons": {"type": "array", "items": {"type": "string"}},
+        "introducedIn": {"$ref": "#/definitions/Ref"}
+      },
+      "required": ["category", "rationale"]
+    },
+
+    "Dataset": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Dataset"},
+        "numClasses": {"type": "integer"},
+        "numImages": {"type": "integer"},
+        "yearIntroduced": {"type": "integer"},
+        "license": {"type": "string"},
+        "url": {"type": "string"},
+        "splitInfo": {"type": "string"}
+      },
+      "required": ["numClasses"]
+    },
+
+    "Metric": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Metric"},
+        "definition": {"type": "string"},
+        "range": {"type": "string", "description": "例如 [0,1] 或 [0,100]。"},
+        "higherIsBetter": {"type": "boolean"}
+      },
+      "required": ["definition"]
+    },
+
+    "Paper": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Paper"},
+        "arxivId": {"type": "string"},
+        "url": {"type": "string"},
+        "venue": {"type": "string"},
+        "year": {"type": "integer"},
+        "authors": {"type": "array", "items": {"type": "string"}},
+        "contributions": {"type": "array", "items": {"type": "string"}},
+        "abstractZh": {"type": "string", "description": "中文摘要（1-3 段）。"},
+        "motivation": {"type": "string", "description": "论文要解决的核心痛点。"},
+        "keyResults": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["year"]
+    },
+
+    "Concept": {
+      "description": "L2 理论层实体。对应论文中的一个知识点或创新点（例如『single-shot 统一检测为回归』『grid-based spatial decomposition』『sqrt=1 loss』）。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Concept"},
+        "kind": {
+          "type": "string",
+          "enum": ["motivation", "idea", "innovation", "design_choice", "failure_mode", "limitation", "assumption"]
+        },
+        "paper": {"$ref": "#/definitions/Ref"},
+        "summary": {"type": "string", "description": "2-4 句话讲清楚这个概念。"},
+        "formalDefinition": {"type": "string", "description": "公式/伪代码/数学表达，可选。"},
+        "whyItWorks": {"type": "string"},
+        "tradeoffs": {"type": "array", "items": {"type": "string"}},
+        "practicalImplication": {"type": "string", "description": "在实际落地时意味着什么。"},
+        "relatedConcepts": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["kind", "summary"]
+    },
+
+    "CaseStudy": {
+      "description": "L4 实战层实体。描述一个具体应用场景或实验案例，把模型/层/损失落到真实任务上。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "CaseStudy"},
+        "domain": {
+          "type": "string",
+          "enum": ["autonomous_driving", "industrial_inspection", "retail", "medical", "agronomy", "security", "robotics", "education", "edge_deployment", "server_inference", "custom"]
+        },
+        "task": {"type": "string"},
+        "modelsUsed": {"type": "array", "items": {"type": "string"}},
+        "datasetsUsed": {"type": "array", "items": {"type": "string"}},
+        "problem": {"type": "string"},
+        "solution": {"type": "string"},
+        "gotchas": {"type": "array", "items": {"type": "string"}, "description": "踩坑记录。"},
+        "results": {"type": "object"},
+        "reproduceLink": {"type": "string"}
+      },
+      "required": ["domain", "task", "problem", "solution"]
+    },
+
+    "Family": {
+      "description": "L0 全局层实体。描述一个模型家族（如 YOLO 系列、Darknet 框架），用于承载系列级演化视图。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Family"},
+        "yearRange": {
+          "type": "object",
+          "required": ["start", "end"],
+          "properties": {
+            "start": {"type": "integer"},
+            "end": {"type": "integer"}
+          }
+        },
+        "originModel": {"$ref": "#/definitions/Ref"},
+        "lineages": {
+          "type": "array",
+          "description": "家族内的分支谱系（主线 + 分叉）。每个 lineage 是 Model ID 的有序链。",
+          "items": {
+            "type": "object",
+            "required": ["name", "chain"],
+            "properties": {
+              "name": {"type": "string", "description": "分支名，例如 main-line、tiny-line、enterprise-line。"},
+              "chain": {"type": "array", "items": {"type": "string"}},
+              "note": {"type": "string"}
+            }
+          }
+        },
+        "keyThemes": {"type": "array", "items": {"type": "string"}, "description": "贯穿家族的关键主题（single-shot、anchor-free、decoupled head、CSPNeXt、EMA、NMS-free 等）。"},
+        "summary": {"type": "string"}
+      },
+      "required": ["originModel", "lineages"]
+    },
+
+    "Evolution": {
+      "description": "L0 全局层实体。描述一次演化事件：从哪个 Model 演化到哪个 Model，引入了什么 Concept/Trick/Layer/Loss，放弃了什么。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Evolution"},
+        "from": {"$ref": "#/definitions/Ref"},
+        "to": {"$ref": "#/definitions/Ref"},
+        "kind": {
+          "type": "string",
+          "enum": ["version_up", "fork", "converge", "variant", "revival", "abandon"]
+        },
+        "introduced": {
+          "type": "object",
+          "description": "本次演化引入的概念、层、损失、技巧。",
+          "properties": {
+            "concepts": {"type": "array", "items": {"type": "string"}},
+            "layers": {"type": "array", "items": {"type": "string"}},
+            "losses": {"type": "array", "items": {"type": "string"}},
+            "tricks": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "removed": {
+          "type": "object",
+          "properties": {
+            "concepts": {"type": "array", "items": {"type": "string"}},
+            "layers": {"type": "array", "items": {"type": "string"}},
+            "losses": {"type": "array", "items": {"type": "string"}},
+            "tricks": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "rationale": {"type": "string", "description": "为什么要演化。"},
+        "quantitativeDelta": {"type": "object", "description": "关键指标变化，例如 {\"mAP@0.5\": {\"from\": 63.4, \"to\": 68.8}}。"}
+      },
+      "required": ["from", "to", "kind", "rationale"]
+    },
+
+    "Timeline": {
+      "description": "L0 全局层实体。可选：按年份组织的 YOLO 系列时间线节点。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "Timeline"},
+        "scope": {"type": "string", "description": "例如 yolo-family-2015-2026。"},
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["year", "model"],
+            "properties": {
+              "year": {"type": "integer"},
+              "model": {"type": "string"},
+              "milestone": {"type": "string", "description": "该版本的一句话里程碑。"},
+              "notable": {"type": "boolean"}
+            }
+          }
+        }
+      },
+      "required": ["nodes"]
+    },
+
+    "ExternalTechnique": {
+      "description": "传统 CV 或非 YOLO 系的技术。用于描述 YOLO 继承、改造、抛弃的外部方法（如滑窗检测、HOG+SVM、DPM、Haar、Region Proposal、CaffeNet、NMS、RPN 等）。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "ExternalTechnique"},
+        "domain": {
+          "type": "string",
+          "enum": ["classical_cv", "early_dnn", "two_stage_detector", "region_proposal", "descriptor", "tracking", "segmentation", "nms_related", "other"]
+        },
+        "era": {"type": "string", "description": "时代标签，例如 pre-2012、2012-2015、2015-2018。"},
+        "representativeWork": {"type": "array", "items": {"type": "string"}, "description": "代表论文/方法名。"},
+        "strength": {"type": "string", "description": "该技术在什么场景强。"},
+        "weakness": {"type": "string", "description": "该技术的核心弱点。"},
+        "yoloRelation": {
+          "type": "string",
+          "enum": ["inherited", "extended", "replaced", "inspired", "rejected", "generalized"],
+          "description": "YOLO 与该技术的关系标签。"
+        },
+        "yoloRelationDetail": {"type": "string"}
+      },
+      "required": ["domain", "yoloRelation"]
+    },
+
+    "PainPoint": {
+      "description": "YOLO 系列在不同阶段要解决的痛点（精度不够、太慢、小目标弱、NMS 敏感、anchor 敏感、小样本弱等）。",
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "PainPoint"},
+        "symptom": {"type": "string", "description": "表现形式（如 miss rate 高、FPS < 10、小目标召回差）。"},
+        "rootCause": {"type": "string"},
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "affectedVersions": {"type": "array", "items": {"type": "string"}},
+        "attempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["attempt", "solved"],
+            "properties": {
+              "attempt": {"type": "string", "description": "尝试的解决方案 ID（指向 Concept/Trick/Loss）。"},
+              "solved": {"type": "boolean"},
+              "versionIntroduced": {"type": "string"}
+            }
+          }
+        }
+      },
+      "required": ["symptom", "severity"]
+    },
+
+    "SourceFile": {
+      "allOf": [{"$ref": "#/definitions/Entity"}],
+      "type": "object",
+      "properties": {
+        "type": {"const": "SourceFile"},
+        "path": {"type": "string", "description": "相对 snapshot 根目录的路径。"},
+        "language": {"type": "string"},
+        "role": {
+          "type": "string",
+          "enum": ["entrypoint", "layer_impl", "loss_impl", "data_loader", "network_core", "util", "config", "other"]
+        },
+        "keySymbols": {"type": "array", "items": {"type": "string"}},
+        "commit": {"type": "string"}
+      },
+      "required": ["path", "language"]
+    },
+
+    "Ref": {
+      "description": "跨实体引用。支持 ID 或 ID 列表，避免深层嵌套。",
+      "oneOf": [
+        {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        {"type": "array", "items": {"type": "string"}}
+      ]
+    },
+
+    "Relation": {
+      "type": "object",
+      "required": ["subject", "predicate", "object"],
+      "properties": {
+        "subject": {"type": "string"},
+        "predicate": {
+          "type": "string",
+          "enum": [
+            "hasLayer", "usesLoss", "usesTrick", "evaluatedOn", "measuredBy",
+            "derivedFrom", "supersedes", "outperforms", "cites", "implements",
+            "referencedByCode", "introducedIn", "relatedTo",
+            "inspiredBy", "elaborates", "manifestsIn", "appliedIn",
+            "evolvesTo", "forksFrom", "convergesWith", "isVariantOf", "originOf",
+            "inheritsFrom", "generalizes", "supersedes_technique", "inspired_by_technique",
+            "solvesPainPoint", "exacerbatesPainPoint", "tradesOff"
+          ]
+        },
+        "object": {"type": "string"},
+        "weight": {"type": "number"},
+        "note": {"type": "string"}
+      }
+    },
+
+    "OntologyFile": {
+      "type": "object",
+      "required": ["meta"],
+      "properties": {
+        "meta": {
+          "type": "object",
+          "required": ["version", "schemaVersion"],
+          "properties": {
+            "version": {"type": "string"},
+            "schemaVersion": {"type": "string"},
+            "description": {"type": "string"},
+            "lastUpdated": {"type": "string"}
+          }
+        }
+      }
+    }
+  },
+
+  "entityTypes": {
+    "Model": "YOLO 模型家族中的一个具体版本（v1, v2, v3-tiny, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12 等）。",
+    "Layer": "网络结构中的算子/层类型（conv, fc, conv-with-anchor, decoupled-head 等），跨版本可复用同一 Layer 定义。",
+    "Loss": "损失函数（L1, CIoU, Focal, DFL, Varifocal, NWD 等）。",
+    "Trick": "训练/推理/架构技巧（sqrt=1, multi-scale training, Mosaic, EVA, SAM, C2f 等）。",
+    "Dataset": "训练/评估数据集（VOC2007, VOC2012, COCO 等）。",
+    "Metric": "指标（mAP@0.5, mAP@0.5:0.95, FPS 等）。",
+    "Paper": "相关论文。",
+    "SourceFile": "源码文件（用于把本体挂到实际代码行）。",
+    "Author": "作者/机构。",
+    "Task": "任务（Object Detection, Segmentation 等）。",
+    "Benchmark": "基准测试。"
+  },
+
+  "relationTypes": {
+    "hasLayer": "Model → Layer（模型使用了某类层）。",
+    "usesLoss": "Model → Loss（模型使用某损失）。",
+    "usesTrick": "Model → Trick。",
+    "evaluatedOn": "Model → Dataset。",
+    "measuredBy": "Model → Metric。",
+    "derivedFrom": "Model → Model（版本演化链）。",
+    "supersedes": "Model → Model（新版本取代旧版本，语义比 derivedFrom 更强）。",
+    "outperforms": "Model → Model（性能对比，可带 weight 字段填 delta）。",
+    "cites": "Paper → Paper。",
+    "implements": "SourceFile → Layer | Loss（源码实现了某个层/损失）。",
+    "referencedByCode": "Model | Layer | Loss → SourceFile（本体概念指向具体源码）。",
+    "introducedIn": "Layer | Trick | Loss → Model（首次出现的版本）。",
+    "relatedTo": "任意 → 任意（弱关联，用于补充信息）。"
+  },
+
+  "conventions": {
+    "idNaming": "kebab-case，前缀与 type 对应：Model=yolo-v*, Layer=layer-*, Loss=loss-*, Trick=trick-*, Dataset=ds-*, Metric=metric-*, Paper=paper-*, SourceFile=src-*。",
+    "dateFormat": "ISO 8601: YYYY-MM-DD。",
+    "versionNotation": "统一 yolo-vN，其中 N 是整数或整数+后缀（v3-tiny, v3-spp）。",
+    "metricUnit": "mAP 用 [0,100] 百分制，除非显式说明。FPS 为每批 1 张的实测值。",
+    "lineReference": "源码引用使用绝对 file:/// 或相对 snapshot/ 路径，附行号范围。",
+    "language": "所有自然语言描述使用中文；标识符、公式、代码保留英文/原符号。"
+  }
+}

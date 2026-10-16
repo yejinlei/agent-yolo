@@ -1,0 +1,102 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 快照的核心源码文件清单，用于把本体概念锚定到代码行。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: src-yolo-cfg
+    type: SourceFile
+    name: "yolo.cfg"
+    path: "cfg/yolo.cfg"
+    language: "cfg"
+    role: "config"
+    keySymbols:
+      - "[net] width=448 height=448"
+      - "[convolutional] size=7 stride=2 filters=64"
+      - "[connected] size=4096"
+      - "[dropout] probabilities=0.25"
+      - "[connected] size=1470"
+      - "[detection] classes=20 side=7 num=2 sqrt=1 jitter=.2"
+      - "coord_scale=5 noobject_scale=.5"
+    commit: "8322a58"
+
+  - id: src-detection-layer-c
+    type: SourceFile
+    name: "detection_layer.c"
+    path: "src/detection_layer.c"
+    language: "c"
+    role: "loss_impl"
+    keySymbols:
+      - "make_detection_layer"
+      - "forward_detection_layer"
+      - "backward_detection_layer"
+      - "l.sqrt"
+      - "l.noobject_scale"
+      - "l.coord_scale"
+      - "l.count < 100000"
+    commit: "8322a58"
+
+  - id: src-yolo-c
+    type: SourceFile
+    name: "yolo.c"
+    path: "src/yolo.c"
+    language: "c"
+    role: "entrypoint"
+    keySymbols:
+      - "train_yolo"
+      - "validate_yolo"
+      - "convert_yolo_detections"
+      - "load_args.type = REGION_DATA"
+      - "classes[] VOC 20 类名"
+    commit: "8322a58"
+
+  - id: src-box-c
+    type: SourceFile
+    name: "box.c"
+    path: "src/box.c"
+    language: "c"
+    role: "util"
+    keySymbols:
+      - "box_iou"
+      - "box_rmse"
+      - "diou"
+      - "dintersect"
+      - "dunion"
+      - "do_nms_sort"
+    commit: "8322a58"
+
+  - id: src-data-c
+    type: SourceFile
+    name: "data.c"
+    path: "src/data.c"
+    language: "c"
+    role: "data_loader"
+    keySymbols:
+      - "load_data_detection"
+      - "random_distort"
+      - "load_args.type"
+    commit: "8322a58"
+
+  - id: src-network-c
+    type: SourceFile
+    name: "network.c"
+    path: "src/network.c"
+    language: "c"
+    role: "network_core"
+    keySymbols:
+      - "get_network"
+      - "load_network"
+      - "forward_network"
+    commit: "8322a58"
+
+  - id: src-parser-c
+    type: SourceFile
+    name: "parser.c"
+    path: "src/parser.c"
+    language: "c"
+    role: "util"
+    keySymbols:
+      - "parse_network_options"
+      - "parse_data"
+    commit: "8322a58"

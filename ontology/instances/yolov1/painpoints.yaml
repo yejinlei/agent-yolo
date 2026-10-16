@@ -1,0 +1,90 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 面临/暴露的痛点，跨版本追踪其被后续版本的解决尝试。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: pain-small-object-recall
+    type: PainPoint
+    name: "小目标召回差"
+    symptom: "7×7 grid 分辨率不足以覆盖小目标，mIoU<0.5 时 miss rate 高"
+    rootCause: "grid cell 数量固定为 49，每个 cell 感受野过大，小目标信息被下采样丢弃"
+    severity: "critical"
+    affectedVersions: ["v1"]
+    attempts:
+      - attempt: "concept-multi-scale-training"
+        solved: false
+        versionIntroduced: "v3"
+      - attempt: "trick-fpn-neck"
+        solved: true
+        versionIntroduced: "v3"
+      - attempt: "trick-p2-small-anchor"
+        solved: true
+        versionIntroduced: "v7"
+
+  - id: pain-boundary-box-accuracy
+    type: PainPoint
+    name: "边界框定位粗糙"
+    symptom: "mAP@0.75 相比 Faster R-CNN 明显下降"
+    rootCause: "无 anchor 先验 + IoU-based loss 收敛慢 + 无 CIoU/GIoU 引导"
+    severity: "high"
+    affectedVersions: ["v1", "v2"]
+    attempts:
+      - attempt: "trick-anchor-introduction"
+        solved: true
+        versionIntroduced: "v2"
+      - attempt: "loss-ciou"
+        solved: true
+        versionIntroduced: "v4"
+
+  - id: pain-similar-shape
+    type: PainPoint
+    name: "相似形状不同类物体难以区分"
+    symptom: "zebra vs horse、motorcycle vs bicycle 混淆率高"
+    rootCause: "每格 2 box 且共享类别，无法用形状差异做细分类"
+    severity: "medium"
+    affectedVersions: ["v1"]
+    attempts:
+      - attempt: "trick-anchor-introduction"
+        solved: true
+        versionIntroduced: "v2"
+
+  - id: pain-nms-threshold-sensitive
+    type: PainPoint
+    name: "NMS 阈值敏感"
+    symptom: "IoU 从 0.4 到 0.6 时 mAP 波动 1-2 个点"
+    rootCause: "NMS 用硬阈值，无法表达『框重叠但不完全重复』的软关系"
+    severity: "medium"
+    affectedVersions: ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9"]
+    attempts:
+      - attempt: "trick-nms-free"
+        solved: true
+        versionIntroduced: "v10"
+      - attempt: "loss-nas-nms"
+        solved: false
+        versionIntroduced: "v10"
+
+  - id: pain-anchor-sensitive
+    type: PainPoint
+    name: "Anchor 敏感性"
+    symptom: "不同数据集需要重新聚类 anchor"
+    rootCause: "anchor 尺寸/数量是手工设定的先验，不同场景先验不匹配"
+    severity: "medium"
+    affectedVersions: ["v2", "v3", "v4", "v5", "v6", "v7", "v8"]
+    attempts:
+      - attempt: "concept-anchor-free"
+        solved: true
+        versionIntroduced: "v8"
+
+  - id: pain-two-stage-latency
+    type: PainPoint
+    name: "两阶段方法太慢"
+    symptom: "R-CNN 47s/img, Faster R-CNN 0.14s/img"
+    rootCause: "区域提议 + 分类两个独立阶段，串行且冗余"
+    severity: "critical"
+    affectedVersions: ["pre-yolo"]
+    attempts:
+      - attempt: "concept-single-shot"
+        solved: true
+        versionIntroduced: "v1"

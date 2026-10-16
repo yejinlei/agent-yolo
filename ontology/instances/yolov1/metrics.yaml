@@ -1,0 +1,35 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLO 系列通用指标。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: metric-map-05
+    type: Metric
+    name: "mAP@0.5"
+    aliases: ["mean Average Precision", "AP50"]
+    definition: "在所有类别上按 IoU 阈值 0.5 计算 AP 的均值。"
+    range: "[0,100]"
+    higherIsBetter: true
+
+  - id: metric-map-05095
+    type: Metric
+    name: "mAP@0.5:0.95"
+    definition: "IoU 阈值从 0.5 到 0.95 步进 0.05，取 AP 均值。COCO 官方指标。"
+    range: "[0,100]"
+    higherIsBetter: true
+
+  - id: metric-fps
+    type: Metric
+    name: "FPS"
+    definition: "每秒推理帧数（batch=1，单张图）。"
+    range: "[0,∞)"
+    higherIsBetter: true
+
+  - id: metric-recall-05
+    type: Metric
+    name: "Recall@0.5"
+    definition: "IoU 阈值 0.5 下的检测召回率。"
+    range: "[0,100]"
+    higherIsBetter: true

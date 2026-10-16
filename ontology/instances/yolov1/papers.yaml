@@ -1,0 +1,77 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 相关论文及前置背景论文。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: paper-2015-yolo-single-shot
+    type: Paper
+    name: "You Only Look Once: Unified, Real-Time Object Detection"
+    aliases: ["YOLO paper", "YOLOv1 paper"]
+    arxivId: "1506.02640"
+    url: "https://arxiv.org/abs/1506.02640"
+    venue: "ECCV 2016"
+    year: 2015
+    authors:
+      - "Joseph Redmon"
+      - "Santosh Divvala"
+      - "Ross Girshick"
+      - "Ali Farhadi"
+    abstractZh: |
+      我们提出了 YOLO（You Only Look Once）——一种全新的目标检测方法。
+      相比传统方法将检测建模为区域提议 + 分类的两阶段流程，YOLO 将检测
+      重新建模为单次前向的回归问题：一张图过一次卷积网络，直接输出所有
+      目标的位置 (x,y,w,h)、置信度和类别。
+      这种全局建模让 YOLO 能利用整张图的全局上下文，且推理速度显著高于
+      R-CNN 系（90 FPS vs 0.5 FPS）与 Faster R-CNN（45 FPS vs 7 FPS）。
+      YOLO9000 版本扩展到 9000+ 类仍保持 45 FPS。
+    motivation: "两阶段检测器（R-CNN/Faster R-CNN）精度虽高但太慢，无法满足实时应用；且区域提议阶段丢失了整图全局上下文。"
+    contributions:
+      - "提出 single-shot 端到端检测范式"
+      - "把目标检测重新建模为单一回归问题"
+      - "网格化空间分解 + 每格 2 box"
+      - "置信度 = P(Object)·IoU 的联合建模"
+      - "在 VOC 2007 达到 63.4 mAP，超过此前的 Faster R-CNN"
+    keyResults:
+      - "VOC2007 mAP@0.5 = 63.4, FPS = 35（448 输入）"
+      - "VOC2007 mAP@0.5 = 58.4, FPS = 155（224 输入，超实时）"
+      - "YOLO9000: ImageNet 9000 类 mAP@0.5 = 48.3 on VOC2007 (50 FPS)"
+    source:
+      - kind: url
+        url: "https://arxiv.org/pdf/1506.02640.pdf"
+
+  - id: paper-2014-fastrcnn
+    type: Paper
+    name: "Fast R-CNN"
+    arxivId: "1412.6980"
+    url: "https://arxiv.org/abs/1412.6980"
+    venue: "ICCV 2015"
+    year: 2014
+    authors: ["Ross Girshick", "Jeffrey Donahue", "Trevor Darrell", "Pj Reineck"]
+    abstractZh: "提出将区域提议和检测统一到一个网络里，一次前向出分类和回归结果。仍依赖外部的 Selective Search 生成候选区域。"
+    motivation: "把 R-CNN 的两阶段流程压缩到一次前向，加快推理。"
+    contributions: ["把检测建模为 region-wise softmax", "提出 RoI Pooling"]
+
+  - id: paper-2015-fasterrcnn
+    type: Paper
+    name: "Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks"
+    arxivId: "1506.01497"
+    url: "https://arxiv.org/abs/1506.01497"
+    venue: "NeurIPS 2015"
+    year: 2015
+    authors: ["Shaoqing Ren", "Kaiming He", "Ross Girshick", "Jian Sun"]
+    abstractZh: "引入 Region Proposal Network (RPN) 让候选区域生成端到端可训练，进一步加速两阶段检测器。"
+    motivation: "去掉外部分割模块，让整个检测器端到端可训。"
+    contributions: ["RPN 生成候选区域", "RPN 与检测头共享 backbone"]
+
+  - id: paper-2014-googlenet
+    type: Paper
+    name: "Going Deeper with Convolutions (GoogLeNet/Inception v1)"
+    arxivId: "1409.4842"
+    url: "https://arxiv.org/abs/1409.4842"
+    venue: "CVPR 2015"
+    year: 2014
+    authors: ["Christian Szegedy", "Wei Liu", "Yangqing Jia", "Sergey Reed", "et al."]
+    abstractZh: "提出 Inception 模块用不同尺寸卷积并行抽取特征，ImageNet 冠军。"
+    contributions: ["Inception 模块", "深度网络工程实践"]

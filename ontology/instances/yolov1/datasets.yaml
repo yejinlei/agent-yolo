@@ -1,0 +1,36 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 用到/评估的数据集。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: ds-pascal-voc-2007
+    type: Dataset
+    name: "Pascal VOC 2007"
+    numClasses: 20
+    numImages: 8115
+    yearIntroduced: 2007
+    license: "CC BY-NC-SA 2.0"
+    url: "http://host.robots.ox.ac.uk/pascal/VOC/voc2007/"
+    splitInfo: "trainval 5011, test 2000, val 1109"
+
+  - id: ds-pascal-voc-2012
+    type: Dataset
+    name: "Pascal VOC 2012"
+    numClasses: 20
+    numImages: 11540
+    yearIntroduced: 2012
+    license: "CC BY-NC-SA 2.0"
+    url: "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/"
+    splitInfo: "trainval 10624, test 2500"
+
+  - id: ds-imagenet-2012
+    type: Dataset
+    name: "ImageNet ILSVRC 2012"
+    numClasses: 1000
+    numImages: 12000000
+    yearIntroduced: 2012
+    license: "商用需授权"
+    url: "http://image-net.org/"
+    splitInfo: "train 1281167, val 50000"

@@ -1,0 +1,236 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 内部/跨体系的关系边。边数量多，是本体从实体清单变为知识图谱的关键。"
+  lastUpdated: "2026-10-16"
+
+relations:
+  # ========== L1 论文 → L2 理论（inspiredBy / elaborates） ==========
+  - subject: "concept-single-shot"
+    predicate: "elaborates"
+    object: "paper-2015-yolo-single-shot"
+
+  - subject: "concept-grid-spatial-decomposition"
+    predicate: "elaborates"
+    object: "paper-2015-yolo-single-shot"
+
+  - subject: "concept-confidence-as-poc"
+    predicate: "elaborates"
+    object: "paper-2015-yolo-single-shot"
+
+  - subject: "concept-balance-loss"
+    predicate: "elaborates"
+    object: "paper-2015-yolo-single-shot"
+
+  # ========== L2 理论 → L3 实现（manifestsIn / appliesTo） ==========
+  - subject: "concept-grid-spatial-decomposition"
+    predicate: "manifestsIn"
+    object: "layer-detection-v1"
+    note: "side=7, num=2 参数直接把 grid 思想映射到 detection_layer。"
+
+  - subject: "concept-sqrt-loss"
+    predicate: "manifestsIn"
+    object: "loss-coord-l2"
+    note: "loss 内部对 w,h 做 pow(..., 0.5) 反向编码。"
+
+  - subject: "concept-balance-loss"
+    predicate: "manifestsIn"
+    object: "loss-coord-l2"
+
+  - subject: "concept-balance-loss"
+    predicate: "manifestsIn"
+    object: "loss-noobject-l2"
+
+  - subject: "concept-confidence-as-poc"
+    predicate: "manifestsIn"
+    object: "loss-rescore-objectness"
+
+  # ========== L3 层/损失 → 源码（referencedByCode / implements） ==========
+  - subject: "layer-detection-v1"
+    predicate: "referencedByCode"
+    object: "src-detection-layer-c"
+
+  - subject: "layer-fc-1470"
+    predicate: "referencedByCode"
+    object: "src-yolo-cfg"
+
+  - subject: "loss-coord-l2"
+    predicate: "referencedByCode"
+    object: "src-detection-layer-c"
+    lines: "101-105"
+
+  - subject: "loss-rescore-objectness"
+    predicate: "referencedByCode"
+    object: "src-detection-layer-c"
+    lines: "85-88"
+
+  - subject: "src-detection-layer-c"
+    predicate: "implements"
+    object: "layer-detection-v1"
+
+  # ========== Model 组装 ==========
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-conv-7x64"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-conv-3x256"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-conv-5x512"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-conv-1x1024"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-fc-4096"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-dropout-025"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-fc-1470"
+
+  - subject: "yolo-v1"
+    predicate: "hasLayer"
+    object: "layer-detection-v1"
+
+  - subject: "yolo-v1"
+    predicate: "usesLoss"
+    object: "loss-coord-l2"
+
+  - subject: "yolo-v1"
+    predicate: "usesLoss"
+    object: "loss-box-iou-l2"
+
+  - subject: "yolo-v1"
+    predicate: "usesLoss"
+    object: "loss-object-l2"
+
+  - subject: "yolo-v1"
+    predicate: "usesLoss"
+    object: "loss-noobject-l2"
+
+  - subject: "yolo-v1"
+    predicate: "usesLoss"
+    object: "loss-class-l2"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-sqrt-one"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-loss-weight-balance"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-random-best-index"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-region-jitter"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-dropout-fc"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-nms-iou05"
+
+  - subject: "yolo-v1"
+    predicate: "usesTrick"
+    object: "trick-pretrained-from-imagenet"
+
+  # ========== Model → Dataset / Metric ==========
+  - subject: "yolo-v1"
+    predicate: "evaluatedOn"
+    object: "ds-pascal-voc-2007"
+
+  - subject: "yolo-v1"
+    predicate: "evaluatedOn"
+    object: "ds-pascal-voc-2012"
+
+  - subject: "yolo-v1"
+    predicate: "measuredBy"
+    object: "metric-map-05"
+
+  - subject: "yolo-v1"
+    predicate: "measuredBy"
+    object: "metric-fps"
+
+  # ========== 论文引用 ==========
+  - subject: "paper-2015-yolo-single-shot"
+    predicate: "cites"
+    object: "paper-2014-fasterrcnn"
+
+  - subject: "paper-2015-yolo-single-shot"
+    predicate: "cites"
+    object: "paper-2014-fastrcnn"
+
+  - subject: "paper-2015-yolo-single-shot"
+    predicate: "cites"
+    object: "paper-2014-googlenet"
+
+  # ========== 外部技术（传统 CV）继承/替代 ==========
+  - subject: "concept-single-shot"
+    predicate: "inheritsFrom"
+    object: "ext-technique-rcnn"
+    note: "保留『候选框 + 分类回归』的建模，但把区域提议合并到 grid。"
+
+  - subject: "yolo-v1"
+    predicate: "supersedes_technique"
+    object: "ext-technique-sliding-window"
+
+  - subject: "yolo-v1"
+    predicate: "supersedes_technique"
+    object: "ext-technique-hog-svm"
+
+  - subject: "yolo-v1"
+    predicate: "supersedes_technique"
+    object: "ext-technique-dpm"
+
+  - subject: "yolo-v1"
+    predicate: "inspired_by_technique"
+    object: "ext-technique-fasterrcnn-rpn"
+    note: "RPN 的 anchor 思想直接影响了 YOLOv2。"
+
+  - subject: "yolo-v1"
+    predicate: "inheritsFrom"
+    object: "ext-technique-nms"
+
+  - subject: "yolo-v1"
+    predicate: "inheritsFrom"
+    object: "ext-technique-alexnet"
+    note: "24 层 backbone 是 AlexNet 变体。"
+
+  # ========== 痛点闭环 ==========
+  - subject: "pain-two-stage-latency"
+    predicate: "solvesPainPoint"
+    object: "concept-single-shot"
+    note: "v1 的核心动机就是解决两阶段太慢。"
+
+  - subject: "pain-small-object-recall"
+    predicate: "exacerbatesPainPoint"
+    object: "concept-grid-spatial-decomposition"
+    note: "grid 化分解在提速的同时牺牲了小目标召回。"
+
+  - subject: "pain-boundary-box-accuracy"
+    predicate: "exacerbatesPainPoint"
+    object: "concept-grid-spatial-decomposition"
+
+  - subject: "pain-similar-shape"
+    predicate: "exacerbatesPainPoint"
+    object: "concept-multi-box-per-cell"
+
+  - subject: "pain-nms-threshold-sensitive"
+    predicate: "solvesPainPoint"
+    object: "concept-confidence-as-poc"
+    note: "confidence 建模 IoU 让 NMS 排序更稳，但未彻底解决。"

@@ -1,0 +1,115 @@
+meta:
+  version: "yolo-global"
+  schemaVersion: "0.3.0"
+  description: "YOLO 系列家族总览。跨版本演化视图，是 global 视角的入口。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: family-yolo
+    type: Family
+    name: "YOLO 系列"
+    aliases: ["You Only Look Once family", "YOLO family"]
+    yearRange:
+      start: 2015
+      end: 2026
+    originModel: "yolo-v1"
+    summary: "从 2015 年 single-shot 端到端检测开始，历经 12+ 个版本演进，形成 anchor-based、anchor-free、deformable-attention-based 三大技术主线。"
+    keyThemes:
+      - "single-shot"
+      - "anchor-based"
+      - "anchor-free"
+      - "multi-scale neck (FPN/PAFPN/BiFPN)"
+      - "CSP 结构"
+      - "decoupled head"
+      - "CIoU / Focal / DFL / Varifocal loss"
+      - "SPP 空间金字塔"
+      - "Transformer backbone (YOLOv7-EVA, v10)"
+      - "NMS-free"
+      - "EMA (v11)"
+    lineages:
+      - name: "main-line"
+        chain:
+          - "yolo-v1"
+          - "yolo-v2"
+          - "yolo-v3"
+          - "yolo-v4"
+          - "yolo-v5"
+          - "yolo-v6"
+          - "yolo-v7"
+          - "yolo-v8"
+          - "yolo-v9"
+          - "yolo-v10"
+          - "yolo-v11"
+          - "yolo-v12"
+        note: "主线版本按 arXiv/论文顺序编号，v5+ 由 Ultralytics 主导，v6/v7 由商汤/Megvii 与 Wang 主导。"
+      - name: "tiny-line"
+        chain:
+          - "yolo-v2-tiny"
+          - "yolo-v3-tiny"
+          - "yolo-v4-tiny"
+          - "yolo-v5n"
+          - "yolo-v8n"
+          - "yolo-v11n"
+          - "yolo-v12n"
+        note: "移动端/边缘部署线，追求参数量最小。"
+      - name: "spp-line"
+        chain:
+          - "yolo-v3-spp"
+        note: "引入 SPP 的分支版本，未纳入主线命名。"
+      - name: "enterprise-line"
+        chain:
+          - "yolo-v9"
+          - "yolo-v10"
+        note: "学术单位主导（CWI、THU-MIG），强调精度/推理延迟双优化。"
+
+  - id: timeline-yolo-2015-2026
+    type: Timeline
+    name: "YOLO 系列时间线 (2015-2026)"
+    scope: "yolo-family-2015-2026"
+    nodes:
+      - year: 2015
+        model: "yolo-v1"
+        milestone: "首个 single-shot 端到端检测器，35 FPS"
+        notable: true
+      - year: 2017
+        model: "yolo-v2"
+        milestone: "引入 anchor + BatchNorm + passthrough 层"
+        notable: true
+      - year: 2018
+        model: "yolo-v3"
+        milestone: "首次引入多尺度 FPN，COCO 83.5 FPS"
+        notable: true
+      - year: 2020
+        model: "yolo-v4"
+        milestone: "综合 Mosaic/SPP/CIoU/DPN/WAM，Kaggle 冠军"
+        notable: true
+      - year: 2020
+        model: "yolo-v5"
+        milestone: "Ultralytics 开源，Python/PyTorch 生态崛起"
+        notable: true
+      - year: 2022
+        model: "yolo-v6"
+        milestone: "Megvii 出品，Reparameterization + EP2P 两阶段训练"
+      - year: 2022
+        model: "yolo-v7"
+        milestone: "Model Scaling，正交一致性损失"
+      - year: 2023
+        model: "yolo-v8"
+        milestone: "Anchor-free + Decoupled Head + C2f，成为新默认"
+        notable: true
+      - year: 2024
+        model: "yolo-v9"
+        milestone: "PGT 程序引导回归 + GELAN 架构"
+      - year: 2024
+        model: "yolo-v10"
+        milestone: "NMS-free 端到端，一阶段检测器"
+        notable: true
+      - year: 2024
+        model: "yolo-v11"
+        milestone: "EMA 高效模型架构 + C3k2 块"
+      - year: 2025
+        model: "yolo-v12"
+        milestone: "Global Attention + Spatial Attention，超越 v11 精度"
+      - year: 2026
+        model: "yolo-next-generation"
+        milestone: "（预留）YOLO 系列最新进展跟踪"

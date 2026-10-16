@@ -1,0 +1,129 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 与传统 CV / 早期 DNN 技术的关系（继承、改造、抛弃）。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: ext-technique-sliding-window
+    type: ExternalTechnique
+    name: "滑动窗口检测 (Sliding Window)"
+    domain: "classical_cv"
+    era: "pre-2012"
+    representativeWork:
+      - "Viola-Jones Haar Cascade (2001)"
+      - "Multiple Instance Learning (2003)"
+    strength: "简单、无需区域提议模型"
+    weakness: "计算量大（O(grid × size × scale × class)），窗口间冗余计算严重"
+    yoloRelation: "replaced"
+    yoloRelationDetail: "YOLO 的 grid cell 相当于一次全图的『并行滑窗』，用卷积的权重共享替代窗口遍历，从 O(N) 窗口扫描变成一次卷积。"
+
+  - id: ext-technique-hog-svm
+    type: ExternalTechnique
+    name: "HOG + SVM 行人检测"
+    domain: "descriptor"
+    era: "pre-2012"
+    representativeWork:
+      - "Dalal & Triggs (2005) HOG descriptor"
+    strength: "在行人检测上表现稳定"
+    weakness: "特征手工设计，泛化能力有限"
+    yoloRelation: "replaced"
+    yoloRelationDetail: "YOLO 用 CNN 端到端学特征，不再依赖手工设计。"
+
+  - id: ext-technique-dpm
+    type: ExternalTechnique
+    name: "Deformable Parts Model (DPM)"
+    domain: "classical_cv"
+    era: "2010-2013"
+    representativeWork:
+      - "Fergus et al. (2010)"
+    strength: "PASCAL VOC 2007 冠军 (HOG-DPM)"
+    weakness: "速度慢，特征仍是 HOG"
+    yoloRelation: "replaced"
+    yoloRelationDetail: "DPM 是 YOLO 之前最强的 CV 方法，YOLO 直接用 CNN 端到端替代整个流程。"
+
+  - id: ext-technique-rcnn
+    type: ExternalTechnique
+    name: "R-CNN 两阶段检测"
+    domain: "two_stage_detector"
+    era: "2014-2015"
+    representativeWork:
+      - "Girshick et al. (2014) R-CNN"
+      - "Girshick et al. (2014) Fast R-CNN"
+    strength: "引入了 CNN 特征到检测，精度大幅提升"
+    weakness: "依赖 Selective Search 生成 2k 候选框，每张图耗时 47s (R-CNN)"
+    yoloRelation: "generalized"
+    yoloRelationDetail: "YOLO 保留『对每个候选框回归 + 分类』的思想，但把候选框生成合并到 grid cell，去掉独立的区域提议阶段。"
+
+  - id: ext-technique-fasterrcnn-rpn
+    type: ExternalTechnique
+    name: "Faster R-CNN + RPN"
+    domain: "two_stage_detector"
+    era: "2015-2017"
+    representativeWork:
+      - "Ren et al. (2015) Faster R-CNN"
+    strength: "端到端训练，7 FPS 已经接近实时"
+    weakness: "两阶段设计依然存在，anchor 依赖大"
+    yoloRelation: "supersedes_technique"
+    yoloRelationDetail: "RPN 提出的 anchor 概念直接被 YOLOv2 采纳（yolo_layer 的 anchors），但 YOLO 依然用 single-shot 消除第二阶段。"
+
+  - id: ext-technique-anchor-grid
+    type: ExternalTechnique
+    name: "Anchor-based 检测"
+    domain: "two_stage_detector"
+    era: "2015-2018"
+    representativeWork:
+      - "Faster R-CNN (2015)"
+      - "YOLOv2 (2017) 首次引入"
+    strength: "预定义多个宽高比 anchor，定位更准"
+    weakness: "anchor 数量、尺寸、比例敏感"
+    yoloRelation: "inspired"
+    yoloRelationDetail: "RPN 是 anchor 的鼻祖，YOLOv1 没有 anchor（每格 2 box 是硬编码），v2 起正式引入 anchor。"
+
+  - id: ext-technique-nms
+    type: ExternalTechnique
+    name: "非极大值抑制 NMS"
+    domain: "nms_related"
+    era: "pre-2012"
+    representativeWork:
+      - "Jain & Georghiou (1987) 原始 NMS"
+    strength: "去掉重复框，简单有效"
+    weakness: "阈值敏感、后处理耗时、小目标重叠时会误删"
+    yoloRelation: "inherited"
+    yoloRelationDetail: "YOLOv1 沿用传统 NMS（IoU=0.5），但 confidence 分支里显式建模 IoU 让排序更抗 NMS 抖动。v10/v11 探索 NMS-free。"
+
+  - id: ext-technique-googlenet-inception
+    type: ExternalTechnique
+    name: "Inception / GoogLeNet"
+    domain: "early_dnn"
+    era: "2014-2015"
+    representativeWork:
+      - "Szegedy et al. (2014) GoogLeNet"
+    strength: "22 层深度网络的工程实践，ImageNet 冠军"
+    weakness: "参数量大"
+    yoloRelation: "inherited"
+    yoloRelationDetail: "YOLOv1 的 backbone 是 AlexNet 变体（24 层），不是 Inception，但整个『用深度 CNN 做检测 backbone』的范式受 GoogLeNet 启发。"
+
+  - id: ext-technique-alexnet
+    type: ExternalTechnique
+    name: "AlexNet"
+    domain: "early_dnn"
+    era: "2012-2014"
+    representativeWork:
+      - "Krizhevsky, Sutskever, Hinton (2012)"
+    strength: "ImageNet 冠军，CNN 时代的起点"
+    weakness: "22 层，参数量大"
+    yoloRelation: "extended"
+    yoloRelationDetail: "YOLOv1 的 24 层 backbone 是 AlexNet 的变体（第一层 7×7 stride 2 + LReLU，去掉 BN），并在末尾插入检测头。"
+
+  - id: ext-technique-region-proposal
+    type: ExternalTechnique
+    name: "Region Proposal (Selective Search)"
+    domain: "region_proposal"
+    era: "2013-2014"
+    representativeWork:
+      - "Uijlings et al. (2013) Selective Search"
+    strength: "生成 2k 高质量候选框"
+    weakness: "每张图 0.2-0.5 秒，是两阶段检测的最大瓶颈"
+    yoloRelation: "rejected"
+    yoloRelationDetail: "YOLO 直接放弃外部区域提议，让网络同时学 proposal 和 classification。"

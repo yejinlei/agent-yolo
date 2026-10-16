@@ -1,0 +1,86 @@
+meta:
+  version: "yolo-v1"
+  schemaVersion: "0.3.0"
+  description: "YOLOv1 损失函数家族。全部基于 L2，权重 5/1/1/0.5。"
+  lastUpdated: "2026-10-16"
+
+entities:
+  - id: loss-coord-l2
+    type: Loss
+    name: "坐标回归 L2 (sqrt)"
+    aliases: ["box_rmse", "coord loss"]
+    formula: "L_coord = Σ (√w·√h) · [(pred_x - t_x)² + (pred_y - t_y)²]"
+    weight: 5
+    appliesTo: ["box"]
+    firstVersionIntroduced: "v1"
+    notes: "只对有 IoU 最大的那个 box 计 coord 项；无目标格子不计。weight=5 补偿 coord 难优化。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "101-105"
+
+  - id: loss-box-iou-l2
+    type: Loss
+    name: "Box IoU L2 (含 sqrt 权重)"
+    aliases: ["(1-IoU)² loss"]
+    formula: "L_box = Σ (√w·√h) · (1 - IoU)²"
+    weight: 1
+    appliesTo: ["box"]
+    firstVersionIntroduced: "v1"
+    notes: "对 best_index 上的 box 同时计 IoU 项；sqrt 权重让大目标贡献略高。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "105"
+
+  - id: loss-object-l2
+    type: Loss
+    name: "Objectness L2 (有目标格)"
+    formula: "L_obj = (1 - conf)²"
+    weight: 1
+    appliesTo: ["objectness"]
+    firstVersionIntroduced: "v1"
+    notes: "有目标格子上让 confidence 趋近 IoU。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "82-83"
+
+  - id: loss-noobject-l2
+    type: Loss
+    name: "No-Object L2 (无目标格)"
+    formula: "L_noobj = 0.5 · conf²"
+    weight: 0.5
+    appliesTo: ["noobject"]
+    firstVersionIntroduced: "v1"
+    notes: "权重 0.5 是因为背景格子占绝大多数，不降权会淹没有目标格的梯度。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "76-77"
+
+  - id: loss-class-l2
+    type: Loss
+    name: "Class L2 (多类 soft)"
+    formula: "L_class = Σ (p_c - t_c)²"
+    weight: 1
+    appliesTo: ["class"]
+    firstVersionIntroduced: "v1"
+    notes: "只在有目标格子上计算；类概率不做 softmax（yolo.cfg 里 softmax=0），用独立 sigmoid。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "94-98"
+
+  - id: loss-rescore-objectness
+    type: Loss
+    name: "Rescore 项 (训练时 delta 修正)"
+    formula: "delta[conf_index] = object_scale · (IoU - pred_conf)"
+    weight: 1
+    appliesTo: ["objectness"]
+    firstVersionIntroduced: "v1"
+    notes: "yolo.cfg 里 rescore=1。作用是让 conf 分支的梯度更贴合 IoU，把 IoU 信号显式注入到 objectness。"
+    source:
+      - kind: code
+        path: "source/yolov1/snapshot/src/detection_layer.c"
+        lines: "85-88"

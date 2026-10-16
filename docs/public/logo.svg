@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 7x7 网格（YOLOv1 标志性 S=7 网格分解） -->
+  <g fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.55">
+    <rect x="4" y="4" width="56" height="56" rx="6"/>
+    <path d="M12 4v56M20 4v56M28 4v56M36 4v56M44 4v56M52 4v56"/>
+    <path d="M4 12h56M4 20h56M4 28h56M4 36h56M4 44h56M4 52h56"/>
+  </g>
+  <!-- 中心检测框：某格负责的目标 -->
+  <rect x="20" y="20" width="24" height="24" rx="2"
+        fill="rgba(59,130,246,0.15)" stroke="#2563eb" stroke-width="2.5"/>
+  <!-- 置信度圆点 -->
+  <circle cx="32" cy="32" r="4" fill="#2563eb"/>
+  <!-- 类别标签短线 -->
+  <path d="M20 16h10" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+</svg>

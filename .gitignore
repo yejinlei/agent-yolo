@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# VitePress build output
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# Cloned repos (heavy, don't track)
+source/_repos/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Temp
+*.tmp
