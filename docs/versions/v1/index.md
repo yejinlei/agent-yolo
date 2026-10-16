@@ -94,7 +94,8 @@ flowchart TB
 - [Architecture 逐层图解](/versions/v1/architecture)
 - [理论 Concept](/versions/v1/concepts)
 - [架构与层速查](/versions/v1/layers)
-- [损失函数](/versions/v1/losses)
+- [损失函数](/versions/v1/losses) — 4 项 loss 的公式与作用域
+- [反向传播推导](/versions/v1/loss-gradient) — 从公式到 delta 的完整梯度推导（最硬核）
 - [训练技巧](/versions/v1/tricks)
 - [源码走读](/versions/v1/code-walkthrough)
 - [痛点追踪](/versions/v1/painpoints)

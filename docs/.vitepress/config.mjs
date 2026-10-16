@@ -42,6 +42,7 @@ export default defineConfig({
             { text: '理论 (Concept)', link: '/versions/v1/concepts' },
             { text: '架构与层速查', link: '/versions/v1/layers' },
             { text: '损失函数', link: '/versions/v1/losses' },
+            { text: '反向传播推导', link: '/versions/v1/loss-gradient' },
             { text: '训练技巧', link: '/versions/v1/tricks' },
             { text: '源码走读', link: '/versions/v1/code-walkthrough' },
             { text: '痛点追踪', link: '/versions/v1/painpoints' }
