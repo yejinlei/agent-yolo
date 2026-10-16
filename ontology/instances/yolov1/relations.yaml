@@ -169,7 +169,7 @@ relations:
   # ========== 论文引用 ==========
   - subject: "paper-2015-yolo-single-shot"
     predicate: "cites"
-    object: "paper-2014-fasterrcnn"
+    object: "paper-2015-fasterrcnn"
 
   - subject: "paper-2015-yolo-single-shot"
     predicate: "cites"
@@ -178,6 +178,11 @@ relations:
   - subject: "paper-2015-yolo-single-shot"
     predicate: "cites"
     object: "paper-2014-googlenet"
+
+  - subject: "paper-2015-yolo-single-shot"
+    predicate: "followedBy"
+    object: "paper-2016-yolo9000"
+    note: "论文结尾提到扩展方向，后续由同一作者团队在 YOLO9000 (YOLOv2) 中实现。文档 paper.md 的『YOLO9000』一节引用了本文档实体。"
 
   # ========== 外部技术（传统 CV）继承/替代 ==========
   - subject: "concept-single-shot"

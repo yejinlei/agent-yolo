@@ -75,3 +75,36 @@ entities:
     authors: ["Christian Szegedy", "Wei Liu", "Yangqing Jia", "Sergey Reed", "et al."]
     abstractZh: "提出 Inception 模块用不同尺寸卷积并行抽取特征，ImageNet 冠军。"
     contributions: ["Inception 模块", "深度网络工程实践"]
+
+  - id: paper-2016-yolo9000
+    type: Paper
+    name: "YOLO9000: Better, Faster, Stronger"
+    aliases: ["YOLOv2 paper", "YOLO9000 paper"]
+    arxivId: "1612.08242"
+    url: "https://arxiv.org/abs/1612.08242"
+    venue: "CVPR 2017"
+    year: 2016
+    authors: ["Joseph Redmon", "Ali Farhadi"]
+    abstractZh: |
+      YOLOv2 引入 anchor boxes（k-means 聚类宽高比）、全卷积 + BatchNorm、
+      更高分辨率（448→ 训练 10 轮 + 608 输入）等改进，在 VOC2007 达到
+      76.8 mAP 且保持 67 FPS，在 40 FPS 下跑到 78.6 mAP。
+      关键创新是联合 COCO 检测数据集与 ImageNet 分类集做联合训练，用一个
+      多尺度标签树（WordTree）把 9000+ 类组织起来，训练出 YOLO9000，
+      在 VOC2007 上 50 FPS 下达到 48.3 mAP@0.5，能识别训练时未见过的类。
+      这篇论文是 v1 通往 v2/v3 的桥梁，也确立了『分类集 + 检测集联合训练』
+      以跨越检测类别限制的范式。
+    motivation: "YOLOv1 受限于小 grid、粗框回归与较窄的类别覆盖，精度仍落后两阶段方法，且只能检测训练见过的固定类别。"
+    contributions:
+      - "anchor boxes + 维度聚类（k-means k=5）替代每格 2 box"
+      - "全卷积 backbone（Darknet-19）+ BatchNorm，去掉全连接与 dropout"
+      - "多尺度训练 + 448 高分辨率分类预训练"
+      - "WordTree 标签树实现 COCO×ImageNet 层级式联合多标签训练"
+      - "跨数据集联合训练，实现在训练中从未同时出现的检测+分类目标上泛化"
+    keyResults:
+      - "VOC2007 mAP@0.5 = 76.8, FPS = 67 (544 输入)"
+      - "VOC2007 mAP@0.5 = 78.6, FPS = 40 (544 输入)"
+      - "YOLO9000（联合训练）: VOC2007 mAP@0.5 = 48.3, FPS = 50，覆盖 9000+ 类"
+    source:
+      - kind: url
+        url: "https://arxiv.org/pdf/1612.08242.pdf"
