@@ -91,8 +91,9 @@ flowchart TB
 ## 深入阅读
 
 - [论文精读](/versions/v1/paper)
+- [Architecture 逐层图解](/versions/v1/architecture)
 - [理论 Concept](/versions/v1/concepts)
-- [架构与层](/versions/v1/layers)
+- [架构与层速查](/versions/v1/layers)
 - [损失函数](/versions/v1/losses)
 - [训练技巧](/versions/v1/tricks)
 - [源码走读](/versions/v1/code-walkthrough)

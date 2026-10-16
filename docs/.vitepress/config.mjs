@@ -38,8 +38,9 @@ export default defineConfig({
           items: [
             { text: '概览', link: '/versions/v1/index' },
             { text: '论文精读', link: '/versions/v1/paper' },
+            { text: 'Architecture 逐层图解', link: '/versions/v1/architecture' },
             { text: '理论 (Concept)', link: '/versions/v1/concepts' },
-            { text: '架构与层', link: '/versions/v1/layers' },
+            { text: '架构与层速查', link: '/versions/v1/layers' },
             { text: '损失函数', link: '/versions/v1/losses' },
             { text: '训练技巧', link: '/versions/v1/tricks' },
             { text: '源码走读', link: '/versions/v1/code-walkthrough' },
