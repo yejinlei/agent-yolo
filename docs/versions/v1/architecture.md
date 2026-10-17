@@ -22,6 +22,8 @@
 
 ## 2. 逐层明细表（按快照 cfg 顺序，共 24 conv + 4 pool + 2 FC）
 
+> **初学者路标**：这张表就是网络的数据流——盯两列就够："特征图尺寸"看 6 次减半（448→…→7），"参数量"找大头（第 29 层 FC 独占 2 亿）。[maxpool](/glossary#maxpool-最大池化)、[FC](/glossary#fc-全连接层) 不熟先查术语表。
+
 cfg 起始行均可点击直达：<SrcLink file="cfg/yolo.cfg" :line="24" />。所有卷积后直接接 Leaky ReLU——**快照 cfg 没有启用 batch_normalize**（BN 是 YOLOv2 才引入的改进，勿把 v2 结构投射到 v1）。
 
 | # | 类型 | kernel / stride | 输出通道 | 特征图尺寸 | cfg 行 | 参数量 |
@@ -165,6 +167,8 @@ FC、dropout 与 detection 头：
 ---
 
 ## 4. 1470 维输出的可视化切分
+
+> **术语路标**：[one-hot](/glossary#one-hot)、[softmax](/glossary#softmax)——下文"softmax=0"指 20 类概率是裸线性输出、没过 softmax。
 
 Detection 层把 `FC 1470` 的输出 reshape 成一个 7×7×30 的张量（内存真实顺序：20 类 → 2 conf → 2×4 坐标）：
 

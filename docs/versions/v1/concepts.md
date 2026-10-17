@@ -2,9 +2,13 @@
 
 YOLOv1 的 9 个核心 Concept。每个都配**原理图 + 白话 + 源码对应**。
 
+> 术语眼生？随时查[术语表](/glossary)；各节开头有**术语路标**（往回链词典）和 **v2 路标**（往前指演进）。
+
 ---
 
 ## 1. Single-Shot 端到端检测 (`concept-single-shot`)
+
+> **v2 路标**：single-shot 是 YOLO 系列的定海神针——v2 换骨架也不换思路，后面所有版本的改动都发生在这个框架之内。
 
 ### 原理图
 
@@ -41,6 +45,8 @@ N = S × S × B = 7 × 7 × 2 = 98  个候选框
 
 ## 2. Grid 空间分解 (`concept-grid-spatial-decomposition`)
 
+> **术语路标**：[grid / cell](/glossary#grid-cell-网格-格子)、[bbox](/glossary#bbox-边界框) 不熟先查；v2 只是把格子变多（7×7→13×13）、box 变多（2→5），"中心落在谁家谁负责"的分工规则不变。
+
 ### 原理图
 
 <DiagramGridCell />
@@ -62,6 +68,8 @@ grid 总数：<SrcLink file="src/detection_layer.c" :line="44" />；结构参数
 ---
 
 ## 3. 每格多 Box 预测 (`concept-multi-box-per-cell`)
+
+> **v2 路标**：这两个"自由分化"的 box 就是 anchor 的前身——v2 换成 K-means 聚出的 5 个先验形状，且类别不再共享（[anchor 概念](/versions/v2/concepts)）。
 
 ### 原理图
 
@@ -99,6 +107,8 @@ Class prob × 20           → 20 维
 
 ## 4. Confidence = P(Object) × IoU (`concept-confidence-as-poc`)
 
+> **术语路标**：[IoU](/glossary#iou-交并比) 与 [置信度](/glossary#置信度-objectness) 是本节的全部数学；v2 延续这一定义（rescore 继续让 conf 学 IoU）。
+
 ### 原理图
 
 ```mermaid
@@ -127,6 +137,8 @@ flowchart LR
 
 ## 5. sqrt=1 Loss (`concept-sqrt-loss`)
 
+> **v2 路标**：√ 空间回归在 v2 被 log 空间 + anchor 基准取代（[v2 log 回归](/versions/v2/concepts)），√w√h 从此退出历史舞台。
+
 ### 原理图
 
 <DiagramDecode caption="图：网络在 √ 空间预测宽高——训练目标取 √truth（detection_layer.c L168），推理时平方还原（yolo.c L100-101）" />
@@ -153,6 +165,8 @@ flowchart LR
 ---
 
 ## 6. 四项损失加权平衡 (`concept-balance-loss`)
+
+> **v2 路标**：权重口径变了——noobj 0.5→1、class 头改 softmax 交叉熵，完整对照见 [v2 损失](/versions/v2/losses)。
 
 ### 原理图
 
@@ -182,6 +196,8 @@ flowchart TB
 
 ## 7. 随机 best_index Warmup (`concept-random-best-index-warmup`)
 
+> **v2 路标**：v2 有 anchor 定形状，不再需要随机选 box 的 hack；warmup 演化为"前 12800 张强制 anchor 学占位"。
+
 ### 原理图
 
 ```mermaid
@@ -205,6 +221,8 @@ flowchart TD
 
 ## 8. Region Jitter 数据增强 (`concept-region-jitter-aug`)
 
+> **术语路标**：[数据增强 / jitter](/glossary#数据增强-jitter)——v2 数据管线原样沿用（同样只有 jitter 裁剪 + 翻转，无色彩扰动）。
+
 ### 原理图
 
 ```mermaid
@@ -224,6 +242,8 @@ jitter 系数在检测头参数里：<SrcLink file="cfg/yolo.cfg" :line="229" />
 ---
 
 ## 9. FC 前 Dropout (`concept-dropout-fc`)
+
+> **v2 路标**：v2 砍掉全部 FC，dropout 随之消失——防过拟合的手段换成了 BN + 多尺度训练。
 
 ### 原理图
 
