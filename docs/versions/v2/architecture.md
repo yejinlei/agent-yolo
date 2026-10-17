@@ -5,6 +5,12 @@
 > 所有代码来自 `source/yolov2/snapshot/`，cfg 见 `cfg/yolo.cfg`（`f:\src\agent-yolo\source\yolov2\snapshot\cfg\yolo.cfg`）。
 > **口径说明**：本文以快照 cfg 事实为准。快照共 22 conv + 5 maxpool + 2 route + 1 reorg + 1 region = **31 层**，与论文/流传的"24 conv"版本不一致，此为 pjreddie 实际提交。
 
+::: tip TL;DR：只想带走三件事
+1. **31 层全卷积**：没有 FC，BN + leaky 激活全配，参数量从 v1 的 2.7 亿降到约 1 亿。
+2. **passthrough 是无损搬运**：route 取回 26×26×512，reorg 重排成 13×13×2048 拼进检测头——细粒度特征不被下采样吞掉。
+3. **输出 13×13×425 = 5 anchors × (4+1+80)**：类别从 v1 的 cell 级挪到 anchor 级，每个 anchor 自带一套类别。
+:::
+
 ---
 
 ## 1. 一眼看清：输入 → 输出的完整流程

@@ -4,6 +4,12 @@
 >
 > 全程对照真实源码：<SrcLink file="v2:src/region_layer.c" :line="144" /> 起的 `forward_region_layer()`，行号以快照 `c6afc7f` 为准；也可直接打开 [region_layer.c 整文件浏览](/versions/v2/source/region-layer)。
 
+::: tip TL;DR：只想带走三件事
+1. **和 v1 同一套 delta 约定**，但中心/objectness 过了 sigmoid → 梯度多乘 σ′；宽高在 log 空间无激活 → 纯线性差。
+2. **GT 分配看 anchor 形状**（bias_match）：预测框不参与匹配，一个 GT 独占一个 best anchor。
+3. **类别 softmax 化**后 delta 化简成 one-hot − p（交叉熵形）；前 12800 张 warmup 强制 anchor 先学占位。
+:::
+
 ---
 
 ## 0. 先搞懂 darknet 的"梯度约定"

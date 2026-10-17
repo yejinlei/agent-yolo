@@ -4,6 +4,12 @@
 >
 > 全程对照真实源码：<SrcLink file="src/detection_layer.c" :line="42" /> 起的 `forward_detection_layer()`，行号以快照为准；也可直接打开 [detection_layer.c 整文件浏览](/versions/v1/source/detection-layer)。
 
+::: tip TL;DR：只想带走三件事
+1. **delta 约定**：`delta = −∂L/∂output`，每行赋值都是"差多少、反着传、乘上 scale"。
+2. **√w√h 不乘额外因子**：损失定义在 √ 空间，对网络输出求导天然干净——换的是目标，不是空间。
+3. **(1−IoU)² 只写 cost 不写 delta**，不参与反传；真正把"框不准"传回去的是 rescore：拿实时 IoU 当 conf 的目标。
+:::
+
 ---
 
 ## 0. 先搞懂 darknet 的"梯度约定"
