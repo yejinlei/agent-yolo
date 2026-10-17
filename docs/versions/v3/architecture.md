@@ -34,6 +34,8 @@ flowchart TB
 ## 2. 逐层明细表（按快照 cfg 顺序，共 107 层）
 
 > **v1/v2 读者路标**：v1 有 FC、v2 有 reorg，这里都**没有了**；取而代之的是 23 个 `[shortcut]`（残差相加）和 2 个 `[upsample]`（最近邻放大）。表格按段分组，`#` 列是 darknet 的 0-indexed 层号（route/shortcut 的 `from` 用它回数）。
+>
+> **v4 路标**：v4 涨到 162 层——shortcut/upsample 保留，maxpool 在 SPP 里以 same-padding 回归 3 个，骨干换 CSPDarknet53（见 [v4 架构](/versions/v4/architecture)）。
 
 所有卷积 `batch_normalize=1` + leaky（除每头末层 1×1 255 是 linear）。
 

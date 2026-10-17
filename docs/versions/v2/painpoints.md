@@ -16,6 +16,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 | NMS 阈值敏感（遗留自 v1） | Medium | NMS-free | v10 |
 
 > **v3 路标**：表里前几行在 v3 就有答案——FPN 三尺度头、多标签 logistic、9 anchors；"定位无 IoU 梯度"要到 v4 CIoU 才真正闭环（见 [v3 痛点追踪](/versions/v3/painpoints)）。
+>
+> **v4 路标**："定位无 IoU 直接梯度"在 v4 闭环——CIoU loss 上线，框回归首次对 IoU 直接求导（见 [v4 痛点追踪](/versions/v4/painpoints)）。
 
 ---
 

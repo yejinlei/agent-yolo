@@ -13,6 +13,8 @@ YOLOv1 用速度换精度，付出的代价集中体现为 6 个痛点。这一�
 | Anchor 敏感性 | Medium (v2+ 引入) | anchor-free | v8 |
 | 两阶段方法太慢 | Critical (被 v1 解决) | single-shot | v1 |
 
+> **v4 路标**：表中"边界框定位粗糙"在 v4 由 CIoU loss 正面解决——坐标回归第一次有 IoU 直接梯度（见 [v4 痛点追踪](/versions/v4/painpoints)）。
+
 ## 1. 小目标召回差 (`pain-small-object-recall`)
 
 **表现**：小目标（<32 像素）mAP 显著下降，mIoU < 0.5 时 miss rate 极高。

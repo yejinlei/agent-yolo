@@ -25,6 +25,8 @@
 > **初学者路标**：这张表就是网络的数据流——盯两列就够："特征图尺寸"看 6 次减半（448→…→7），"参数量"找大头（第 29 层 FC 独占 2 亿）。[maxpool](/glossary#maxpool-最大池化)、[FC](/glossary#fc-全连接层) 不熟先查术语表。
 >
 > **v3 路标**：v3 网络重写为 107 层：maxpool 全退役、残差骨干 Darknet-53、13/26/52 三尺度检测头（见 [v3 架构](/versions/v3/architecture)）。
+>
+> **v4 路标**：v4 涨到 162 层——骨干换 CSPDarknet53（CSP 分流残差），neck 加 SPP + PANet，检测头保持三个但顺序反转（小目标头先行）（见 [v4 架构](/versions/v4/architecture)）。
 
 cfg 起始行均可点击直达：<SrcLink file="cfg/yolo.cfg" :line="24" />。所有卷积后直接接 Leaky ReLU——**快照 cfg 没有启用 batch_normalize**（BN 是 YOLOv2 才引入的改进，勿把 v2 结构投射到 v1）。
 

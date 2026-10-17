@@ -87,6 +87,8 @@ flowchart LR
 > **v1 读者路标**：v1 没有任何跨层连接，浅层细节全靠网络自己往下传；passthrough 是 v2 第一次显式拼接浅层特征（FPN 雏形）。
 >
 > **v3 路标**：reorg 的"把浅层压下来"被反过来——upsample 把深层语义送上去，单头变三头，FPN 成型（见 [v3 concepts §2](/versions/v3/concepts#_2-三尺度-fpn-检测头-concept-fpn-three-scales)）。
+>
+> **v4 路标**：跨层拼接在 v4 玩到极致——CSP 分流 concat、SPP 三尺度 concat、FPN+PANet 双向 concat，route 层从 2 个涨到 21 个（见 [v4 concepts §4](/versions/v4/concepts#_4-panet-双向聚合-concept-panet-bidirectional)）。
 
 ### 原理图
 

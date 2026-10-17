@@ -140,6 +140,8 @@ flowchart LR
 ## 5. sqrt=1 Loss (`concept-sqrt-loss`)
 
 > **v2 路标**：√ 空间回归在 v2 被 log 空间 + anchor 基准取代（[v2 log 回归](/versions/v2/concepts)），√w√h 从此退出历史舞台。
+>
+> **v4 路标**：坐标损失在 v4 彻底告别 SSE——换 CIoU 直接对 IoU 求导（重叠 + 中心距 + 长宽比），框回归第一次有了 IoU 梯度（见 [v4 concepts §5](/versions/v4/concepts#_5-ciou-loss-concept-ciou-loss)）。
 
 ### 原理图
 

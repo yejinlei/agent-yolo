@@ -42,6 +42,8 @@ flowchart TB
 > **v1 读者路标**：v1 的 24 conv + 2 FC 在这里整体换成全卷积——**FC 层没有了**，不用在表里找；BN + leaky 出现在每个卷积之后。
 >
 > **v3 路标**：v3 砍掉全部 maxpool（下采样全靠 stride-2 卷积），13×13 单头换成 13/26/52 三头 FPN，逐层表从 31 行涨到 107 行（见 [v3 架构](/versions/v3/architecture#_2-逐层明细表-按快照-cfg-顺序-共-107-层)）。
+>
+> **v4 路标**：v4 逐层表涨到 162 行——CSP 骨干 + SPP + PANet；maxpool 以 same-padding 形态在 SPP 里回归 3 个（见 [v4 架构](/versions/v4/architecture)）。
 
 所有卷积 `batch_normalize=1` + leaky，这是 v2 与 v1 最大的层级差异。cfg 起始行可点击直达。
 

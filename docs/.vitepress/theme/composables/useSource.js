@@ -26,6 +26,10 @@ const modules = {
   v3: import.meta.glob(
     '../../../../source/yolov3/snapshot/**/*.{c,h,cu,cfg}',
     { query: '?raw', import: 'default' }
+  ),
+  v4: import.meta.glob(
+    '../../../../source/yolov4/snapshot/**/*.{c,h,cu,cfg}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -46,13 +50,19 @@ export const SOURCE_PAGES = {
   'v3:src/yolo_layer.c':     '/versions/v3/source/yolo-layer',
   'v3:examples/yolo.c':      '/versions/v3/source/yolo', // v3 快照目录结构调整：yolo.c 移入 examples/
   'v3:src/box.c':            '/versions/v3/source/box',
-  'v3:cfg/yolov3.cfg':       '/versions/v3/source/yolo-cfg'
+  'v3:cfg/yolov3.cfg':       '/versions/v3/source/yolo-cfg',
+  // YOLOv4
+  'v4:src/yolo_layer.c':     '/versions/v4/source/yolo-layer',
+  'v4:src/yolo.c':           '/versions/v4/source/yolo',
+  'v4:src/box.c':            '/versions/v4/source/box',
+  'v4:cfg/yolov4.cfg':       '/versions/v4/source/yolo-cfg'
 }
 
 const GH_BASES = {
   v1: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov1/snapshot/',
   v2: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov2/snapshot/',
-  v3: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov3/snapshot/'
+  v3: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov3/snapshot/',
+  v4: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov4/snapshot/'
 }
 
 function resolveKey(v, f) {

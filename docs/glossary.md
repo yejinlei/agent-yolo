@@ -64,6 +64,24 @@ v2 的"细粒度特征搬运术"：`route` 取回前面高分辨率层的输出�
 ### FPN（特征金字塔）
 在**多个尺度**的特征图上各自出检测头（小目标交给高分辨率头）。v2 的 passthrough 是它的雏形，v3 才真正实现。
 
+### shortcut（残差连接）
+把某一层的输入**直接加回**若干层后的输出（`output = F(x) + x`），梯度可以"抄近路"回传，深层网络不再难训。v3 的 Darknet-53 首次引入（23 个 shortcut），详解：[v3 concepts §1](/versions/v3/concepts)。
+
+### Darknet-53
+v3 的骨干网络：52 层卷积 + 23 个 shortcut 残差连接，ImageNet top-1 77.2% 与 ResNet-101 持平但快一倍。详解：[v3 架构](/versions/v3/architecture)。
+
+### CSP（跨阶段部分连接）
+Cross Stage Partial：每段把特征劈成两半，一半走残块堆栈、一半旁路直通，末尾 concat 汇合。梯度分流不重复，计算量降约 20%、精度反升。v4 骨干 CSPDarknet53 的核心，详解：[v4 concepts §1](/versions/v4/concepts)。
+
+### Mish 激活
+`x · tanh(softplus(x))`，平滑版 ReLU——负半轴允许小梯度通过，训练更稳。v4 骨干全部换成 Mish（neck/head 仍用 leaky），详解：[v4 concepts §2](/versions/v4/concepts)。
+
+### SPP（空间金字塔池化）
+Spatial Pyramid Pooling：同一特征图并联 5×5/9×9/13×13 三个 same-padding maxpool 再 concat，感受野暴力扩大而分辨率不变。v4 插在骨干与 neck 之间（层 105–116），详解：[v4 concepts §3](/versions/v4/concepts)。
+
+### PANet（路径聚合网络）
+在 FPN"深层语义往浅层送"的基础上，再加一条**自底向上**的下采样通路，把浅层定位信息回传深层。v4 的 neck = SPP + FPN + PANet，详解：[v4 concepts §4](/versions/v4/concepts)。
+
 ---
 
 ## 训练与损失
@@ -97,6 +115,21 @@ v2 的"细粒度特征搬运术"：`route` 取回前面高分辨率层的输出�
 
 ### 预训练 / 微调（pretrain / finetune）
 先在 ImageNet 分类任务上把 backbone 练好，再搬到检测任务上接着练（微调）。几乎所有检测器都这么做。
+
+### logistic 激活
+见 [sigmoid / logistic](#sigmoid-logistic)；v3 起类别头每类独立过 logistic（多标签场景下 Person + Woman 可同时成立），与互斥 softmax 分道扬镳，详解：[v3 concepts §4](/versions/v3/concepts)。
+
+### CIoU loss
+Complete IoU loss：坐标回归不再算 `(target − output)²`，而是直接对 IoU 求导——同时考虑**重叠面积 + 中心距 + 长宽比**。v4 坐标损失换代，详解：[v4 concepts §5](/versions/v4/concepts)。
+
+### Mosaic 增强
+训练时把 4 张图拼成一张（随机切十字），单张图里的场景更丰富、物体数量翻倍，相当于暴力版数据增强。v4 论文核心 BoF 之一，详解：[v4 concepts §8](/versions/v4/concepts)。
+
+### scale_x_y
+消除网格敏感性：对 sigmoid 后的偏移做线性放缩 `scale_x_y·σ(tx) − 0.5·(scale_x_y−1)`，让小物体在网格边缘也能被分到足够的梯度。v4 三头分别取 1.2/1.1/1.05，详解：[v4 concepts §6](/versions/v4/concepts)。
+
+### multi-positive（多正样本）
+除"形状最匹配的 anchor"外，同一头内 IoU(anchor shape, GT) > 0.213 的其余 anchor 也参与监督，再平均 delta——正样本密度显著提升。v4 新增，详解：[v4 concepts §7](/versions/v4/concepts)。
 
 ---
 

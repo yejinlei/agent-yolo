@@ -41,6 +41,8 @@ flowchart TB
 > **v1 读者路标**：v1 的坐标目标是 √w√h（cell 内直接回归）；v2 改成"网格内偏移过 sigmoid + log 空间宽高相对 anchor"——梯度因此多了 σ′ 因子。
 >
 > **v3 路标**：coord/object/noobject/class 四个 scale 旋钮在 v3 全部删掉（硬编码进 yolo_layer.c），坐标梯度权重换成 `2 − truth.w·truth.h`——小框权重更高（见 [v3 损失 §1](/versions/v3/losses#_1-坐标回归-l2-loss-coord-l2)）。
+>
+> **v4 路标**：v4 坐标损失从 SSE 换 CIoU（IoU 直接可导），`2 − w·h` 小框权重在 CIoU 分支被 bypass；noobj 的 ignore_thresh 从 .5 调到 .7（见 [v4 损失](/versions/v4/losses)）。
 
 **公式**：
 

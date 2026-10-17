@@ -91,6 +91,8 @@ flowchart LR
 | NMS 阈值敏感 | Medium | v10 NMS-free |
 
 > **v3 路标**：表里的 FPN 解法在 v3 落地——13/26/52 三尺度检测头 + Darknet-53 残差骨干，小目标召回显著改善（见 [v3 概览](/versions/v3/index)）。
+>
+> **v4 路标**：表里的 CIoU 解法在 v4 落地——坐标损失从 SSE 换成 CIoU（IoU 直接可导），再加 Mosaic 增强 + 多正样本分配，COCO AP 冲到 43.5（见 [v4 概览](/versions/v4/index)）。
 
 ## 深入阅读
 

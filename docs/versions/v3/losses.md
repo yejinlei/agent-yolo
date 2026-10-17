@@ -40,6 +40,8 @@ flowchart TB
 ## 1. 坐标回归 L2 (`loss-coord-l2`)
 
 > **v2 读者路标**：v2 的坐标 delta 乘了 logistic 梯度 σ′（[v2 losses §1](/versions/v2/losses#_1-坐标回归-l2-loss-coord-l2)）；v3 **不乘 σ′**，而且权重从常数 1 变成按 GT 面积动态变化的 `2 − w·h`。
+>
+> **v4 路标**：v4 把坐标损失从 `(target − output)` 换成 CIoU——IoU 直接可导，`2 − w·h` 权重只在旧 MSE 路保留（见 [v4 损失](/versions/v4/losses)）。
 
 **公式**：
 

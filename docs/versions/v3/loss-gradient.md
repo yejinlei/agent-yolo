@@ -126,7 +126,7 @@ $$\frac{\partial L}{\partial a} = scale \cdot (a - t_w^{*}) \quad \leftarrow \; 
 
 $$L = scale \cdot (p - p^{*})^2 \;\Rightarrow\; \frac{\partial L}{\partial a} = scale \cdot (p - p^{*}) \cdot \underbrace{\sigma'(a)}_{\text{链式因子}}$$
 
-v2 的代码老老实实乘了：`delta = scale·(tx* − σ(a))·σ'(a)`（[v2 §3.2](/versions/v2/loss-gradient#_32-delta-的直接写法)）。v3 的代码是：
+v2 的代码老老实实乘了：`delta = scale·(tx* − σ(a))·σ'(a)`（[v2 §3.2](/versions/v2/loss-gradient#_3-2-delta-的直接写法)）。v3 的代码是：
 
 $$\delta = scale \cdot (p^{*} - p) \qquad \leftarrow \; \textbf{缺 } \sigma'(a)$$
 

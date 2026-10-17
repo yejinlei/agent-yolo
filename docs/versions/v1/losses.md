@@ -45,6 +45,8 @@ $$L_{coord} = 5 \sum_{best} \Big[ (x-t_x)^2 + (y-t_y)^2 + (\sqrt{w}-\sqrt{t_w})^
 **白话**：预测框中心点离真实框有多远；宽高在 **√ 空间**比较，让大小目标的误差量级接近。
 
 > **v3 路标**：√ 空间回归到 v3 变成 sigmoid 偏移 + log 空间宽高，坐标权重换成 `2 − truth.w·truth.h`（小框权重更高），四个 scale 旋钮全部内联进代码（见 [v3 损失](/versions/v3/losses#_1-坐标回归-l2-loss-coord-l2)）。
+>
+> **v4 路标**：SSE 坐标损失在 v4 被 CIoU 取代——不再手算 (target−output)，直接对 IoU 求导（见 [v4 损失](/versions/v4/losses)）。
 
 **要点**：
 - 只对 **best_index 那一个 box** 计算 coord 项（每个 cell 只有一个 box 被归为"命中"）

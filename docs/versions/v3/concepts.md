@@ -45,6 +45,8 @@ flowchart TB
 ## 2. 三尺度 FPN 检测头 (`concept-fpn-three-scales`)
 
 > **v2 读者路标**：v2 只有一个 13×13 检测头，靠 reorg 把 26×26 特征"重排"下来拼一次；v3 反过来——**从深层往浅层 upsample 两次**，把语义特征送回 26×26 和 52×52，各自立头出框。
+>
+> **v4 路标**：v4 在 FPN 之后再加 PANet 下采样回路（浅层位置信息回传深层），三头顺序反转——76×76 小目标头先行（见 [v4 concepts §9](/versions/v4/concepts#_9-三头反序-18-anchors-concept-three-heads-reversed)）。
 
 ### 原理图
 

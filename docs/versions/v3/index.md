@@ -127,6 +127,8 @@ flowchart TB
 | anchor 仍是手工超参（K-means 换数据集要重跑） | Medium | v5 保留 anchor 但自动化；anchor-free 路线兴起 |
 | 单 GT 单头独占（两遍循环分配） | Medium | v4 跨头多正样本分配 |
 
+> **v4 路标**：表里前三行在 v4 被正面解决——CIoU loss 补 AP75、CSPDarknet53 + SPP + PANet 强骨干、multi-positive 打破单 GT 单头独占（见 [v4 概览](/versions/v4/index)）。
+
 ## 深入阅读
 
 - [论文精读](/versions/v3/paper)

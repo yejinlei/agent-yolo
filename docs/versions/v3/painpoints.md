@@ -15,6 +15,8 @@ YOLOv3 用三尺度头 + 残差骨干大幅提升了 AP50 和小目标召回，�
 | truth_thresh=1 监督分支是死代码（快照） | Low（代码） | 删除/启用阈值 | 社区后续 commit |
 | NMS 阈值敏感（遗留自 v1） | Medium | NMS-free | v10 |
 
+> **v4 路标**：表中 AP75、GT 独占、坐标 delta 三行在 v4 都有答案——CIoU loss、multi-positive 多正样本、scale_x_y 消网格敏感（见 [v4 痛点追踪](/versions/v4/painpoints)）。
+
 ---
 
 ## 1. AP75 弱：坐标损失仍无 IoU 直接梯度 (`pain-no-iou-gradient`)
@@ -108,7 +110,7 @@ draw_detections(im, dets, l.side*l.side*l.n, thresh, ...);       // L297
 - `do_nms_sort` 收到 num=0 → **NMS 空转**
 - `draw_detections` 收到 num=0 → **一张框都不画**
 
-**根因**：`examples/yolo.c` 是 v1 时代 `darknet yolo` 命令的入口，v2/v3 里已半废弃——真正的推理走 `darknet detector test`（`examples/detector.c` 的 `test_detector`），那里用 `get_network_boxes` 返回的 `nboxes`。这与 v2 快照同位置的 detection_layer 强转 bug 同源（见 [v2 痛点 §5](/versions/v2/painpoints#_5-快照-bug-test_yolo-残留-detection_layer-强转-pain-test-yolo-cast-bug)）。
+**根因**：`examples/yolo.c` 是 v1 时代 `darknet yolo` 命令的入口，v2/v3 里已半废弃——真正的推理走 `darknet detector test`（`examples/detector.c` 的 `test_detector`），那里用 `get_network_boxes` 返回的 `nboxes`。这与 v2 快照同位置的 detection_layer 强转 bug 同源（见 [v2 痛点 §5](/versions/v2/painpoints#_5-快照-bug-test-yolo-残留-detection-layer-强转-pain-test-yolo-cast-bug)）。
 
 **教训**：读 v2/v3 源码别拿 `examples/yolo.c` 的 test_yolo 当"官方推理路径"——它是祖传死代码。
 
@@ -119,7 +121,7 @@ draw_detections(im, dets, l.side*l.side*l.n, thresh, ...);       // L297
 **表现（代码级）**：
 - forward 开头把 tx/ty/obj/class **原地**过 sigmoid（<SrcLink file="v3:src/yolo_layer.c" :line="141" :end="143" />）
 - delta 直接 `scale × (target − 激活后值)`（<SrcLink file="v3:src/yolo_layer.c" :line="103" :end="106" />），backward 一次 axpy（<SrcLink file="v3:src/yolo_layer.c" :line="242" :end="245" />）
-- 数学后果：obj/class 的 `t − p` 恰好是 **BCE 对 logits 的严格梯度**（σ′ 被 1/p 消掉，见[推导 §4](/versions/v3/loss-gradient#_4-obj-项-bce-梯度的巧合严格)）；但坐标 tx/ty 少乘 σ′——不是 MSE 的无偏梯度
+- 数学后果：obj/class 的 `t − p` 恰好是 **BCE 对 logits 的严格梯度**（σ′ 被 1/p 消掉，见[推导 §4](/versions/v3/loss-gradient#_4-obj-项-bce-梯度的-巧合严格)）；但坐标 tx/ty 少乘 σ′——不是 MSE 的无偏梯度
 
 **根因**：v2 的做法是 delta 显式乘 `logistic_gradient`；v3 把激活前置后"忘了"补链式因子（或有意简化），并顺手把坐标权重的语义从 cfg（`coord_scale`）搬进代码（`2−w·h`）。
 

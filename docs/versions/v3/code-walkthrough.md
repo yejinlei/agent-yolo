@@ -37,7 +37,7 @@
 - `num=9` + `mask=6,7,8`：9 个 anchor 全网络共享，本头只认领第 7/8/9 组
 - `jitter=.3`（v2 是 .2）、`random=1`（多尺度训练内置，v2 是 0）
 - **没有** `*_scale`、`rescore`、`softmax`——v2 的 5 个 loss knob 全删
-- `truth_thresh=1`：名义上的高 IoU 奖励阈值，实际是死代码（见 [痛点 §7](/versions/v3/painpoints#_7-快照事实-truth_thresh-1-监督分支是死代码-pain-truth-thresh-dead)）
+- `truth_thresh=1`：名义上的高 IoU 奖励阈值，实际是死代码（见 [痛点 §7](/versions/v3/painpoints#_7-快照事实-truth-thresh-1-监督分支是死代码-pain-truth-thresh-dead)）
 
 ---
 

@@ -65,7 +65,8 @@ export default defineConfig({
       { text: '版本', items: [
         { text: 'YOLOv1', link: '/versions/v1/index' },
         { text: 'YOLOv2', link: '/versions/v2/index' },
-        { text: 'YOLOv3', link: '/versions/v3/index' }
+        { text: 'YOLOv3', link: '/versions/v3/index' },
+        { text: 'YOLOv4', link: '/versions/v4/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -157,6 +158,31 @@ export default defineConfig({
           { text: 'yolo.c', link: '/versions/v3/source/yolo' },
           { text: 'box.c', link: '/versions/v3/source/box' },
           { text: 'yolov3.cfg', link: '/versions/v3/source/yolo-cfg' }
+        ]
+      },
+      {
+        text: 'YOLOv4 (2020-04)',
+        items: [
+          { text: '概览', link: '/versions/v4/index' },
+          { text: '论文精读', link: '/versions/v4/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v4/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v4/concepts' },
+          { text: '架构与层速查', link: '/versions/v4/layers' },
+          { text: '损失函数', link: '/versions/v4/losses' },
+          { text: '反向传播推导', link: '/versions/v4/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v4/tricks' },
+          { text: '痛点追踪', link: '/versions/v4/painpoints' },
+          { text: '源码走读', link: '/versions/v4/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（darknet 快照 · 4131ae1）',
+        collapsed: true,
+        items: [
+          { text: 'yolo_layer.c', link: '/versions/v4/source/yolo-layer' },
+          { text: 'yolo.c', link: '/versions/v4/source/yolo' },
+          { text: 'box.c', link: '/versions/v4/source/box' },
+          { text: 'yolov4.cfg', link: '/versions/v4/source/yolo-cfg' }
         ]
       },
         {
