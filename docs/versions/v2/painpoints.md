@@ -18,6 +18,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 > **v3 路标**：表里前几行在 v3 就有答案——FPN 三尺度头、多标签 logistic、9 anchors；"定位无 IoU 梯度"要到 v4 CIoU 才真正闭环（见 [v3 痛点追踪](/versions/v3/painpoints)）。
 >
 > **v4 路标**："定位无 IoU 直接梯度"在 v4 闭环——CIoU loss 上线，框回归首次对 IoU 直接求导（见 [v4 痛点追踪](/versions/v4/painpoints)）。
+>
+> **v5 路标**："Anchor 先验依赖数据集"在 v5 由 autoanchor 自动化——k-means + 遗传算法按训练集自动重算 anchors，不再需要手工调参（见 [v5 痛点追踪](/versions/v5/painpoints)）。
 
 ---
 

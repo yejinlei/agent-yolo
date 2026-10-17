@@ -66,7 +66,8 @@ export default defineConfig({
         { text: 'YOLOv1', link: '/versions/v1/index' },
         { text: 'YOLOv2', link: '/versions/v2/index' },
         { text: 'YOLOv3', link: '/versions/v3/index' },
-        { text: 'YOLOv4', link: '/versions/v4/index' }
+        { text: 'YOLOv4', link: '/versions/v4/index' },
+        { text: 'YOLOv5', link: '/versions/v5/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -183,6 +184,31 @@ export default defineConfig({
           { text: 'yolo.c', link: '/versions/v4/source/yolo' },
           { text: 'box.c', link: '/versions/v4/source/box' },
           { text: 'yolov4.cfg', link: '/versions/v4/source/yolo-cfg' }
+        ]
+      },
+      {
+        text: 'YOLOv5 (2021-04)',
+        items: [
+          { text: '概览', link: '/versions/v5/index' },
+          { text: '论文精读', link: '/versions/v5/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v5/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v5/concepts' },
+          { text: '架构与层速查', link: '/versions/v5/layers' },
+          { text: '损失函数', link: '/versions/v5/losses' },
+          { text: '反向传播推导', link: '/versions/v5/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v5/tricks' },
+          { text: '痛点追踪', link: '/versions/v5/painpoints' },
+          { text: '源码走读', link: '/versions/v5/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（PyTorch 快照 · f5b8f7d）',
+        collapsed: true,
+        items: [
+          { text: 'models/yolo.py', link: '/versions/v5/source/yolo-py' },
+          { text: 'models/common.py', link: '/versions/v5/source/common-py' },
+          { text: 'utils/loss.py', link: '/versions/v5/source/loss-py' },
+          { text: 'models/yolov5s.yaml', link: '/versions/v5/source/yolov5s-yaml' }
         ]
       },
         {

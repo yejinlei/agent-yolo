@@ -30,6 +30,11 @@ const modules = {
   v4: import.meta.glob(
     '../../../../source/yolov4/snapshot/**/*.{c,h,cu,cfg}',
     { query: '?raw', import: 'default' }
+  ),
+  // v5 是 PyTorch 项目，源码以 .py / .yaml 为主
+  v5: import.meta.glob(
+    '../../../../source/yolov5/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -55,14 +60,20 @@ export const SOURCE_PAGES = {
   'v4:src/yolo_layer.c':     '/versions/v4/source/yolo-layer',
   'v4:src/yolo.c':           '/versions/v4/source/yolo',
   'v4:src/box.c':            '/versions/v4/source/box',
-  'v4:cfg/yolov4.cfg':       '/versions/v4/source/yolo-cfg'
+  'v4:cfg/yolov4.cfg':       '/versions/v4/source/yolo-cfg',
+  // YOLOv5（PyTorch 目录结构）
+  'v5:models/yolo.py':       '/versions/v5/source/yolo-py',
+  'v5:models/common.py':     '/versions/v5/source/common-py',
+  'v5:utils/loss.py':        '/versions/v5/source/loss-py',
+  'v5:models/yolov5s.yaml':  '/versions/v5/source/yolov5s-yaml'
 }
 
 const GH_BASES = {
   v1: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov1/snapshot/',
   v2: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov2/snapshot/',
   v3: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov3/snapshot/',
-  v4: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov4/snapshot/'
+  v4: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov4/snapshot/',
+  v5: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov5/snapshot/'
 }
 
 function resolveKey(v, f) {
@@ -115,6 +126,8 @@ export function displayFile(file) {
 /** 根据文件扩展名返回 shiki 语言标识 */
 export function langOf(file) {
   if (file.endsWith('.cfg')) return 'ini'
+  if (file.endsWith('.yaml') || file.endsWith('.yml')) return 'yaml'
+  if (file.endsWith('.py')) return 'python'
   if (file.endsWith('.cu')) return 'cuda-cpp'
   if (file.endsWith('.h')) return 'c'
   return 'c'

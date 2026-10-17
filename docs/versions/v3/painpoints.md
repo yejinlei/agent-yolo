@@ -16,6 +16,8 @@ YOLOv3 用三尺度头 + 残差骨干大幅提升了 AP50 和小目标召回，�
 | NMS 阈值敏感（遗留自 v1） | Medium | NMS-free | v10 |
 
 > **v4 路标**：表中 AP75、GT 独占、坐标 delta 三行在 v4 都有答案——CIoU loss、multi-positive 多正样本、scale_x_y 消网格敏感（见 [v4 痛点追踪](/versions/v4/painpoints)）。
+>
+> **v5 路标**："GT 单 anchor 独占"在 v5 被多正样本分配彻底打破——wh 比例 + 邻居偏移，一个 GT 可产生最多 15 个正样本（见 [v5 痛点追踪](/versions/v5/painpoints)）。
 
 ---
 

@@ -14,6 +14,8 @@ YOLOv4 用 BoF+BoS 大杂烩把 COCO AP 推到 43.5，但也引入/暴露了 7 �
 | DIoU-NMS 代码就绪但用 greedy（快照） | Low（代码） | cfg 改 nms_kind=diounms | 社区后续 commit |
 | CIoU 长宽比梯度缺 1/(1+ar²) 因子（快照） | Low（代码） | 修正 ar_dw/ar_dh | 社区后续 commit |
 
+> **v5 路标**：表中"anchor 手工超参"和"代码复杂度高"在 v5 被正面解决——autoanchor 自动学习 anchors，PyTorch 重构让代码可维护性成为一等公民（见 [v5 痛点追踪](/versions/v5/painpoints)）。
+
 ---
 
 ## 1. AP75 仍落后 EfficientDet (`pain-ap75-gap`)

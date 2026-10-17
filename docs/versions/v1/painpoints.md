@@ -14,6 +14,7 @@ YOLOv1 用速度换精度，付出的代价集中体现为 6 个痛点。这一�
 | 两阶段方法太慢 | Critical (被 v1 解决) | single-shot | v1 |
 
 > **v4 路标**：表中"边界框定位粗糙"在 v4 由 CIoU loss 正面解决——坐标回归第一次有 IoU 直接梯度（见 [v4 痛点追踪](/versions/v4/painpoints)）。
+> **v5 路标**：表中"小目标召回差"在 v5 被大幅缓解——Focus 无损下采样 + 多正样本分配 + 多尺度训练，小物体召回率显著提升（见 [v5 痛点追踪](/versions/v5/painpoints)）。
 
 ## 1. 小目标召回差 (`pain-small-object-recall`)
 

@@ -77,10 +77,10 @@ Cross Stage Partial：每段把特征劈成两半，一半走残块堆栈、一�
 `x · tanh(softplus(x))`，平滑版 ReLU——负半轴允许小梯度通过，训练更稳。v4 骨干全部换成 Mish（neck/head 仍用 leaky），详解：[v4 concepts §2](/versions/v4/concepts)。
 
 ### SPP（空间金字塔池化）
-Spatial Pyramid Pooling：同一特征图并联 5×5/9×9/13×13 三个 same-padding maxpool 再 concat，感受野暴力扩大而分辨率不变。v4 插在骨干与 neck 之间（层 105–116），详解：[v4 concepts §3](/versions/v4/concepts)。
+Spatial Pyramid Pooling：同一特征图并联 5×5/9×9/13×13 三个 same-padding maxpool 再 concat，感受野暴力扩大而分辨率不变。v4 插在骨干与 neck 之间（层 105–116），v5 沿用同一公式但实现改成 `nn.MaxPool2d`，详解：[v4 concepts §3](/versions/v4/concepts) / [v5 concepts §3](/versions/v5/concepts)。
 
 ### PANet（路径聚合网络）
-在 FPN"深层语义往浅层送"的基础上，再加一条**自底向上**的下采样通路，把浅层定位信息回传深层。v4 的 neck = SPP + FPN + PANet，详解：[v4 concepts §4](/versions/v4/concepts)。
+在 FPN"深层语义往浅层送"的基础上，再加一条**自底向上**的下采样通路，把浅层定位信息回传深层。v4 的 neck = SPP + FPN + PANet（手写 route/shortcut）；v5 改用 yaml `Concat` 声明，更易改。详解：[v4 concepts §4](/versions/v4/concepts) / [v5 concepts §4](/versions/v5/concepts)。
 
 ---
 
@@ -120,16 +120,37 @@ Spatial Pyramid Pooling：同一特征图并联 5×5/9×9/13×13 三个 same-pad
 见 [sigmoid / logistic](#sigmoid-logistic)；v3 起类别头每类独立过 logistic（多标签场景下 Person + Woman 可同时成立），与互斥 softmax 分道扬镳，详解：[v3 concepts §4](/versions/v3/concepts)。
 
 ### CIoU loss
-Complete IoU loss：坐标回归不再算 `(target − output)²`，而是直接对 IoU 求导——同时考虑**重叠面积 + 中心距 + 长宽比**。v4 坐标损失换代，详解：[v4 concepts §5](/versions/v4/concepts)。
+Complete IoU loss：坐标回归不再算 `(target − output)²`，而是直接对 IoU 求导——同时考虑**重叠面积 + 中心距 + 长宽比**。v4 坐标损失换代，v5 沿用同一公式但用 PyTorch autograd 自动求导（消除了 v4 手写梯度的 bug 风险）。详解：[v4 concepts §5](/versions/v4/concepts) / [v5 losses](/versions/v5/losses)。
 
 ### Mosaic 增强
-训练时把 4 张图拼成一张（随机切十字），单张图里的场景更丰富、物体数量翻倍，相当于暴力版数据增强。v4 论文核心 BoF 之一，详解：[v4 concepts §8](/versions/v4/concepts)。
+训练时把 4 张图拼成一张（随机切十字），单张图里的场景更丰富、物体数量翻倍，相当于暴力版数据增强。v4 论文核心 BoF 之一，v5 沿用并在 `load_mosaic` 里实现为 NumPy 切片，详解：[v4 concepts §8](/versions/v4/concepts) / [v5 tricks §5](/versions/v5/tricks)。
 
 ### scale_x_y
 消除网格敏感性：对 sigmoid 后的偏移做线性放缩 `scale_x_y·σ(tx) − 0.5·(scale_x_y−1)`，让小物体在网格边缘也能被分到足够的梯度。v4 三头分别取 1.2/1.1/1.05，详解：[v4 concepts §6](/versions/v4/concepts)。
 
 ### multi-positive（多正样本）
-除"形状最匹配的 anchor"外，同一头内 IoU(anchor shape, GT) > 0.213 的其余 anchor 也参与监督，再平均 delta——正样本密度显著提升。v4 新增，详解：[v4 concepts §7](/versions/v4/concepts)。
+除"形状最匹配的 anchor"外，同一头内 IoU(anchor shape, GT) > 0.213 的其余 anchor 也参与监督，再平均 delta——正样本密度显著提升。v4 新增，详解：[v4 concepts §7](/versions/v4/concepts)。v5 改成 wh 比例 + 邻居偏移，思路一致但匹配规则不同，见 [v5 concepts §8](/versions/v5/concepts)。
+
+### Focus
+v5 的 stem 模块：把输入按 `(行, 列)` 各切 2 份得 4 个空间位置，concat 到通道维（3→12），再接一个 Conv——无损下采样，参数量比 stride-2 conv 低，但部署端不友好。v6.0 起被 6×6 Conv s2 替代，详解：[v5 concepts §1](/versions/v5/concepts)。
+
+### C3
+v5 的 CSP Bottleneck 模块：cv1 + cv2 两路分流（cv1 走 n 个 Bottleneck，cv2 直通），concat 后过 cv3——比 v4 的 BottleneckCSP 少一次 BN/激活，参数量更省，详解：[v5 concepts §2](/versions/v5/concepts)。
+
+### SiLU（Swish）
+`x · sigmoid(x)`，平滑非单调激活。v5 全程启用（替代 v4 的 Mish/Leaky），详解：[v5 concepts §4](/versions/v5/concepts)。
+
+### autoanchor
+v5 的 anchor 自动学习：先 k-means 按训练集 wh 聚类 9 个 anchor，再用遗传算法（GA）进化 1000 代；训练前若 BPR < 0.98 就自动重算并替换进模型——anchor 从"手工调参"变成"全自动"，详解：[v5 concepts §9](/versions/v5/concepts)。
+
+### EMA（指数移动平均）
+训练时同时维护一份"平滑版"参数（`ema = decay × ema + (1−decay) × model`），eval/推理用这份平滑参数——比裸模型泛化更稳。v5 标配，v4 无。
+
+### AMP（自动混合精度）
+`torch.cuda.amp` 自动选择 fp16/fp32：matmul/conv 用 fp16 加速，loss/softmax 用 fp32 保精度——训练速度 ×2-3，显存减半。v5 标配。
+
+### yaml 驱动架构
+v5 的网络配置不再用 cfg 逐层手写，而是 `models/yolov5s.yaml` 用 `[from, number, module, args]` 四元组 + `depth_multiple`/`width_multiple` 两个缩放系数描述整个网络——s/m/l/x 同一份代码只改两个数。详解：[v5 architecture](/versions/v5/architecture)。
 
 ---
 
