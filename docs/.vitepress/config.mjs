@@ -58,6 +58,7 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '系列演化', link: '/global/family' },
+      { text: '术语表', link: '/glossary' },
       { text: '时间线', link: '/global/timeline' },
       { text: '本体 Schema', link: '/ontology/schema' },
       { text: '版本', items: [
@@ -129,6 +130,12 @@ export default defineConfig({
             { text: 'yolo.c', link: '/versions/v2/source/yolo' },
             { text: 'box.c', link: '/versions/v2/source/box' },
             { text: 'yolo.cfg', link: '/versions/v2/source/yolo-cfg' }
+          ]
+        },
+        {
+          text: '共享',
+          items: [
+            { text: '术语表', link: '/glossary' }
           ]
         }
       ],

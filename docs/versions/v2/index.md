@@ -7,6 +7,19 @@
 - 💻 源码：[pjreddie/darknet](https://github.com/pjreddie/darknet) commit `c6afc7f`
 - 🎯 里程碑：**把 v1 的骨架换了一遍**——DenseNet backbone、BN、anchors、passthrough、YOLO9000，mAP 从 63.4 冲到 76.8
 
+## 3 分钟电梯演讲
+
+```mermaid
+flowchart LR
+    IMG["416×416 照片"] --> NET["Darknet-19<br/>全卷积 + BN"] --> GRID["13×13 格 × 5 个 anchor<br/>报框 + 类别"] --> NMS["NMS 去重"] --> OUT["检测结果"]
+```
+
+1. **v1 够快，但不准**：框的位置粗糙、小物体漏检多（详见 [v1 痛点](/versions/v1/painpoints)）。
+2. **v2 不换思路、只换骨架**：[BN](/glossary#bn-批归一化-batch-normalization) 稳住训练、5 个 [anchor](/glossary#anchor-锚框-先验框) 提供框的形状模板、[passthrough](/glossary#passthrough-route-reorg) 把浅层细节拼回检测头——思路还是"看一眼"，但看得更清。
+3. **结果**：VOC mAP 从 63.4 → **76.8**；同一篇论文还顺手用 [WordTree](/glossary#wordtree-yolo9000) 做了能认 9000 类的 YOLO9000。
+
+> 已读过 [v1](/versions/v1/index)？本页下方有 v1→v2 逐项差异表；术语不熟先查[术语表](/glossary)。
+
 ## 四层闭环视图
 
 ```mermaid
