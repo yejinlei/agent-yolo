@@ -1,6 +1,7 @@
 // @AI_GUARD: 源码快照只能来自 source/yolov*/snapshot/，组件通过 ?raw 在构建期内联，勿改成运行时 fetch
 // @CONSTRAINT: glob 根路径相对本文件所在目录（docs/.vitepress/theme/composables/），到仓库根为 ../../../../
 // @AI_GUARD: 每个快照独立 glob，避免不同 commit 的文件名冲突（如 v1 与 v2 都有 src/yolo.c）
+import { withBase } from 'vitepress'
 
 // 版本默认值：SrcLink 未显式指定 :version 时视为 v1（保持 v1 页面现有引用行为不变）
 export const DEFAULT_VERSION = 'v1'
@@ -79,13 +80,14 @@ export function githubUrl(file, start, end, version) {
 }
 
 /** 站内源码页链接（带行号锚点）；白名单外的文件回退 GitHub */
+// @AI_GUARD: 站内路径必须经 withBase 补站点 base（/agent-yolo/），否则部署到子路径时 SrcLink 全部 404
 export function sourceUrl(file, start, end, version) {
   const [v, f] = splitKey(file)
   const vv = version || v
   const page = SOURCE_PAGES[`${vv}:${f}`]
   let hash = ''
   if (start) hash = end && end !== start ? `#L${start}-L${end}` : `#L${start}`
-  return page ? page + hash : githubUrl(file, start, end, version)
+  return page ? withBase(page) + hash : githubUrl(file, start, end, version)
 }
 
 /** 判断某文件在当前版本快照下是否已在白名单内 */
