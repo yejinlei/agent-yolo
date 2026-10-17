@@ -150,12 +150,9 @@ flowchart LR
 
 ### 解码公式
 
-```
-pred_x = (σ(tx) + i)          / 13
-pred_y = (σ(ty) + j)          / 13
-pred_w = exp(tw) × anchor_w   / 13
-pred_h = exp(th) × anchor_h   / 13
-```
+$$pred_x = (\sigma(t_x) + i) / 13 \qquad pred_y = (\sigma(t_y) + j) / 13$$
+
+$$pred_w = \exp(t_w) \times anchor_w / 13 \qquad pred_h = \exp(t_h) \times anchor_h / 13$$
 
 ### 源码对应
 

@@ -10,9 +10,7 @@
 
 和 [v1 的推导](/versions/v1/loss-gradient)是同一套约定：`l.delta[]` 直接存放每个输出神经元的误差信号，且取**损失对输出梯度的相反数**。
 
-```
-delta[ i ] = -∂L / ∂output[ i ]
-```
+$$\delta_i = -\frac{\partial L}{\partial output_i}$$
 
 region_layer 是网络的最后一层，它算出的 `l.delta` 就是整个反向传播的起跑信号。`backward_region_layer`（<SrcLink file="v2:src/region_layer.c" :line="322" />）只是把 delta 累加进 `state.delta`：
 
@@ -85,12 +83,9 @@ if(DOABS){ tw = log(truth.w*w / biases[2*n]); th = log(truth.h*h / biases[2*n+1]
 
 v2 的网络头 4 个输出是：
 
-```
-output[0] = tx（裸值，待 sigmoid）
-output[1] = ty（裸值，待 sigmoid）
-output[2] = tw（裸值，直接当 log）
-output[3] = th（裸值，直接当 log）
-```
+$$output_0 = t_x \;\text{（裸值，待 sigmoid）} \qquad output_1 = t_y \;\text{（裸值，待 sigmoid）}$$
+
+$$output_2 = t_w \;\text{（裸值，直接当 log）} \qquad output_3 = t_h \;\text{（裸值，直接当 log）}$$
 
 训练要让解码后的 `(σ(tx)+i)/w` 逼近 `truth.x`，等价于让 `σ(tx)` 逼近目标 `tx* = truth.x*w − i`。
 
@@ -109,20 +104,15 @@ delta[index + 3] = scale * (th - x[index + 3]);
 
 **核心推导**。设单分量预测为 `p = σ(a)`（a 是网络输出 tx），目标为 `p*`，损失：
 
-```
-L = (1/2)·scale·(p − p*)²          （忽略 1/2）
+$$L = \frac{1}{2} \cdot scale \cdot (p - p^{*})^2 \quad \text{（忽略 } \tfrac{1}{2} \text{）}$$
 
-∂L/∂a = scale · (p − p*) · ∂p/∂a
-      = scale · (p − p*) · σ'(a)        ← 链式法则：多乘 sigmoid 导数
-```
+$$\frac{\partial L}{\partial a} = scale \cdot (p - p^{*}) \cdot \frac{\partial p}{\partial a} = scale \cdot (p - p^{*}) \cdot \sigma'(a) \quad \leftarrow \; \text{链式法则：多乘 sigmoid 导数}$$
 
 darknet 里 delta 取负：`delta = scale·(p* − p)·σ'(a)`，正是代码里 `(tx − σ(x))·logistic_gradient(...)` 那项（logistic 就是 sigmoid，logistic_gradient 就是 σ'）。
 
 **而 tw, th**：网络输出 `a` 本身就是 log 值，解码是 `exp(a)·anchor`。它的目标是 `tw* = log(truth.w·w/anchor)`，损失写在 log 空间：
 
-```
-∂L/∂a = scale·(a − tw*) · ∂a/∂a = scale·(a − tw*)    ← 没有额外激活，导数=1
-```
+$$\frac{\partial L}{\partial a} = scale \cdot (a - t_w^{*}) \cdot \frac{\partial a}{\partial a} = scale \cdot (a - t_w^{*}) \quad \leftarrow \; \text{没有额外激活，导数=1}$$
 
 所以 tw,th 的 delta 就是**简单的线性差** `scale·(tw* − a)`，不用乘任何梯度因子。这就是为什么 §3.2 里 tw/th 两行比 tx/ty 少一项。
 

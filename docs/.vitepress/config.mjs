@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import markdownItKatex from '@traptitech/markdown-it-katex'
 
 // @REASON: markdown-it-container 已被 VitePress 内部打包、无法直接 import，这里用零依赖的 mini block rule 实现
 // 用法：::: figure 图注文字  ...（通常是 mermaid 块）...  :::
@@ -186,6 +187,7 @@ export default defineConfig({
     },
     config(md) {
       md.use(figurePlugin)
+      md.use(markdownItKatex)
     }
   }
 })

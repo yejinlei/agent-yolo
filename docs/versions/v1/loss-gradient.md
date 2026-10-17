@@ -12,9 +12,7 @@ PyTorch 里我们习惯 `loss.backward()`，梯度存在 `.grad`。darknet 的�
 
 关键约定：
 
-```
-delta[ i ] = -∂L / ∂output[ i ]
-```
+$$\delta_i = -\frac{\partial L}{\partial output_i}$$
 
 即 delta 是**损失对输出梯度的相反数**。（因为优化器往损失下降方向走，直接对 `-gradient` 做梯度下降。）
 
@@ -125,9 +123,7 @@ int box_index = index + locations*(l.classes + l.n) + (i*l.n + best_index) * l.c
 
 训练时要让：
 
-```
-x̂ → x_truth,   ŷ → y_truth,   ŵ → √w_truth,   ĥ → √h_truth
-```
+$$\hat{x} \to x_{truth}, \qquad \hat{y} \to y_{truth}, \qquad \hat{w} \to \sqrt{w_{truth}}, \qquad \hat{h} \to \sqrt{h_{truth}}$$
 
 ### 3.2 delta 的直接写法
 
@@ -150,21 +146,15 @@ if(l.sqrt){
 
 这是纯 L2 的梯度，推导非常简单：
 
-```
-假设单输出 y，目标 t，该分量对 loss 的贡献：
-    Lᵢ = coord_scale · (y − t)²
+$$L_i = coord\_scale \cdot (y - t)^2$$
 
-∂Lᵢ/∂y = 2 · coord_scale · (y − t)          ← 链式法则：对 y 求导
+$$\frac{\partial L_i}{\partial y} = 2 \cdot coord\_scale \cdot (y - t) \quad \leftarrow \; \text{链式法则：对 } y \text{ 求导}$$
 
-delta = −∂Lᵢ/∂y = −2 · coord_scale · (y − t)
-      = 2 · coord_scale · (t − y)
-```
+$$\delta = -\frac{\partial L_i}{\partial y} = -2 \cdot coord\_scale \cdot (y - t) = 2 \cdot coord\_scale \cdot (t - y)$$
 
 常数 2 被吸收进学习率（darknet 不关心梯度缩放常数），于是：
 
-```
-delta  ∝  (target − output)      ★ 这就是每行代码的原型
-```
+$$\delta \propto (target - output) \qquad \bigstar \ \text{这就是每行代码的原型}$$
 
 > **白话记忆法**：**"输出离目标差多少，就按差多少回传；方向相反。"** 输出低了就往高推，高了就往低拉。`gradient = target − output`。
 
@@ -172,20 +162,19 @@ delta  ∝  (target − output)      ★ 这就是每行代码的原型
 
 这是最值得讲清楚的地方。设：
 
-```
-网络输出 ŵ，实际用的 w = ŵ²     （sqrt=1 时）
-损失定义在对开方空间：  L_w = coord_scale · (ŵ − √w_truth)²
+$$\text{网络输出 } \hat{w}\text{，实际用的 } w = \hat{w}^2 \quad \text{（sqrt=1 时）}$$
 
-∂L_w / ∂ŵ = 2 · coord_scale · (ŵ − √w_truth)
-delta_w = coord_scale · (√w_truth − ŵ)     ← 就是代码里那行
-```
+$$L_w = coord\_scale \cdot (\hat{w} - \sqrt{w_{truth}})^2$$
+
+$$\frac{\partial L_w}{\partial \hat{w}} = 2 \cdot coord\_scale \cdot (\hat{w} - \sqrt{w_{truth}})$$
+
+$$\delta_w = coord\_scale \cdot (\sqrt{w_{truth}} - \hat{w}) \quad \leftarrow \; \text{就是代码里那行}$$
 
 **关键点**：因为损失**本来就写在 ŵ 空间**，链式法则里**不需要**再乘 `∂w/∂ŵ = 2ŵ`。如果误以为"输出是 w、损失也是 w"，硬乘一个 `2ŵ`，梯度就错了。源码正确地**只把目标从 w_truth 换成 √w_truth**，而不额外乘因子。
 
-```
-ŵ 空间：L = (ŵ − √t)²     ──►   ∂L/∂ŵ = (ŵ − √t)        直接可回传，无需再乘
-w  空间：L = (√w − √t)²   ──►   ∂L/∂w  = (√w − √t)·(1/(2√w))  还需要除 2√w
-```
+$$\hat{w}\ \text{空间：} \; L = (\hat{w}-\sqrt{t})^2 \;\Rightarrow\; \frac{\partial L}{\partial \hat{w}} = (\hat{w}-\sqrt{t}) \quad \text{直接可回传，无需再乘}$$
+
+$$w\ \text{空间：} \; L = (\sqrt{w}-\sqrt{t})^2 \;\Rightarrow\; \frac{\partial L}{\partial w} = (\sqrt{w}-\sqrt{t}) \cdot \frac{1}{2\sqrt{w}} \quad \text{还需要除 } 2\sqrt{w}$$
 
 v1 选择了**前者**——在开方空间回归，省掉除法，数值也更稳。这就是 `sqrt=1` 的全部真相。
 
@@ -264,9 +253,7 @@ l.delta[p_index] = l.noobject_scale*(0 - l.output[p_index]);  // 目标 = 0
 
 **白话**：**先假定这个 cell 的 2 个 box 都是"无物体"，把 conf 往 0 压。** 后面若确认它有物体（§4），会撤销 cost 并覆盖 delta。这个"先抑后扬"的顺序，是代码里 noobject/object 梯度能和平共处的原因。
 
-```
-梯度：delta = 0.5 · (0 − conf) = −0.5·conf        （往低压）
-```
+$$\text{梯度：} \; \delta = 0.5 \cdot (0 - conf) = -0.5 \cdot conf \quad \text{（往低压）}$$
 
 ### 5.2 无目标格：什么都不发生
 

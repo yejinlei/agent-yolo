@@ -4,9 +4,7 @@ YOLOv1 的 loss 是 **4 项 L2 加权之和**，全部在 <SrcLink file="src/det
 
 > 论文原文（§3.2）："We optimize for sum-squared error in the output of our model."
 
-```
-L_total = 5 · L_coord + 1 · L_obj + 0.5 · L_noobj + 1 · L_class
-```
+$$L_{total} = 5 \cdot L_{coord} + 1 \cdot L_{obj} + 0.5 \cdot L_{noobj} + 1 \cdot L_{class}$$
 
 - coord / obj / class：只在**有目标且 best_index 命中**的格子上算
 - noobj：在**所有格子的所有 box** 上先算（<SrcLink file="src/detection_layer.c" :line="75" :end="80" />），命中的 box 随后被 object/coord delta 覆盖
@@ -40,9 +38,7 @@ flowchart TB
 
 **公式**：
 
-```
-L_coord = 5 · Σ_best [ (x-tx)² + (y-ty)² + (√w-√tw)² + (√h-√th)² ]
-```
+$$L_{coord} = 5 \sum_{best} \Big[ (x-t_x)^2 + (y-t_y)^2 + (\sqrt{w}-\sqrt{t_w})^2 + (\sqrt{h}-\sqrt{t_h})^2 \Big]$$
 
 **weight = 5**
 
@@ -61,9 +57,7 @@ L_coord = 5 · Σ_best [ (x-tx)² + (y-ty)² + (√w-√tw)² + (√h-√th)² ]
 
 ## 2. (1-IoU)²：只显示、不反传 (`loss-box-iou-l2`)
 
-```
-cost += (1 - IoU(pred, gt))²
-```
+$$cost \mathrel{+}= (1 - IoU(pred,\ gt))^2$$
 
 **白话**：训练日志里那个 loss 数值包含框与 GT 的几何偏差，方便人观察"框得准不准"。
 
@@ -81,9 +75,7 @@ cost += (1 - IoU(pred, gt))²
 
 **公式**：
 
-```
-L_obj = (1 - conf_pred)²     # 有目标格子
-```
+$$L_{obj} = (1 - conf_{pred})^2 \quad \text{（有目标格子）}$$
 
 **weight = 1**
 
@@ -104,9 +96,7 @@ L_obj = (1 - conf_pred)²     # 有目标格子
 
 **公式**：
 
-```
-L_noobj = 0.5 · conf²        # 无目标格子
-```
+$$L_{noobj} = 0.5 \cdot conf^2 \quad \text{（无目标格子）}$$
 
 **weight = 0.5**
 
@@ -127,9 +117,7 @@ L_noobj = 0.5 · conf²        # 无目标格子
 
 **公式**：
 
-```
-L_class = Σ_c (p_c - t_c)²   # 有目标格子，c ∈ [0, 20)
-```
+$$L_{class} = \sum_c (p_c - t_c)^2 \quad \text{（有目标格子，} c \in [0, 20) \text{）}$$
 
 **weight = 1**
 
@@ -150,9 +138,7 @@ L_class = Σ_c (p_c - t_c)²   # 有目标格子，c ∈ [0, 20)
 
 **公式**：
 
-```
-delta_conf = object_scale · (IoU - conf_pred)   # 训练时反传修正
-```
+$$\delta_{conf} = object\_scale \cdot (IoU - conf_{pred}) \quad \text{（训练时反传修正）}$$
 
 **白话**：普通的 objectness 只告诉模型"有物体"，rescore 进一步告诉模型"这个框和真实框的 IoU 是多少"。这样 confidence 就学成了 `P(Object)·IoU`。
 

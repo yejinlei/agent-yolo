@@ -2,9 +2,7 @@
 
 YOLOv2 的损失仍然是 **sum-squared error**（与 v1 一致，论文沿用 "We optimize for sum-squared error in the output of our model"），全部在 <SrcLink file="v2:src/region_layer.c" :line="144" /> 的 `forward_region_layer()` 中计算。
 
-```
-L_total = 5 · L_coord + 1 · L_obj + 1 · L_noobj + 1 · L_class
-```
+$$L_{total} = 5 \cdot L_{coord} + 1 \cdot L_{obj} + 1 \cdot L_{noobj} + 1 \cdot L_{class}$$
 
 **与 v1 的 4 点关键差异**：
 
@@ -42,10 +40,7 @@ flowchart TB
 
 **公式**：
 
-```
-L_coord = 5 · Σ_best [ (σ(tx)-τx)²·σ' + (σ(ty)-τy)²·σ'
-                      + (tw-τw)² + (th-τh)² ]
-```
+$$L_{coord} = 5 \sum_{best} \Big[ (\sigma(t_x)-\tau_x)^2 \sigma' + (\sigma(t_y)-\tau_y)^2 \sigma' + (t_w-\tau_w)^2 + (t_h-\tau_h)^2 \Big]$$
 
 **weight = 5**
 
@@ -64,9 +59,7 @@ L_coord = 5 · Σ_best [ (σ(tx)-τx)²·σ' + (σ(ty)-τy)²·σ'
 
 **公式**：
 
-```
-L_obj = 1 · (IoU_conf - σ(conf))²    # 有目标 anchor
-```
+$$L_{obj} = 1 \cdot (IoU_{conf} - \sigma(conf))^2 \quad \text{（有目标 anchor）}$$
 
 **weight = 1**
 
@@ -80,9 +73,7 @@ L_obj = 1 · (IoU_conf - σ(conf))²    # 有目标 anchor
 
 **公式**：
 
-```
-L_noobj = 1 · σ(conf)² · σ'    # 无目标 anchor
-```
+$$L_{noobj} = 1 \cdot \sigma(conf)^2 \cdot \sigma' \quad \text{（无目标 anchor）}$$
 
 **weight = 1**（v1 是 0.5）
 
@@ -96,9 +87,7 @@ L_noobj = 1 · σ(conf)² · σ'    # 无目标 anchor
 
 **公式**：
 
-```
-delta[index + n] = scale · ( [n==class] − output[index + n] )   # 交叉熵式
-```
+$$\delta_n = scale \cdot \big( [n = class] - output_n \big) \quad \text{（交叉熵式）}$$
 
 **weight = 1**
 
@@ -135,9 +124,7 @@ flowchart TB
 
 **公式**：
 
-```
-delta_conf = object_scale · (IoU - σ(conf))   # rescore=1
-```
+$$\delta_{conf} = object\_scale \cdot (IoU - \sigma(conf)) \quad \text{（rescore=1）}$$
 
 **白话**：和 v1 一样，`rescore=1`（<SrcLink file="v2:cfg/yolo.cfg" :line="235" />）让 confidence 的目标取实时 IoU，把"框得准不准"写进 objectness。
 

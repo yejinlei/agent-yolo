@@ -54,15 +54,11 @@ flowchart LR
 
 ### 2.3 形式化表达
 
-```
-输入：448 × 448 × 3
-输出：S × S × (B · 5 + C)
+$$\text{输入：} 448 \times 448 \times 3 \qquad \text{输出：} S \times S \times (B \cdot 5 + C)$$
 
-v1 中：S = 7, B = 2, C = 20
-输出 = 7 × 7 × (2 × 5 + 20)
-     = 7 × 7 × 30
-     = 1470
-```
+$$\text{v1 中：} S = 7,\ B = 2,\ C = 20$$
+
+$$\text{输出} = 7 \times 7 \times (2 \times 5 + 20) = 7 \times 7 \times 30 = 1470$$
 
 **源码定位**：<SrcLink file="cfg/yolo.cfg" :line="221" :end="234" /> 定义了 Detection 头的全部参数：
 
@@ -82,9 +78,7 @@ YOLOv1 把 448×448 的输入图划分成 **7×7 = 49 个格子**。每个格子
 
 每个 cell 输出 **2 个 bounding box**，每个 box 有 5 个数；再加上 20 维类别概率（两个 box 共享类别）：
 
-```
-30 维 = Box1(x,y,w,h,conf) + Box2(x,y,w,h,conf) + P(class_1)...P(class_20)
-```
+$$30\ \text{维} = \underbrace{Box_1(x,y,w,h,conf) + Box_2(x,y,w,h,conf)}_{2 \times 5} + \underbrace{P(class_1)\ldots P(class_{20})}_{20}$$
 
 **可视化切分**（注意内存中的真实排布顺序是 class → conf → coords）：
 
@@ -107,9 +101,7 @@ YOLOv1 把 448×448 的输入图划分成 **7×7 = 49 个格子**。每个格子
 
 论文没有让 confidence 只表示“有没有物体”，而是定义为：
 
-```
-confidence = P(Object) × IoU(pred, GT)
-```
+$$confidence = P(Object) \times IoU(pred,\ GT)$$
 
 <DiagramIou />
 
@@ -143,12 +135,7 @@ IoU=0.80"] --> B_SCORE["最终分 ≈ 0.64"]
 
 总损失把四项 L2 加权相加：
 
-```
-L = λ_coord · Σ (x-x̂)² + (y-ŷ)² + (√w - √ŵ)² + (√h - ĥ)²
-  + λ_obj   · Σ (conf - ÎoU)²
-  + λ_noobj · Σ conf²
-  + λ_cls   · Σ (p_c - p̂_c)²
-```
+$$\begin{aligned} L = \ & \lambda_{coord} \sum \Big[ (x-\hat{x})^2 + (y-\hat{y})^2 + (\sqrt{w} - \sqrt{\hat{w}})^2 + (\sqrt{h} - \sqrt{\hat{h}})^2 \Big] \\ + \ & \lambda_{obj} \sum (conf - \widehat{IoU})^2 \\ + \ & \lambda_{noobj} \sum conf^2 \\ + \ & \lambda_{cls} \sum (p_c - \hat{p}_c)^2 \end{aligned}$$
 
 论文给出的权重：\( \lambda_{coord}=5 \), \( \lambda_{obj}=1 \), \( \lambda_{noobj}=0.5 \), \( \lambda_{cls}=1 \)。
 

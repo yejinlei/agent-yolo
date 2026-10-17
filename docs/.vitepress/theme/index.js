@@ -1,6 +1,7 @@
 import DefaultTheme from 'vitepress/theme'
 import { onMounted } from 'vue'
 import './style.css'
+import 'katex/dist/katex.min.css'
 
 import SrcSnippet from './components/SrcSnippet.vue'
 import SrcLink from './components/SrcLink.vue'
