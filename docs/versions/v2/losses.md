@@ -38,6 +38,8 @@ flowchart TB
 
 ## 1. 坐标回归 L2 (`loss-coord-l2`)
 
+> **v1 读者路标**：v1 的坐标目标是 √w√h（cell 内直接回归）；v2 改成"网格内偏移过 sigmoid + log 空间宽高相对 anchor"——梯度因此多了 σ′ 因子。
+
 **公式**：
 
 $$L_{coord} = 5 \sum_{best} \Big[ (\sigma(t_x)-\tau_x)^2 \sigma' + (\sigma(t_y)-\tau_y)^2 \sigma' + (t_w-\tau_w)^2 + (t_h-\tau_h)^2 \Big]$$
@@ -104,6 +106,8 @@ $$L_{noobj} = 1 \cdot \sigma(conf)^2 \cdot \sigma' \quad \text{（无目标 anch
 :::
 
 ## 4. Class 损失（softmax）(`loss-class-softmax`)
+
+> **v1 读者路标**：v1 类别是裸 logits 的 L2（目标 one-hot）；v2 softmax 化后 delta 即交叉熵形 one-hot − p。
 
 **公式**：
 

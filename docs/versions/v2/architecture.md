@@ -39,6 +39,8 @@ flowchart TB
 
 ## 2. 逐层明细表（按快照 cfg 顺序，共 31 层）
 
+> **v1 读者路标**：v1 的 24 conv + 2 FC 在这里整体换成全卷积——**FC 层没有了**，不用在表里找；BN + leaky 出现在每个卷积之后。
+
 所有卷积 `batch_normalize=1` + leaky，这是 v2 与 v1 最大的层级差异。cfg 起始行可点击直达。
 
 | # | 类型 | kernel / stride | 输出通道 | 特征图尺寸 | cfg 行 | 参数量 |

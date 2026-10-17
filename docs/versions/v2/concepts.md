@@ -6,6 +6,8 @@ YOLOv2 相比 v1 引入/演进了 8 个核心概念。每个都配**原理图 + 
 
 ## 1. Anchors + K-means 先验 (`concept-anchors-kmeans`)
 
+> **v1 读者路标**：v1 每个 cell 的 2 个 box 从零学框的形状；v2 改为 5 个 K-means 先验 anchor，网络只学相对偏移。
+
 ### 原理图
 
 ```mermaid
@@ -53,6 +55,8 @@ flowchart LR
 
 ## 2. Batch Normalization (BN) (`concept-batch-normalization`)
 
+> **v1 读者路标**：v1 快照 cfg 没有任何 batch_normalize（见 [v1 痛点](/versions/v1/painpoints)）——BN 是 v2 全新引入的，别把它投射回 v1。
+
 ### 原理图
 
 ```mermaid
@@ -77,6 +81,8 @@ flowchart LR
 ---
 
 ## 3. Passthrough：`route + reorg`（`concept-passthrough-reorg`）
+
+> **v1 读者路标**：v1 没有任何跨层连接，浅层细节全靠网络自己往下传；passthrough 是 v2 第一次显式拼接浅层特征（FPN 雏形）。
 
 ### 原理图
 
@@ -135,6 +141,8 @@ flowchart LR
 
 ## 5. Log 空间 Box 回归 (`concept-log-box-regression`)
 
+> **v1 读者路标**：v1 在 √w√h 空间回归（推导见 [v1 反向传播 §3.4](/versions/v1/loss-gradient)）；v2 换成 log 空间 + anchor 基准，√ 因子从此消失。
+
 ### 原理图
 
 ```mermaid
@@ -164,6 +172,8 @@ $$pred_w = \exp(t_w) \times anchor_w / 13 \qquad pred_h = \exp(t_h) \times ancho
 
 ## 6. Bias Matching（锚框匹配）(`concept-bias-matching`)
 
+> **v1 读者路标**：v1 用"预测框与 GT 的 IoU"选 best box；v2 改成只看 anchor 形状——分配标准从"预测结果"换成"先验模板"。
+
 ### 原理图
 
 ```mermaid
@@ -192,6 +202,8 @@ flowchart TD
 ---
 
 ## 7. Softmax 类别头 (`concept-softmax-classes`)
+
+> **v1 读者路标**：v1 类别头是裸线性 L2（`softmax=0`，无激活无互斥）；v2 改 softmax，类别此消彼长。
 
 ### 原理图
 
