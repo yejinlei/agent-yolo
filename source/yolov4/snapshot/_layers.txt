@@ -1,0 +1,162 @@
+  0 convolutional f= k= s= act=
+  1 convolutional f= k= s= act=
+  2 convolutional f= k= s= act=
+  3 route         layers= groups=
+  4 convolutional f= k= s= act=
+  5 convolutional f= k= s= act=
+  6 convolutional f= k= s= act=
+  7 shortcut      from= act=
+  8 convolutional f= k= s= act=
+  9 route         layers= groups=
+ 10 convolutional f= k= s= act=
+ 11 convolutional f= k= s= act=
+ 12 convolutional f= k= s= act=
+ 13 route         layers= groups=
+ 14 convolutional f= k= s= act=
+ 15 convolutional f= k= s= act=
+ 16 convolutional f= k= s= act=
+ 17 shortcut      from= act=
+ 18 convolutional f= k= s= act=
+ 19 convolutional f= k= s= act=
+ 20 shortcut      from= act=
+ 21 convolutional f= k= s= act=
+ 22 route         layers= groups=
+ 23 convolutional f= k= s= act=
+ 24 convolutional f= k= s= act=
+ 25 convolutional f= k= s= act=
+ 26 route         layers= groups=
+ 27 convolutional f= k= s= act=
+ 28 convolutional f= k= s= act=
+ 29 convolutional f= k= s= act=
+ 30 shortcut      from= act=
+ 31 convolutional f= k= s= act=
+ 32 convolutional f= k= s= act=
+ 33 shortcut      from= act=
+ 34 convolutional f= k= s= act=
+ 35 convolutional f= k= s= act=
+ 36 shortcut      from= act=
+ 37 convolutional f= k= s= act=
+ 38 convolutional f= k= s= act=
+ 39 shortcut      from= act=
+ 40 convolutional f= k= s= act=
+ 41 convolutional f= k= s= act=
+ 42 shortcut      from= act=
+ 43 convolutional f= k= s= act=
+ 44 convolutional f= k= s= act=
+ 45 shortcut      from= act=
+ 46 convolutional f= k= s= act=
+ 47 convolutional f= k= s= act=
+ 48 shortcut      from= act=
+ 49 convolutional f= k= s= act=
+ 50 convolutional f= k= s= act=
+ 51 shortcut      from= act=
+ 52 convolutional f= k= s= act=
+ 53 route         layers= groups=
+ 54 convolutional f= k= s= act=
+ 55 convolutional f= k= s= act=
+ 56 convolutional f= k= s= act=
+ 57 route         layers= groups=
+ 58 convolutional f= k= s= act=
+ 59 convolutional f= k= s= act=
+ 60 convolutional f= k= s= act=
+ 61 shortcut      from= act=
+ 62 convolutional f= k= s= act=
+ 63 convolutional f= k= s= act=
+ 64 shortcut      from= act=
+ 65 convolutional f= k= s= act=
+ 66 convolutional f= k= s= act=
+ 67 shortcut      from= act=
+ 68 convolutional f= k= s= act=
+ 69 convolutional f= k= s= act=
+ 70 shortcut      from= act=
+ 71 convolutional f= k= s= act=
+ 72 convolutional f= k= s= act=
+ 73 shortcut      from= act=
+ 74 convolutional f= k= s= act=
+ 75 convolutional f= k= s= act=
+ 76 shortcut      from= act=
+ 77 convolutional f= k= s= act=
+ 78 convolutional f= k= s= act=
+ 79 shortcut      from= act=
+ 80 convolutional f= k= s= act=
+ 81 convolutional f= k= s= act=
+ 82 shortcut      from= act=
+ 83 convolutional f= k= s= act=
+ 84 route         layers= groups=
+ 85 convolutional f= k= s= act=
+ 86 convolutional f= k= s= act=
+ 87 convolutional f= k= s= act=
+ 88 route         layers= groups=
+ 89 convolutional f= k= s= act=
+ 90 convolutional f= k= s= act=
+ 91 convolutional f= k= s= act=
+ 92 shortcut      from= act=
+ 93 convolutional f= k= s= act=
+ 94 convolutional f= k= s= act=
+ 95 shortcut      from= act=
+ 96 convolutional f= k= s= act=
+ 97 convolutional f= k= s= act=
+ 98 shortcut      from= act=
+ 99 convolutional f= k= s= act=
+100 convolutional f= k= s= act=
+101 shortcut      from= act=
+102 convolutional f= k= s= act=
+103 route         layers= groups=
+104 convolutional f= k= s= act=
+105 convolutional f= k= s= act=
+106 convolutional f= k= s= act=
+107 convolutional f= k= s= act=
+108 maxpool       k= s=
+109 route         layers= groups=
+110 maxpool       k= s=
+111 route         layers= groups=
+112 maxpool       k= s=
+113 route         layers= groups=
+114 convolutional f= k= s= act=
+115 convolutional f= k= s= act=
+116 convolutional f= k= s= act=
+117 convolutional f= k= s= act=
+118 upsample      s=
+119 route         layers= groups=
+120 convolutional f= k= s= act=
+121 route         layers= groups=
+122 convolutional f= k= s= act=
+123 convolutional f= k= s= act=
+124 convolutional f= k= s= act=
+125 convolutional f= k= s= act=
+126 convolutional f= k= s= act=
+127 convolutional f= k= s= act=
+128 upsample      s=
+129 route         layers= groups=
+130 convolutional f= k= s= act=
+131 route         layers= groups=
+132 convolutional f= k= s= act=
+133 convolutional f= k= s= act=
+134 convolutional f= k= s= act=
+135 convolutional f= k= s= act=
+136 convolutional f= k= s= act=
+137 convolutional f= k= s= act=
+138 convolutional f= k= s= act=
+139 yolo          mask=
+140 route         layers= groups=
+141 convolutional f= k= s= act=
+142 route         layers= groups=
+143 convolutional f= k= s= act=
+144 convolutional f= k= s= act=
+145 convolutional f= k= s= act=
+146 convolutional f= k= s= act=
+147 convolutional f= k= s= act=
+148 convolutional f= k= s= act=
+149 convolutional f= k= s= act=
+150 yolo          mask=
+151 route         layers= groups=
+152 convolutional f= k= s= act=
+153 route         layers= groups=
+154 convolutional f= k= s= act=
+155 convolutional f= k= s= act=
+156 convolutional f= k= s= act=
+157 convolutional f= k= s= act=
+158 convolutional f= k= s= act=
+159 convolutional f= k= s= act=
+160 convolutional f= k= s= act=
+161 yolo          mask=
