@@ -1,29 +1,258 @@
-/* Mermaid 渲染容器样式 */
+/* ============================================================
+ * 研究站视觉系统：原理图(d-*) · 源码卡片(src-*) · Mermaid 卡片
+ * 配色通过 CSS 变量驱动，html.dark 下整体切换
+ * ============================================================ */
+
+:root {
+  /* 原理图通用 */
+  --d-panel: #f8fafc;
+  --d-panel-border: #e2e8f0;
+  --d-grid: #cbd5e1;
+  --d-ink: #0f172a;
+  --d-ink-2: #475569;
+  --d-emerald: #059669;       --d-emerald-soft: #d1fae5;
+  --d-sky: #0284c7;           --d-sky-soft: #e0f2fe;
+  --d-amber: #d97706;         --d-amber-soft: #fef3c7;
+  --d-rose: #e11d48;          --d-rose-soft: #ffe4e6;
+  --d-violet: #7c3aed;        --d-violet-soft: #ede9fe;
+
+  /* 源码卡片 */
+  --src-bg: #fbfcfe;
+  --src-head-bg: #f1f5f9;
+  --src-border: #dbe2ea;
+  --src-ln: #94a3b8;
+  --src-hl: #fef9c3;
+  --src-hl-border: #eab308;
+  --src-hover: #f1f5f9;
+
+  /* token */
+  --tk-kw: #7c3aed;
+  --tk-fn: #0284c7;
+  --tk-str: #059669;
+  --tk-num: #d97706;
+  --tk-com: #94a3b8;
+  --tk-pp: #db2777;
+  --tk-code: #334155;
+}
+
+html.dark {
+  --d-panel: #0f172a;
+  --d-panel-border: #1e293b;
+  --d-grid: #334155;
+  --d-ink: #e2e8f0;
+  --d-ink-2: #94a3b8;
+  --d-emerald: #34d399;       --d-emerald-soft: #064e3b;
+  --d-sky: #38bdf8;           --d-sky-soft: #0c4a6e;
+  --d-amber: #fbbf24;         --d-amber-soft: #78350f;
+  --d-rose: #fb7185;          --d-rose-soft: #881337;
+  --d-violet: #a78bfa;        --d-violet-soft: #4c1d95;
+
+  --src-bg: #0b1220;
+  --src-head-bg: #111c2e;
+  --src-border: #1e293b;
+  --src-ln: #475569;
+  --src-hl: #422006;
+  --src-hl-border: #ca8a04;
+  --src-hover: #111c2e;
+
+  --tk-kw: #c4b5fd;
+  --tk-fn: #7dd3fc;
+  --tk-str: #6ee7b7;
+  --tk-num: #fcd34d;
+  --tk-com: #64748b;
+  --tk-pp: #f9a8d4;
+  --tk-code: #cbd5e1;
+}
+
+/* ---------- SVG 原理图 ---------- */
+.d-figure {
+  margin: 1.4rem auto;
+  max-width: 100%;
+  text-align: center;
+}
+.d-svg {
+  max-width: 100%;
+  height: auto;
+}
+.d-cap {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--vp-c-text-2, #475569);
+}
+.d-title { font-size: 14px; font-weight: 700; fill: var(--d-ink); }
+.d-label { font-size: 12px; font-weight: 600; fill: var(--d-ink); }
+.d-sub   { font-size: 11px; fill: var(--d-ink-2); }
+.d-tiny  { font-size: 10px; font-weight: 600; fill: var(--d-ink); }
+.d-mono  { font-family: var(--vp-code-font-family, ui-monospace, Menlo, Consolas, monospace); font-size: 12px; fill: var(--d-ink); }
+.d-sm    { font-size: 11px; }
+.d-formula { font-size: 14px; font-weight: 600; fill: var(--d-ink); font-family: var(--vp-code-font-family, ui-monospace, monospace); }
+.d-fw    { font-weight: 700; }
+.d-label-emerald { fill: var(--d-emerald); }
+.d-label-sky     { fill: var(--d-sky); }
+.d-label-amber   { fill: var(--d-amber); }
+.d-label-rose    { fill: var(--d-rose); }
+.d-label-violet  { fill: var(--d-violet); }
+.d-dot { font-weight: 700; }
+.d-dot-rose { fill: var(--d-rose); }
+svg .d-title, svg .d-label, svg .d-sub, svg .d-tiny, svg text {
+  font-family: var(--vp-font-family-base, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif);
+}
+
+/* ---------- Mermaid 卡片 ---------- */
 .mermaid-svg {
-  margin: 1rem auto;
+  margin: 1.4rem auto;
   max-width: 100%;
   overflow-x: auto;
   text-align: center;
+  padding: 1.1rem 1rem 0.9rem;
+  border: 1px solid var(--d-panel-border);
+  border-radius: 12px;
+  background: var(--d-panel);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
-
 .mermaid-svg svg {
   max-width: 100%;
   height: auto;
   margin: 0 auto;
 }
-
-/* 暗色主题适配：mermaid 默认主题在暗色下可能偏亮，这里仅保证容器布局 */
-@media (prefers-color-scheme: dark) {
-  .mermaid-svg {
-    filter: brightness(0.97);
-  }
+.diagram-figure {
+  margin: 1.6rem 0;
+  display: flex;
+  flex-direction: column;
 }
-
-/* 渲染失败的块：给出可读提示 */
+.diagram-figure .mermaid-svg { margin: 0 auto; width: 100%; }
+.diagram-figure figcaption {
+  order: 2;
+  text-align: center;
+  margin-top: 0.55rem;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--vp-c-text-2, #475569);
+}
+div.language-mermaid.mermaid-failed {
+  border: 1px solid var(--d-rose);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
 div.language-mermaid.mermaid-failed::after {
   content: "⚠ Mermaid 渲染失败，请检查语法";
   display: block;
-  color: #e05d44;
+  color: var(--d-rose);
   font-size: 0.85rem;
-  padding: 0.5rem;
+  padding: 0.3rem 0.2rem 0;
 }
+
+/* ---------- 源码片段卡片 SrcSnippet / SourceViewer ---------- */
+.src-snippet {
+  margin: 1.2rem 0;
+  border: 1px solid var(--src-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--src-bg);
+}
+.src-head,
+.src-viewer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.42rem 0.55rem 0.42rem 0.9rem;
+  background: var(--src-head-bg);
+  border-bottom: 1px solid var(--src-border);
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+.src-name { font-weight: 600; color: var(--tk-code); }
+.src-ic { color: var(--d-emerald); margin-right: 0.25rem; font-weight: 700; }
+.src-range {
+  margin-left: 0.5rem;
+  font-weight: 500;
+  color: var(--d-ink-2);
+  font-family: var(--vp-code-font-family, ui-monospace, monospace);
+  font-size: 0.74rem;
+}
+.src-links { display: flex; gap: 0.8rem; }
+.src-links a,
+.src-viewer-bar a {
+  color: var(--d-sky);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.src-links a:hover,
+.src-viewer-bar a:hover { text-decoration: underline; }
+.src-body { overflow: auto; }
+.src-viewer-body { max-height: 70vh; }
+.src-pre {
+  margin: 0;
+  padding: 0.5rem 0;
+  background: transparent;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+.src-line {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 0.7rem 0 0;
+  border-left: 3px solid transparent;
+}
+.src-line.is-hl {
+  background: var(--src-hl);
+  border-left-color: var(--src-hl-border);
+}
+.src-ln {
+  flex: 0 0 3.2em;
+  text-align: right;
+  padding-right: 0.9em;
+  color: var(--src-ln);
+  text-decoration: none;
+  user-select: none;
+  font-family: var(--vp-code-font-family, ui-monospace, monospace);
+}
+.src-ln:hover { color: var(--d-sky); }
+.src-code {
+  white-space: pre;
+  font-family: var(--vp-code-font-family, ui-monospace, Menlo, Consolas, monospace);
+  color: var(--tk-code);
+}
+.src-loading { padding: 1rem; color: var(--d-ink-2); font-size: 0.85rem; }
+
+.tk-kw  { color: var(--tk-kw); font-weight: 600; }
+.tk-fn  { color: var(--tk-fn); }
+.tk-str { color: var(--tk-str); }
+.tk-num { color: var(--tk-num); }
+.tk-com { color: var(--tk-com); font-style: italic; }
+.tk-pp  { color: var(--tk-pp); }
+
+/* ---------- 行内源码徽章 SrcLink ---------- */
+.src-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.05rem 0.42rem 0.05rem 0.32rem;
+  margin: 0 0.15rem;
+  border: 1px solid var(--src-border);
+  border-radius: 6px;
+  background: var(--src-head-bg);
+  color: var(--tk-code) !important;
+  text-decoration: none !important;
+  font-size: 0.78em;
+  line-height: 1.5;
+  vertical-align: 0.06em;
+  transition: border-color .15s, background .15s;
+}
+.src-link:hover {
+  border-color: var(--d-emerald);
+  background: var(--d-emerald-soft);
+}
+.src-link code {
+  font-family: var(--vp-code-font-family, ui-monospace, monospace);
+  color: var(--tk-fn);
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+}
+.src-link-ic { color: var(--d-emerald); font-weight: 700; }
+.src-link-ext { color: var(--src-ln); font-size: 0.85em; }

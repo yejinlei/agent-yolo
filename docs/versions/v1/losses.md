@@ -1,15 +1,16 @@
 # YOLOv1 损失函数
 
-YOLOv1 的 loss 是 **4 项 L2 加权之和**，全部在 `src/detection_layer.c` 的 `forward_detection_layer()` 中计算。
+YOLOv1 的 loss 是 **4 项 L2 加权之和**，全部在 <SrcLink file="src/detection_layer.c" :line="42" /> 的 `forward_detection_layer()` 中计算。
 
 > 论文原文（§3.2）："We optimize for sum-squared error in the output of our model."
 
 ```
-L_total = 5 · L_coord + 1 · L_box + 1 · L_obj + 0.5 · L_noobj + 1 · L_class
+L_total = 5 · L_coord + 1 · L_obj + 0.5 · L_noobj + 1 · L_class
 ```
 
-- coord / box / obj / class：只在**有目标且 best_index 命中**的格子上算
-- noobj：在**所有格子的所有 box** 上算
+- coord / obj / class：只在**有目标且 best_index 命中**的格子上算
+- noobj：在**所有格子的所有 box** 上先算（<SrcLink file="src/detection_layer.c" :line="75" :end="80" />），命中的 box 随后被 object/coord delta 覆盖
+- 另有一项 `(1-IoU)²` 只累加到 `l.cost` 用于**日志显示**（<SrcLink file="src/detection_layer.c" :line="172" />），**不写 delta、不参与反传**——不要把它当成第 5 个真实损失项
 
 
 ## 全景图
@@ -23,14 +24,13 @@ flowchart TB
   INPUT --> HAS
   INPUT --> NOL
 
-  HAS --> COORD["L_coord: (√w·√h)·Σ(pred-t)²<br/>weight=5"]
-  HAS --> BOX["L_box: (√w·√h)·(1-IoU)²<br/>weight=1"]
-  HAS --> OBJ["L_obj: (1-conf)²<br/>weight=1"]
-  HAS --> CLASS["L_class: Σ(p_c-t_c)²<br/>weight=1"]
+  HAS --> COORD["L_coord: Σ(pred-t)²<br/>xy 直接、wh 在 √ 空间<br/>weight=5"]
+  HAS --> BOX["(1-IoU)²<br/>仅 cost 日志，不反传"]
+  HAS --> OBJ["L_obj: (target-conf)²<br/>target=IoU(rescore)<br/>weight=1"]
+  HAS --> CLASS["L_class: Σ(p_c-t_c)²<br/>裸线性 L2，无 softmax<br/>weight=1"]
   NOL --> NOOBJ[L_noobj: conf²<br/>weight=0.5]
 
-  COORD --> SUM[加权求和]
-  BOX --> SUM
+  COORD --> SUM[delta 加权求和]
   OBJ --> SUM
   CLASS --> SUM
   NOOBJ --> SUM
@@ -41,56 +41,39 @@ flowchart TB
 **公式**：
 
 ```
-L_coord = Σ_best (√w · √h) · [ (pred_x - t_x)² + (pred_y - t_y)² ]
+L_coord = 5 · Σ_best [ (x-tx)² + (y-ty)² + (√w-√tw)² + (√h-√th)² ]
 ```
 
 **weight = 5**
 
-**白话**：预测框中心点 (x, y) 离真实框中心点有多远。因为 x、y 的值域只有 [0,1]，平方后梯度很小，所以权重给 5 强行放大。
+**白话**：预测框中心点离真实框有多远；宽高在 **√ 空间**比较，让大小目标的误差量级接近。
 
 **要点**：
 - 只对 **best_index 那一个 box** 计算 coord 项（每个 cell 只有一个 box 被归为"命中"）
-- 乘上 `√w · √h` 是因为 `sqrt=1` 时预测的是开方值，反传要乘回去做尺度校正
-- 权重 5 是 pjreddie 手工调的——coord 空间是连续 [0,1]，梯度天然小；乘 5 拉平到与其他项同量级
+- xy 直接做差；wh 的真值先取 `sqrt()`（`sqrt=1` 时，见 <SrcLink file="src/detection_layer.c" :line="167" :end="170" />），**没有额外的 √w·√h 权重因子**——那是后人物料里以讹传讹的说法
+- 权重 5 是手工调的——coord 项数量少、值域小，乘 5 拉平到与其他项同量级（<SrcLink file="cfg/yolo.cfg" :line="234" />）
 
-**源码对应**（`src/detection_layer.c:163-166`）：
+**源码对应**：
 
-```c
-l.delta[box_index+0] = l.coord_scale*(state.truth[tbox_index + 0] - l.output[box_index + 0]);
-l.delta[box_index+1] = l.coord_scale*(state.truth[tbox_index + 1] - l.output[box_index + 1]);
-l.delta[box_index+2] = l.coord_scale*(state.truth[tbox_index + 2] - l.output[box_index + 2]);
-l.delta[box_index+3] = l.coord_scale*(state.truth[tbox_index + 3] - l.output[box_index + 3]);
-```
-
-**源码位置**：`source/yolov1/snapshot/src/detection_layer.c:163-166`
+<SrcSnippet file="src/detection_layer.c" :start="163" :end="170" hl="163-166,167-170" />
 
 ---
 
-## 2. Box IoU L2 (`loss-box-iou-l2`)
-
-**公式**：
+## 2. (1-IoU)²：只显示、不反传 (`loss-box-iou-l2`)
 
 ```
-L_box = Σ_best (√w · √h) · (1 - IoU(pred, gt))²
+cost += (1 - IoU(pred, gt))²
 ```
 
-**weight = 1**
+**白话**：训练日志里那个 loss 数值包含框与 GT 的几何偏差，方便人观察"框得准不准"。
 
-**白话**：不光中心要对，框的大小和形状也要对。用 `(1-IoU)²` 把宽、高、位置打包成一个几何相似度指标。
+**要点（快照层面的重要事实）**：
+- 这一项只写 `*(l.cost)`，<SrcLink file="src/detection_layer.c" :line="172" /> **没有对应 `l.delta` 赋值，优化器收不到它的梯度**
+- 因此它**不是真正参与训练的损失项**，与 coord 项也不构成"互补双损失"
+- 真正把"框不准"信号传回去的路径是 rescore：IoU 成为 confidence 的目标（见第 3/6 节）
+- v1 没有任何 IoU 类损失（CIoU/GIoU/DIoU 都没有），这是定位粗糙的根源之一，见 [痛点追踪](/versions/v1/painpoints)
 
-**要点**：
-- 与 L_coord 同时作用于 best_index
-- `(1-IoU)²` 是二阶段检测里常见的 IoU 损失表达
-- 与 coord loss 形成互补：coord 精调 x/y，IoU 保证 w/h 合理
-- **不引入 CIoU/GIoU**——这是 v1 定位粗糙的根源之一，见 [痛点追踪](/versions/v1/painpoints)
-
-**源码对应**（`src/detection_layer.c:172`）：
-
-```c
-*(l.cost) += pow(1-iou, 2);
-```
-
-**源码位置**：`detection_layer.c:172`
+<SrcSnippet file="src/detection_layer.c" :start="171" :end="173" />
 
 ---
 
@@ -111,20 +94,9 @@ L_obj = (1 - conf_pred)²     # 有目标格子
 - 论文原话：`confidence = P(Object) · IoU(pred, GT)`，训练中 conf 分支同时吸收 objectness 和定位信号
 - 与 [Concept 4: Confidence = P·IoU](/versions/v1/concepts) 呼应
 
-**源码对应**（`src/detection_layer.c:154-157, 159-161`）：
+**源码对应**：
 
-```c
-// 基础 objectness：希望 confidence → 1
-*(l.cost) += l.object_scale * pow(1-l.output[p_index], 2);
-l.delta[p_index] = l.object_scale * (1.-l.output[p_index]);
-
-// 如果 rescore=1，把真实 IoU 作为目标
-if(l.rescore){
-    l.delta[p_index] = l.object_scale * (iou - l.output[p_index]);
-}
-```
-
-**源码位置**：`detection_layer.c:154-161`
+<SrcSnippet file="src/detection_layer.c" :start="153" :end="161" hl="155,157,159-161" />
 
 ---
 
@@ -142,18 +114,12 @@ L_noobj = 0.5 · conf²        # 无目标格子
 
 **要点**：
 - 无目标格子占绝大多数（49 cell 里通常 <5 个有目标），不加权会淹没有目标格的梯度
-- 0.5 是 pjreddie 的实验值，论文未给出理论最优
-- **不是焦点损失**——v1 用的是纯 L2，v2 起引入 Focal Loss
+- 0.5 是实验值（<SrcLink file="cfg/yolo.cfg" :line="231" />），论文未给出理论最优
+- **不是焦点损失**——v1 用的是纯 L2；顺带澄清：官方 v2/v3/v4/v5 也都没有采用 Focal Loss（RetinaNet 提出后 YOLO 主线长期未用，v8 等才引入相关变体）
 
-**源码对应**（`src/detection_layer.c:76-78`）：
+**源码对应**（注意 cost 与 delta 在同一循环内，先对两个 box 都置 noobj，命中者后面再被覆盖）：
 
-```c
-int p_index = index + locations*l.classes + i*l.n + j;
-l.delta[p_index] = l.noobject_scale*(0 - l.output[p_index]);
-*(l.cost) += l.noobject_scale*pow(l.output[p_index], 2);
-```
-
-**源码位置**：`detection_layer.c:76-78`
+<SrcSnippet file="src/detection_layer.c" :start="75" :end="80" hl="76-78" />
 
 ---
 
@@ -170,21 +136,13 @@ L_class = Σ_c (p_c - t_c)²   # 有目标格子，c ∈ [0, 20)
 **白话**：这个格子里的物体是什么类别。v1 把 20 类做成 one-hot，直接对每一类做 L2。
 
 **要点**：
-- **softmax=0**（`yolo.cfg` 显式指定），类别头用独立 sigmoid 而非 softmax
+- **softmax=0**（<SrcLink file="cfg/yolo.cfg" :line="227" />）：类别头是**裸线性输出**，既无 softmax 也无 sigmoid，训练直接对 20 个 logits 做 L2（推理时再与 confidence 相乘并按阈值清零）
 - 训练时 `t_c` 是 one-hot，只有正确类是 1
 - 与 conf 分离：conf 只负责"这里有没有"，class 负责"是什么"
 
-**源码对应**（`src/detection_layer.c:91-96`）：
+**源码对应**：
 
-```c
-int class_index = index + i*l.classes;
-for(j = 0; j < l.classes; ++j) {
-    l.delta[class_index+j] = l.class_scale * (state.truth[truth_index+1+j] - l.output[class_index+j]);
-    *(l.cost) += l.class_scale * pow(state.truth[truth_index+1+j] - l.output[class_index+j], 2);
-}
-```
-
-**源码位置**：`detection_layer.c:91-96`
+<SrcSnippet file="src/detection_layer.c" :start="90" :end="96" hl="92-93" />
 
 ---
 
@@ -204,15 +162,9 @@ delta_conf = object_scale · (IoU - conf_pred)   # 训练时反传修正
 - 这是 v1 让 confidence 学会 P·IoU 语义的关键 trick
 - v2 起被独立的 objectness 头取代，rescore 消失
 
-**源码对应**（`src/detection_layer.c:159-161`）：
+**源码对应**（rescore 覆盖上一行的常数 1 目标）：
 
-```c
-if(l.rescore){
-    l.delta[p_index] = l.object_scale * (iou - l.output[p_index]);
-}
-```
-
-**源码位置**：`detection_layer.c:159-161`
+<SrcSnippet file="src/detection_layer.c" :start="153" :end="161" hl="159-161" />
 
 ---
 
@@ -228,12 +180,11 @@ flowchart TB
     BEST -->|之后| IOUMAX["argmax IoU"]
     RAND --> COMPUTE
     IOUMAX --> COMPUTE["对该 box 计算："]
-    COMPUTE --> COORD["coord_scale=5:<br/>Δx, Δy, Δw, Δh"]
-    COMPUTE --> IOULOSS["cost += (1-IoU)²"]
+    COMPUTE --> COORD["coord_scale=5:<br/>Δx, Δy, Δ√w, Δ√h"]
+    COMPUTE --> IOULOSS["cost += (1-IoU)²<br/>(仅日志，不写 delta)"]
     COMPUTE --> OBJ["object_scale=1:<br/>conf → 1 或 IoU"]
-    COMPUTE --> CLS["class_scale=1:<br/>20 类 one-hot L2"]
-    COORD --> SUM[加权求和]
-    IOULOSS --> SUM
+    COMPUTE --> CLS["class_scale=1:<br/>20 类裸线性 L2"]
+    COORD --> SUM[delta 加权求和]
     OBJ --> SUM
     CLS --> SUM
     NOOBJ --> SUM
@@ -246,11 +197,11 @@ flowchart TB
 
 | 项 | 权重 | 作用域 | 为什么是这个值 |
 |----|------|--------|---------------|
-| Coord L2 | **5** | best_index box | coord 值域小，梯度弱 |
-| Box IoU | 1 | best_index box | 与 coord 同量级 |
-| Object L2 | 1 | 有目标格 | 与 class 同重要性 |
+| Coord L2 | **5** | best_index box | coord 值域小、项数少，梯度弱 |
+| (1-IoU)² | — | 仅 `l.cost` | **不反传**，只用于训练日志观察 |
+| Object L2 | 1 | 命中 box | 与 class 同重要性；rescore 时目标为 IoU |
 | No-Object L2 | **0.5** | 无目标格 | 背景格子数量压倒，需降权 |
-| Class L2 | 1 | 有目标格 | 基线 |
+| Class L2 | 1 | 有目标格 | 基线；裸线性 L2 |
 
 ## 与其他页的链接
 

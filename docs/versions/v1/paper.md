@@ -64,18 +64,9 @@ v1 中：S = 7, B = 2, C = 20
      = 1470
 ```
 
-**源码定位**：`cfg/yolo.cfg` 第 221-229 行定义了 Detection 头的参数：
+**源码定位**：<SrcLink file="cfg/yolo.cfg" :line="221" :end="234" /> 定义了 Detection 头的全部参数：
 
-```cfg
-[detection]
-classes=20
-coords=4
-rescore=1
-side=7
-num=2
-softmax=0
-sqrt=1
-```
+<SrcSnippet file="cfg/yolo.cfg" :start="221" :end="234" hl="224-228,231-234" />
 
 ---
 
@@ -83,24 +74,9 @@ sqrt=1
 
 ### 3.1 什么叫 grid cell？
 
-YOLOv1 把 448×448 的输入图划分成 **7×7 = 49 个格子**。每个格子只负责预测“中心落在自己内部的物体”。
+YOLOv1 把 448×448 的输入图划分成 **7×7 = 49 个格子**。每个格子只负责预测“中心落在自己内部的物体”：
 
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#e0f2fe', 'primaryBorderColor': '#0284c7'}}}%%
-flowchart TB
-    subgraph IMAGE["448 × 448 输入图"]
-        GRID["7 × 7 网格"]
-    end
-    subgraph CELL["某一个 grid cell"]
-        OBJ["🐕 一只狗
-中心落在这里"]
-        B1["Box 1"]
-        B2["Box 2"]
-    end
-    GRID --> CELL
-    OBJ --> B1
-    OBJ --> B2
-```
+<DiagramGridCell />
 
 ### 3.2 每个 grid cell 输出什么？
 
@@ -110,27 +86,18 @@ flowchart TB
 30 维 = Box1(x,y,w,h,conf) + Box2(x,y,w,h,conf) + P(class_1)...P(class_20)
 ```
 
-**可视化切分**：
+**可视化切分**（注意内存中的真实排布顺序是 class → conf → coords）：
 
-```mermaid
-flowchart LR
-    OUT["1470 维向量"] --> RESHAPE["reshape(7,7,30)"]
-    RESHAPE --> CELL["一个 cell 的 30 维"]
-    CELL --> B1["Box 1<br/>5 维"]
-    CELL --> B2["Box 2<br/>5 维"]
-    CELL --> CLS["20 维类别"]
-```
+<DiagramTensor30 />
 
 ### 3.3 为什么用 7×7？
 
-- **速度**：7×7 是经过 5 次下采样后的自然终点（448 → 224 → 112 → 56 → 28 → **7**）。
-- **精度代价**：每个 cell 感受野约 64×64 像素；小于这个尺寸的物体很难被检测到。这也是 v1 小目标召回差的根本原因。
+- **速度**：7×7 是 6 次空间减半后的自然终点（448 → 224 → 112 → 56 → 28 → 14 → **7**）。
+- **精度代价**：每个 cell 对应输入上 64×64 像素的区域；小于这个尺寸、或中心挤在同一格里的多个物体很难被检测到。这也是 v1 小目标召回差的根本原因。
 
-**对应源码**：`src/detection_layer.c:44` 计算 grid 总数：
+**对应源码**：<SrcLink file="src/detection_layer.c" :line="44" /> 计算 grid 总数：
 
-```c
-int locations = l.side*l.side;   // 7*7 = 49
-```
+<SrcSnippet file="src/detection_layer.c" :start="42" :end="46" hl="44" />
 
 ---
 
@@ -143,6 +110,8 @@ int locations = l.side*l.side;   // 7*7 = 49
 ```
 confidence = P(Object) × IoU(pred, GT)
 ```
+
+<DiagramIou />
 
 ### 4.2 为什么这样设计？
 
@@ -162,13 +131,11 @@ IoU=0.80"] --> B_SCORE["最终分 ≈ 0.64"]
 
 ### 4.3 训练时的目标值
 
-训练时 GT 已知，confidence 的**目标就是 IoU(pred, gt)**。代码中 `rescore=1` 会显式把 delta 写成：
+训练时 GT 已知，confidence 的**目标就是 IoU(pred, gt)**。<SrcLink file="cfg/yolo.cfg" :line="224" /> 的 `rescore=1` 会显式把 delta 的目标从 1 改成实时 IoU：
 
-```c
-l.delta[p_index] = l.object_scale * (iou - l.output[p_index]);
-```
+<SrcSnippet file="src/detection_layer.c" :start="153" :end="161" hl="157,159-161" />
 
-> **注意推理时的退化**：测试阶段没有 GT，confidence 无法真正计算 IoU，只能退化为模型学到的 `P(Object)` 估计。
+> **注意推理时的退化**：测试阶段没有 GT，confidence 无法真正计算 IoU，输出的只是网络学出来的标量；最终类别分数在解码时由 `conf × class_prob` 得到（<SrcLink file="src/yolo.c" :line="104" />）。
 
 ---
 
@@ -199,30 +166,25 @@ flowchart TB
 
 ### 5.2 sqrt=1 技巧
 
-对 \( w, h \) 回归的是开方值，而不是原始值：
+对 \( w, h \) 回归的是开方值，而不是原始值。实现方式是**只把训练目标换成 √truth**（网络输出空间始终是 √ 空间）：
 
-```c
-if (l.sqrt) {
-    box.w = pow(boxes[i].w, 0.5);
-    box.h = pow(boxes[i].h, 0.5);
-}
-```
+<SrcSnippet file="src/detection_layer.c" :start="163" :end="170" hl="167-170" />
 
-**原因**：如果不做开方，大物体的 \( w \times h \) 残差会远远超过小物体，小物体的梯度被淹没。开方后大小目标在损失里更均衡。
+**原因**：如果不做开方，大物体的 \( w \times h \) 残差会远远超过小物体，小物体的梯度被淹没。开方后大小目标在损失里更均衡。推理解码时再平方还原（<SrcLink file="src/yolo.c" :line="100" :end="101" />）。
 
 ### 5.3 源码对应
 
-损失计算全部在 `src/detection_layer.c:42-213` 的 `forward_detection_layer()` 中：
+损失计算全部在 <SrcLink file="src/detection_layer.c" :line="42" :end="213" /> 的 `forward_detection_layer()` 中（点击行号可直达高亮）：
 
 | 代码行 | 功能 |
 |--------|------|
-| 76-78 | 所有 box 的 no-object loss |
-| 91-96 | 有目标 cell 的 class loss |
-| 102-127 | 用 IoU 或 RMSE 选 best_index |
-| 136-138 | 前 100k 迭代随机选 best_index |
-| 154-161 | objectness loss + rescore |
-| 163-170 | coord loss，含 sqrt 分支 |
-| 172 | box IoU loss |
+| <SrcLink file="src/detection_layer.c" :line="76" :end="78" /> | 所有 box 先记 no-object delta/cost |
+| <SrcLink file="src/detection_layer.c" :line="91" :end="96" /> | 有目标 cell 的 class loss |
+| <SrcLink file="src/detection_layer.c" :line="102" :end="127" /> | 用 IoU（或 RMSE 兜底）选 best_index |
+| <SrcLink file="src/detection_layer.c" :line="136" :end="138" /> | seen < 100k 时随机指定 box（warmup） |
+| <SrcLink file="src/detection_layer.c" :line="154" :end="161" /> | objectness cost/delta + rescore |
+| <SrcLink file="src/detection_layer.c" :line="163" :end="170" /> | coord delta，含 sqrt 分支 |
+| <SrcLink file="src/detection_layer.c" :line="172" /> | (1−IoU)² **只入 cost，不进 delta** |
 
 ---
 
@@ -230,21 +192,11 @@ if (l.sqrt) {
 
 论文给出的结构是 **24 层卷积 + 2 层全连接**，但源码 `cfg/yolo.cfg` 的卷积核配置更细致。
 
-详见 [Architecture 逐层图解](/versions/v1/architecture)。这里只给出宏观流程：
+详见 [Architecture 逐层图解](/versions/v1/architecture)。宏观特征流如下（块宽∝空间分辨率、块高∝通道数）：
 
-```mermaid
-flowchart LR
-    IN["448×448×3"] --> C1["Conv 7×7 s2<br/>224×224×64"]
-    C1 --> P1["MaxPool"] --> C2["Conv 3×3<br/>112×112×192"]
-    C2 --> P2["MaxPool"] --> C3["Conv 1×1/3×3 stack<br/>56×56×256"]
-    C3 --> P3["MaxPool"] --> C4["交替 256/512<br/>28×28×512"]
-    C4 --> P4["MaxPool"] --> C5["1024 bottleneck<br/>14×14×1024"]
-    C5 --> D["Conv 3×3 s2<br/>7×7×1024"]
-    D --> FC1["FC 4096"] --> DROP["Dropout"] --> FC2["FC 1470"]
-    FC2 --> DET["Detection Layer"] --> OUT["98 boxes"]
-```
+<DiagramArch />
 
-**关键**: FC 4096 把 7×7×1024 = 50,176 维特征映射到 4096，再映射到 1470。这一层就吃掉了约 2 亿参数，是 v1 又大又慢的主因。
+**关键**: FC 4096 把 7×7×1024 = 50,176 维特征映射到 4096，再映射到 1470。这一层就吃掉了约 2.06 亿参数（占全网 ~79%），是 v1 又大又慢的主因。
 
 ---
 
@@ -259,15 +211,9 @@ flowchart LR
 
 ### 7.2 学习率调度
 
-`cfg/yolo.cfg` 的学习率策略：
+<SrcLink file="cfg/yolo.cfg" :line="10" :end="14" /> 的 steps 策略（原文）：
 
-```cfg
-learning_rate=0.001
-policy=steps
-steps=200,400,600,20000,30000
-scales=2.5,2,2,.1,.1
-max_batches=40000
-```
+<SrcSnippet file="cfg/yolo.cfg" :start="10" :end="14" />
 
 | iterations | lr | 含义 |
 |------------|----|------|
@@ -280,13 +226,11 @@ max_batches=40000
 
 ### 7.3 数据增强
 
-```cfg
-jitter=.2          # 随机平移/缩放 20%
-saturation=1.5     # HSV 饱和度
-exposure=1.5       # HSV 曝光
-```
+`[crop]` 段的色彩扰动（饱和度/曝光各 ×1.5）与检测头的 `jitter=.2`（<SrcLink file="cfg/yolo.cfg" :line="229" />，随机平移缩放 ±20%）：
 
-增强代码在 `src/data.c:load_data_detection()` 中，通过 `random_distort()` 随机扰动。
+<SrcSnippet file="cfg/yolo.cfg" :start="16" :end="22" hl="21-22" />
+
+> 注：快照 `[crop]` 段没有 `hue` 参数（`flip=0`、`angle=0`），部分二手资料里的 `hue=.1` 在本快照中不存在。增强实现在 <SrcLink file="src/data.c" /> 的数据加载链路中（`load_data_detection` 配合 jitter 做裁剪扰动）。
 
 ---
 

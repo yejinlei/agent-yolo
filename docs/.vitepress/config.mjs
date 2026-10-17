@@ -1,5 +1,52 @@
 import { defineConfig } from 'vitepress'
 
+// @REASON: markdown-it-container 已被 VitePress 内部打包、无法直接 import，这里用零依赖的 mini block rule 实现
+// 用法：::: figure 图注文字  ...（通常是 mermaid 块）...  :::
+function figurePlugin(md) {
+  const COLON = 0x3a
+  function rule(state, startLine, endLine, silent) {
+    const start = state.bMarks[startLine] + state.tShift[startLine]
+    let pos = state.skipChars(start, COLON)
+    if (pos - start < 3) return false
+    const params = state.src.slice(pos, state.eMarks[startLine]).trim()
+    if (!/^figure(\s|$)/.test(params)) return false
+    if (silent) return true
+
+    let nextLine = startLine + 1
+    let haveEnd = false
+    for (; nextLine < endLine; nextLine++) {
+      const mem = state.bMarks[nextLine] + state.tShift[nextLine]
+      if (state.src.charCodeAt(mem) !== COLON) continue
+      const last = state.skipChars(mem, COLON)
+      if (last - mem >= 3 && state.src.slice(last, state.eMarks[nextLine]).trim() === '') {
+        haveEnd = true
+        break
+      }
+    }
+    if (!haveEnd) nextLine = endLine
+
+    const title = params.replace(/^figure\s*/, '').trim()
+    const tokOpen = state.push('diagram_figure_open', 'figure', 1)
+    tokOpen.info = title
+    tokOpen.block = true
+    tokOpen.map = [startLine, nextLine]
+    state.md.block.tokenize(state, startLine + 1, nextLine)
+    const tokClose = state.push('diagram_figure_close', 'figure', -1)
+    tokClose.block = true
+    state.line = nextLine + (haveEnd ? 1 : 0)
+    return true
+  }
+  md.block.ruler.before('fence', 'diagram_figure', rule, {
+    alt: ['paragraph', 'reference', 'blockquote', 'list']
+  })
+  md.renderer.rules.diagram_figure_open = (tokens, idx) => {
+    const title = tokens[idx].info
+    const cap = title ? `<figcaption>${md.utils.escapeHtml(title)}</figcaption>` : ''
+    return `<figure class="diagram-figure">${cap}`
+  }
+  md.renderer.rules.diagram_figure_close = () => '</figure>'
+}
+
 export default defineConfig({
   title: 'agent-yolo',
   description: 'YOLO 系列本体论研究站 — 论文 → 理论 → 实现 → 实战',
@@ -17,7 +64,7 @@ export default defineConfig({
         { text: 'YOLOv1', link: '/versions/v1/index' }
       ]},
       { text: '实战案例', link: '/cases' },
-      { text: 'GitHub', link: 'https://github.com/your-user/agent-yolo' }
+      { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
 
     sidebar: {
@@ -44,8 +91,18 @@ export default defineConfig({
             { text: '损失函数', link: '/versions/v1/losses' },
             { text: '反向传播推导', link: '/versions/v1/loss-gradient' },
             { text: '训练技巧', link: '/versions/v1/tricks' },
-            { text: '源码走读', link: '/versions/v1/code-walkthrough' },
-            { text: '痛点追踪', link: '/versions/v1/painpoints' }
+            { text: '痛点追踪', link: '/versions/v1/painpoints' },
+            { text: '源码走读', link: '/versions/v1/code-walkthrough' }
+          ]
+        },
+        {
+          text: '源码浏览（darknet 快照）',
+          collapsed: false,
+          items: [
+            { text: 'detection_layer.c', link: '/versions/v1/source/detection-layer' },
+            { text: 'yolo.c', link: '/versions/v1/source/yolo' },
+            { text: 'box.c', link: '/versions/v1/source/box' },
+            { text: 'yolo.cfg', link: '/versions/v1/source/yolo-cfg' }
           ]
         }
       ],
@@ -71,7 +128,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/your-user/agent-yolo' }
+      { icon: 'github', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
 
     outline: {
@@ -93,6 +150,9 @@ export default defineConfig({
     theme: {
       light: 'vitesse-light',
       dark: 'vitesse-dark'
+    },
+    config(md) {
+      md.use(figurePlugin)
     }
   }
 })

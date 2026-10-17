@@ -18,9 +18,9 @@ YOLOv1 用速度换精度，付出的代价集中体现为 6 个痛点。这一�
 **表现**：小目标（<32 像素）mAP 显著下降，mIoU < 0.5 时 miss rate 极高。
 
 **根因**：
-- 7×7 grid 只有 49 个 cell，每个 cell 感受野约 64×64 像素
-- 小目标在下采样过程中被吞掉，无法形成有效的特征响应
-- v1 没有 FPN/多尺度预测
+- 7×7 grid 只有 49 个 cell（<SrcLink file="cfg/yolo.cfg" :line="225" />），每个 cell 感受野约 64×64 像素
+- 小目标在 6 次下采样过程中被吞掉，无法形成有效的特征响应
+- v1 没有 FPN/多尺度预测（整网只在末端 7×7 单尺度出检测）
 
 **跨版本修复**：
 
@@ -52,8 +52,8 @@ xychart-beta
 
 **根因**：
 - 无 anchor 先验，两个 box 从零开始学形状
-- IoU-based loss 收敛慢
-- 无 CIoU/GIoU/DIoU 几何约束
+- 坐标损失是纯 L2：IoU 只用于训练时选 box（<SrcLink file="src/detection_layer.c" :line="113" />）与记入显示用 cost（<SrcLink file="src/detection_layer.c" :line="172" />，**不进 delta**），没有真正的 IoU 梯度，更无 CIoU/GIoU/DIoU 几何约束
+- `(1-IoU)²` 这一项只影响打印的 loss 数值，优化器看不到它
 
 **跨版本修复**：
 
@@ -98,7 +98,7 @@ xychart-beta
 **表现**：IoU 从 0.4 到 0.6 时 mAP 波动 1-2 个点。
 
 **根因**：
-- NMS 用硬阈值，无法表达"框重叠但不完全重复"的软关系
+- NMS 用硬阈值（0.5 硬编码于 <SrcLink file="src/yolo.c" :line="325" />，实现 <SrcLink file="src/box.c" :line="249" />），无法表达"框重叠但不完全重复"的软关系
 - 相邻物体（如行人、车）容易被误删或误留
 
 **跨版本修复**：

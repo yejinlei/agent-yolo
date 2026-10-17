@@ -33,10 +33,7 @@ N = S × S × B = 7 × 7 × 2 = 98  个候选框
 
 ### 源码对应
 
-```c
-// src/yolo.c 推理入口：一次 predict 搞定
-network_predict(net, X);
-```
+一次前向出全部预测：<SrcLink file="src/yolo.c" :line="343" />（`test_yolo()` 内的 `network_predict(net, X)`）。
 
 ---
 
@@ -44,13 +41,7 @@ network_predict(net, X);
 
 ### 原理图
 
-```mermaid
-flowchart TB
-    IMG["448×448 图像"] --> SPLIT["切成 7×7 网格"]
-    SPLIT --> CELL1["cell (0,0)"] & CELL2["cell (3,4)"] & CELL49["cell (6,6)"]
-    CELL2 --> OBJ["🐕 狗中心落在这里"]
-    OBJ --> B1["Box 1"] & B2["Box 2"]
-```
+<DiagramGridCell />
 
 ### 白话
 
@@ -64,17 +55,7 @@ flowchart TB
 
 ### 源码对应
 
-```c
-// src/detection_layer.c:44
-int locations = l.side*l.side;   // 49
-```
-
-```cfg
-# cfg/yolo.cfg
-side=7
-num=2
-classes=20
-```
+grid 总数：<SrcLink file="src/detection_layer.c" :line="44" />；结构参数：<SrcLink file="cfg/yolo.cfg" :line="222" />（classes）、<SrcLink file="cfg/yolo.cfg" :line="225" :end="226" />（side、num）。
 
 ---
 
@@ -108,13 +89,9 @@ Class prob × 20           → 20 维
 
 ### 源码对应
 
-```c
-// src/detection_layer.c:75-79
-for (j = 0; j < l.n; ++j) {      // l.n = 2 个 box
-    int p_index = index + locations*l.classes + i*l.n + j;
-    l.delta[p_index] = l.noobject_scale*(0 - l.output[p_index]);
-}
-```
+每个 box 先记 no-object delta（`l.n = 2`），真实片段 <SrcLink file="src/detection_layer.c" :line="75" :end="80" />：
+
+<SrcSnippet file="src/detection_layer.c" :start="75" :end="80" hl="76-77" />
 
 ---
 
@@ -142,13 +119,7 @@ flowchart LR
 
 ### 源码对应
 
-```c
-// src/detection_layer.c:154-161
-*(l.cost) += l.object_scale * pow(1-l.output[p_index], 2);
-if(l.rescore){
-    l.delta[p_index] = l.object_scale * (iou - l.output[p_index]);
-}
-```
+<SrcSnippet file="src/detection_layer.c" :start="153" :end="161" hl="155,159-161" />
 
 ---
 
@@ -156,11 +127,7 @@ if(l.rescore){
 
 ### 原理图
 
-```mermaid
-flowchart LR
-    W["原始宽度 w"] --> SQ["√w"] --> PRED["模型预测值"]
-    PRED --> RESQARE["再平方"] --> OUTPUT["实际 w"]
-```
+<DiagramDecode caption="图：网络在 √ 空间预测宽高——训练目标取 √truth（detection_layer.c L168），推理时平方还原（yolo.c L100-101）" />
 
 ### 白话
 
@@ -177,18 +144,9 @@ flowchart LR
 
 ### 源码对应
 
-```c
-// src/detection_layer.c:108-111
-if (l.sqrt){
-    out.w = out.w*out.w;
-    out.h = out.h*out.h;
-}
-```
+计算 IoU 前把预测的 √w/√h 平方回全图归一尺寸（<SrcLink file="src/detection_layer.c" :line="108" :end="111" />）；开关在 <SrcLink file="cfg/yolo.cfg" :line="228" />：
 
-```cfg
-# cfg/yolo.cfg
-sqrt=1
-```
+<SrcSnippet file="src/detection_layer.c" :start="102" :end="113" hl="108-111,113" />
 
 ---
 
@@ -216,19 +174,7 @@ flowchart TB
 
 ### 源码对应
 
-```cfg
-# cfg/yolo.cfg
-object_scale=1
-noobject_scale=.5
-class_scale=1
-coord_scale=5
-```
-
-```c
-// src/detection_layer.c 中多处使用这些 scale
-l.delta[box_index+0] = l.coord_scale*(state.truth[tbox_index + 0] - l.output[box_index + 0]);
-l.delta[p_index] = l.noobject_scale*(0 - l.output[p_index]);
-```
+四个 scale 定义在 <SrcLink file="cfg/yolo.cfg" :line="230" :end="234" />；使用点：坐标 <SrcLink file="src/detection_layer.c" :line="163" :end="166" />，no-object <SrcLink file="src/detection_layer.c" :line="77" />。
 
 ---
 
@@ -247,16 +193,11 @@ flowchart TD
 
 ### 白话
 
-> 训练刚开始时，两个 box 都很菜。如果每次都让 IoU 高的那个 box 独占 GT，另一个 box 永远学不到东西。前 10 万次迭代随机选，保证两个 box 都参与训练。
+> 训练刚开始时，两个 box 都很菜。如果每次都让 IoU 高的那个 box 独占 GT，另一个 box 永远学不到东西。前 **10 万张训练图**（`net.seen`，注意单位是图片数不是 iteration）随机指定，保证两个 box 都参与训练。
 
 ### 源码对应
 
-```c
-// src/detection_layer.c:136-138
-if(1 && *(state.net.seen) < 100000){
-    best_index = rand()%l.n;
-}
-```
+<SrcSnippet file="src/detection_layer.c" :start="136" :end="138" />
 
 ---
 
@@ -276,14 +217,7 @@ flowchart LR
 
 ### 源码对应
 
-```cfg
-# cfg/yolo.cfg
-jitter=.2
-```
-
-```c
-// src/data.c 中 random_distort 相关实现
-```
+jitter 系数在检测头参数里：<SrcLink file="cfg/yolo.cfg" :line="229" />；裁剪扰动在数据加载管线 <SrcLink file="src/data.c" /> 中完成（训练入口把 `l.jitter` 传进 `load_args`，见 <SrcLink file="src/yolo.c" :line="38" :end="52" />）。
 
 ---
 
@@ -298,22 +232,13 @@ flowchart LR
 
 ### 白话
 
-> 检测数据集比 ImageNet 小得多，全连接层参数又极多，很容易过拟合。训练时随机关掉 25% 的神经元，迫使网络不要依赖某一条路径。
+> 检测数据集比 ImageNet 小得多，全连接层参数又极多，很容易过拟合。训练时随机丢弃一部分神经元（快照概率 0.5），迫使网络不要依赖某一条路径。
 
 > 注意：cfg 快照里 probability 是 0.5，论文报告的是 0.25；推理时 dropout 自动关闭。
 
 ### 源码对应
 
-```cfg
-# cfg/yolo.cfg
-[dropout]
-probability=.5    # 仓库快照值；论文值 0.25
-```
-
-```c
-// src/dropout_layer.c 中 forward_dropout_layer()
-if (!state.train) return;   // 推理时跳过
-```
+快照 cfg 值（论文写 0.25，二者口径有差异）：<SrcLink file="cfg/yolo.cfg" :line="213" :end="214" />；dropout 层在非训练态直接透传，见 <SrcLink file="src/dropout_layer.c" /> 的 `forward_dropout_layer()`。
 
 ---
 

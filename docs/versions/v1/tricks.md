@@ -10,7 +10,7 @@ YOLOv1 有 7 个关键 knob，全部通过 `cfg/yolo.cfg` 或源码几行代码�
 |---|-------|------|------|------|
 | 1 | sqrt=1 加速收敛 | 损失设计 | `yolo.cfg` | 大小目标损失均衡 |
 | 2 | 权重 5/1/1/0.5 | 损失设计 | `yolo.cfg` | 平衡正负样本 |
-| 3 | 前 100k 随机 best_index | 训练稳定 | `detection_layer.c:136-138` | 防两个 box 抢同一个 GT |
+| 3 | 前 100k 随机 best_index | 训练稳定 | <SrcLink file="src/detection_layer.c" :line="136" :end="138" /> | 防两个 box 抢同一个 GT |
 | 4 | Region Jitter 0.2 | 数据增强 | `data.c` | 提升定位鲁棒性 |
 | 5 | Dropout 0.25/0.5 | 正则化 | `yolo.cfg` | 缓解 FC 过拟合 |
 | 6 | NMS IoU=0.5 | 推理后处理 | `box.c` | 去重 |
@@ -22,18 +22,7 @@ YOLOv1 有 7 个关键 knob，全部通过 `cfg/yolo.cfg` 或源码几行代码�
 
 ### 原理图
 
-```mermaid
-flowchart LR
-    subgraph RAW["直接回归 w/h"]
-        A1["大目标 w=400<br/>误差 8 → L2=64"] --> BIG["梯度主导"]
-        A2["小目标 w=25<br/>误差 2 → L2=4"] --> SMALL["梯度被忽略"]
-    end
-    subgraph SQRT["回归 √w/√h"]
-        B1["√400=20<br/>误差 0.2 → L2=0.04"] --> EQ
-        B2["√25=5<br/>误差 0.2 → L2=0.04"] --> EQ["梯度均衡"]
-    end
-    RAW -.-> SQRT
-```
+<DiagramDecode />
 
 ### 白话
 
@@ -41,20 +30,9 @@ flowchart LR
 
 ### 源码
 
-```cfg
-# cfg/yolo.cfg
-sqrt=1
-```
+开关：<SrcLink file="cfg/yolo.cfg" :line="228" />。两处落地——匹配 GT 时先把网络输出平方回全图归一尺寸（<SrcLink file="src/detection_layer.c" :line="108" :end="111" />），写坐标 delta 时把真值取 √（<SrcLink file="src/detection_layer.c" :line="167" :end="170" />）：
 
-```c
-// src/detection_layer.c:108-111, 167-170
-if (l.sqrt){
-    out.w = out.w*out.w;      // 前向：把预测值平方得到真实 w
-    out.h = out.h*out.h;
-}
-// 反向：对 √w 与 √gt_w 求差
-l.delta[box_index+2] = l.coord_scale*(sqrt(state.truth[tbox_index + 2]) - l.output[box_index + 2]);
-```
+<SrcSnippet file="src/detection_layer.c" :start="163" :end="170" hl="167-170" />
 
 ### 反例
 
@@ -95,13 +73,9 @@ flowchart TB
 
 ### 源码
 
-```cfg
-# cfg/yolo.cfg
-coord_scale=5
-object_scale=1
-noobject_scale=.5
-class_scale=1
-```
+<SrcLink file="cfg/yolo.cfg" :line="230" :end="234" />：
+
+<SrcSnippet file="cfg/yolo.cfg" :start="230" :end="234" />
 
 ### 反例
 
@@ -127,20 +101,13 @@ flowchart TD
 
 ### 白话
 
-> 刚开始两个 box 都是瞎猜的，如果始终让 IoU 最高的那个赢，另一个 box 永远学不到，最后变成一个 box 在干活。前 10 万次随机选，强制两个 box 都练起来。
+> 刚开始两个 box 都是瞎猜的，如果始终让 IoU 最高的那个赢，另一个 box 永远学不到，最后变成一个 box 在干活。前 **10 万张训练图**（`net.seen`，图片计数而非 iteration）随机选，强制两个 box 都练起来。
 
 ### 源码
 
-```c
-// src/detection_layer.c:102-138
-for(j = 0; j < l.n; ++j){
-    // 计算 IoU 或 RMSE
-    if(iou > best_iou){ best_iou = iou; best_index = j; }
-}
-if(1 && *(state.net.seen) < 100000){
-    best_index = rand()%l.n;
-}
-```
+正常分配逻辑（IoU 优先、RMSE 兜底）在 <SrcLink file="src/detection_layer.c" :line="102" :end="127" />，紧接着 warmup 三行无条件覆盖：
+
+<SrcSnippet file="src/detection_layer.c" :start="136" :end="138" />
 
 ### 反例
 
@@ -173,16 +140,11 @@ flowchart LR
 
 ### 源码
 
-```cfg
-# cfg/yolo.cfg
-jitter=.2
-```
+jitter 系数：<SrcLink file="cfg/yolo.cfg" :line="229" />。真实增强在检测数据加载函数里——±20% 随机四边裁剪 + 缩放 + 50% 水平翻转（翻转标志同步传给 `fill_truth_detection` 改标签坐标）：
 
-```c
-// src/image.c / data.c
-// random_distort(image, hue, saturation, exposure)
-// 以及 crop_image，随机平移缩放
-```
+<SrcSnippet file="src/data.c" :start="622" :end="646" hl="622-628,636-643,646" />
+
+> 快照实况：cfg `[crop]` 段还写了 `saturation=1.5 / exposure=1.5`（<SrcLink file="cfg/yolo.cfg" :line="16" :end="22" />），但这条检测数据路径**并没有调用任何色彩扰动函数**（`saturate_image/exposure_image` 在 <SrcLink file="src/image.c" :line="755" /> 仅被测试 main 引用）；也**没有 hue**。即真正生效的增强只有几何 jitter + flip。
 
 ### 反例
 
@@ -212,18 +174,9 @@ flowchart LR
 
 ### 源码
 
-```cfg
-# cfg/yolo.cfg
-[dropout]
-probability=.5
-```
+cfg：<SrcLink file="cfg/yolo.cfg" :line="213" :end="214" />。前向（inverted dropout：保留的激活乘 `1/(1-p)`，推理时整段直接返回）：
 
-```c
-// src/dropout_layer.c:forward_dropout_layer
-if (!state.train) return;       // 推理时不 dropout
-float r = rand_uniform(0, 1);
-if (r < l.probability) l.output[i] = 0;
-```
+<SrcSnippet file="src/dropout_layer.c" :start="34" :end="44" hl="37,41-42" />
 
 ### 反例
 
@@ -241,37 +194,17 @@ v2 去掉所有 FC，改用卷积 + BN。BN 本身有正则效果，不再需要
 
 ### 原理图
 
-```mermaid
-flowchart TD
-    INPUT["所有 98 个框，按 confidence 排序"] --> TOP["取最高分的框 A"]
-    TOP --> COMPARE["把 A 与剩余框算 IoU"]
-    COMPARE --> TH{"IoU > 0.5?"}
-    TH -->|是| SUP["抑制（删除）低分框"] --> TOP
-    TH -->|否| KEEP["保留"] --> TOP
-    TOP --> OUTPUT["最终检测结果"]
-```
+<DiagramNms />
 
 ### 白话
 
-> 同一物体可能被多个格子预测出多个框。NMS 的逻辑是：先保留最有信心的框，然后把和它高度重叠（IoU>0.5）的低分框删掉。
+> 同一物体可能被多个格子预测出多个框。NMS 的逻辑是：每个类别内部，先按该类概率排序，然后把和当前最高分框 IoU>0.5 的框**该类概率清零**（不是物理删除框，一个框在别的类上仍可存活）。
 
 ### 源码
 
-```c
-// src/box.c:do_nms_sort
-typedef struct detection{
-    box bbox;
-    int classes;
-    float *prob;
-    float *mask;
-    float objectness;
-    int sort_class;
-} detection;
+阈值 0.5 硬编码在推理入口 <SrcLink file="src/yolo.c" :line="325" />，调用在 <SrcLink file="src/yolo.c" :line="346" />；真实实现按类 qsort、重叠即置零概率：
 
-void do_nms_sort(detection *dets, int total, int classes, float thresh){
-    // 按类别分别排序、分别计算 IoU、抑制重复框
-}
-```
+<SrcSnippet file="src/box.c" :start="249" :end="277" hl="254-256,268-271" />
 
 ### 反例
 
@@ -298,19 +231,17 @@ flowchart LR
 
 ### 白话
 
-> 从头训练 YLOLOv1 的 backbone 太慢了。先用 ImageNet 让卷积层学会“什么是边缘、纹理、形状”，再搬到检测任务上只微调 few tens of thousands iterations。
+> 从头训练 YOLOv1 的 backbone 太慢了。论文方案：先在 ImageNet 224×224 上预训练前 20 个卷积 + 分类 FC，再把输入提到 448 加随机初始化的检测层一起微调。
 
 ### 源码
 
-```c
-// 训练时通过命令行加载预训练权重
-// ./darknet detector train cfg/yolo.cfg darknet19_448.conv.23 data/voc.data
+快照里权重文件是命令行**可选**第三参，存在就整体加载（<SrcLink file="src/yolo.c" :line="25" :end="27" />），分派与用法字符串见 <SrcLink file="src/yolo.c" :line="376" :end="385" />：
+
+```text
+./darknet yolo train cfg/yolo.cfg [预训练权重，可选]
 ```
 
-### 效果
-
-- 无预训练：可能需要 200+ epochs 才收敛
-- 有预训练：23k iterations 达到 63.4 mAP
+注意区分：`darknet19_448.conv.23` 是后来 **YOLOv2** 的 backbone 权重名，不要张冠李戴给 v1；v1 论文预训练的是 20 层卷积的分类网（即后来 darknet "extraction" 模型的前身）。
 
 ### 演进
 

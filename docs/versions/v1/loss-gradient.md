@@ -2,7 +2,7 @@
 
 > 这是 v1 最"硬核"的一页。前面的[损失函数](/versions/v1/losses)讲了"损失长什么样"，这一页讲"**梯度怎么一步步算出来**"——也就是 `forward_detection_layer()` 里那几十行 delta 赋值，在数学上到底对应什么。
 >
-> 全程对照真实源码：`source/yolov1/snapshot/src/detection_layer.c:60-180`，行号以该快照为准。
+> 全程对照真实源码：<SrcLink file="src/detection_layer.c" :line="42" /> 起的 `forward_detection_layer()`，行号以快照为准；也可直接打开 [detection_layer.c 整文件浏览](/versions/v1/source/detection-layer)。
 
 ---
 
@@ -27,7 +27,7 @@ flowchart LR
     OUT["网络输出 output[1470]"] --> DELTA["delta[1470]<br/>每元素 = -∂L/∂output"]
     DELTA --> CONV["逐层回传<br/>backward_convolutional_layer"]
     CONV --> W["每个卷积核<br/>沿 -grad 方向更新"]
-    CONV --> D["每个偏置/BatchNorm<br/>沿 -grad 方向更新"]
+    CONV --> D["每个偏置<br/>沿 -grad 方向更新<br/>(v1 无 BN)"]
 ```
 
 **白话**：`detection_layer` 的输出是网络的最后一层。它算出的 `l.delta` 就是整个反向传播的"起跑信号"。这个信号对不对、准不准，直接决定了前面 24 层学得对不对。
@@ -60,7 +60,9 @@ flowchart LR
 
 一个 cell 有 2 个 box，损失只惩罚"最像"的那个（`best_index`）。选法是有讲究的。
 
-### 2.1 前 100k 迭代：随机选（强制公平）
+### 2.1 前 100k 张训练图：随机选（强制公平）
+
+真实三行 <SrcLink file="src/detection_layer.c" :line="136" :end="138" />：
 
 ```c
 if(1 && *(state.net.seen) < 100000){
@@ -68,9 +70,11 @@ if(1 && *(state.net.seen) < 100000){
 }
 ```
 
-**白话**：训练刚起步时梯度噪声大，如果一上来就按最大 IoU 选，往往**同一个 box 总被选中、另一个 box 饿死**（梯度塌缩）。先随机 100k 下，逼两个 box 都"被迫营业"，把各自的能力练出来。
+**白话**：训练刚起步时梯度噪声大，如果一上来就按最大 IoU 选，往往**同一个 box 总被选中、另一个 box 饿死**（梯度塌缩）。前 10 万张图随机指定（`net.seen` 是图片计数），逼两个 box 都"被迫营业"，把各自的能力练出来。
 
 ### 2.2 之后：IoU 优先、RMSE 兜底
+
+真实循环 <SrcLink file="src/detection_layer.c" :line="102" :end="127" />：
 
 ```c
 for(j = 0; j < l.n; ++j){
@@ -104,7 +108,7 @@ flowchart TD
 
 ## 3. coord 项：位置回归的梯度（含 sqrt 链式法则）
 
-选好 `best_index` 后：
+选好 `best_index` 后（真实偏移计算 <SrcLink file="src/detection_layer.c" :line="143" />）：
 
 ```c
 int box_index = index + locations*(l.classes + l.n) + (i*l.n + best_index) * l.coords;
@@ -126,6 +130,8 @@ x̂ → x_truth,   ŷ → y_truth,   ŵ → √w_truth,   ĥ → √h_truth
 ```
 
 ### 3.2 delta 的直接写法
+
+真实赋值 <SrcLink file="src/detection_layer.c" :line="163" :end="170" />：
 
 ```c
 l.delta[box_index+0] = l.coord_scale*(state.truth[tbox_index + 0] - l.output[box_index + 0]);  // x
@@ -187,7 +193,7 @@ v1 选择了**前者**——在开方空间回归，省掉除法，数值也更�
 
 ### 3.5 有个"统计项"只进 cost、不进 delta
 
-紧接着：
+紧接着（<SrcLink file="src/detection_layer.c" :line="172" />）：
 
 ```c
 *(l.cost) += pow(1-iou, 2);      // 只看 loss 数值，不写 delta！
@@ -209,6 +215,8 @@ flowchart TB
 ---
 
 ## 4. conf 项：conf 分支的两个梯度目标（rescore 分水岭）
+
+真实片段 <SrcLink file="src/detection_layer.c" :line="153" :end="161" />：
 
 ```c
 int p_index = index + locations*l.classes + i*l.n + best_index;
@@ -246,10 +254,10 @@ flowchart TD
 
 ### 5.1 noobject：每个 box"出生"就先写一行
 
-在选 best_index **之前**，对 cell 的**每一个** box 先写：
+在选 best_index **之前**，对 cell 的**每一个** box 先写（真实片段 <SrcLink file="src/detection_layer.c" :line="75" :end="80" />）：
 
 ```c
-float p_index = index + locations*l.classes + i*l.n + j;      // j = 0, 1
+int p_index = index + locations*l.classes + i*l.n + j;      // j = 0, 1
 l.delta[p_index] = l.noobject_scale*(0 - l.output[p_index]);  // 目标 = 0
 *(l.cost) += l.noobject_scale*pow(l.output[p_index], 2);
 ```
@@ -262,9 +270,11 @@ l.delta[p_index] = l.noobject_scale*(0 - l.output[p_index]);  // 目标 = 0
 
 ### 5.2 无目标格：什么都不发生
 
-若 `!is_obj`（line 86-88 `continue`），这个 cell 就**只有** §5.1 那行 noobject，其余各项都不执行。绝大多数格子（49 里通常 <5 个有物体）走这条路径。
+若 `!is_obj`（<SrcLink file="src/detection_layer.c" :line="86" :end="88" /> 的 `continue`），这个 cell 就**只有** §5.1 那行 noobject，其余各项都不执行。绝大多数格子（49 里通常 <5 个有物体）走这条路径。
 
 ### 5.3 class 项
+
+真实循环 <SrcLink file="src/detection_layer.c" :line="90" :end="96" />：
 
 ```c
 for(j = 0; j < l.classes; ++j) {
@@ -273,7 +283,7 @@ for(j = 0; j < l.classes; ++j) {
 }
 ```
 
-**白话**：每个类别输出单独做 L2，目标 `t_c` 是 one-hot（只有正确类=1）。仍然是 `delta = scale·(t_c − p_c)`。注意**没有 softmax**（`softmax=0`），类别头是独立 sigmoid，所以是"多标签 L2 回归"而非"互斥 softmax 分类"。
+**白话**：每个类别输出单独做 L2，目标 `t_c` 是 one-hot（只有正确类=1）。仍然是 `delta = scale·(t_c − p_c)`。注意**没有 softmax 也没有 sigmoid**（`softmax=0`），类别头是**裸线性 logits** 上的 L2 回归，而非"互斥 softmax 分类"。
 
 ---
 
@@ -333,7 +343,7 @@ flowchart TB
 
 ## 8. 与推理端如何衔接
 
-这些 delta 只在**训练时**算（`if(state.train)`）。**推理时** `forward_detection_layer` 走另一条路：不再算 loss，而是把 98 个 box 收集出来 → 按类算 `conf × class` → 交给 `do_nms_sort` 去重。两条路在同一个函数里，靠 `state.train` 分支切换。完整推理管线见[源码走读](/versions/v1/code-walkthrough)。
+这些 delta 只在**训练时**算（<SrcLink file="src/detection_layer.c" :line="60" /> 的 `if(state.train)`）。**推理时**该函数几乎直接返回（仅累加统计量），解码发生在层外：<SrcLink file="src/yolo.c" :line="86" /> 的 `convert_yolo_detections()` 把 98 个 box 解成像素框、按 `conf × class` 阈值清零（<SrcLink file="src/yolo.c" :line="102" :end="106" />），再由 <SrcLink file="src/yolo.c" :line="346" /> 调 `do_nms_sort` 去重。完整推理管线见[源码走读](/versions/v1/code-walkthrough)。
 
 ---
 
