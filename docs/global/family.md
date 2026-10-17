@@ -49,13 +49,13 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  FasterRNN[Faster R-CNN] -.anchor-> YOLOv2
-  RetinaNet[RetinaNet] -.FocalLoss-> YOLOv3
-  SSD[SSD] -.Multi-Scale-> YOLOv3
-  DETR[DETR] -.NMS-free-> YOLOv10
-  EfficientDet[BiFPN] -.Backbone-> YOLOv8
-  CSPNet[CSPNet] -.Architecture-> YOLOv5
-  RT-DETR[RT-DETR] -.End-to-End-> YOLOv11/v12
+  FasterRNN[Faster R-CNN] -. anchor .-> YOLOv2
+  RetinaNet[RetinaNet] -. FocalLoss .-> YOLOv3
+  SSD[SSD] -. Multi-Scale .-> YOLOv3
+  DETR[DETR] -. NMS-free .-> YOLOv10
+  EfficientDet[BiFPN] -. Backbone .-> YOLOv8
+  CSPNet[CSPNet] -. Architecture .-> YOLOv5
+  RT-DETR[RT-DETR] -. End-to-End .-> YOLOv11/v12
 ```
 
 详见 [演化事件](/global/evolutions) 与 [时间线](/global/timeline)。

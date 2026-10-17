@@ -32,7 +32,7 @@
 xychart-beta
   title "YOLOv8n 在 Jetson Orin Nano 上的量化对比"
   x-axis [FP32, FP16, INT8-PTQ, INT8-QAT, Binary]
-  y-axis "mAP50-95" 0 50
+  y-axis "mAP50-95" 0 --> 50
   bar [37.3, 37.1, 35.8, 37.4, 28.6]
 ```
 

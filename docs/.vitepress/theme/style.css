@@ -1,0 +1,29 @@
+/* Mermaid 渲染容器样式 */
+.mermaid-svg {
+  margin: 1rem auto;
+  max-width: 100%;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.mermaid-svg svg {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* 暗色主题适配：mermaid 默认主题在暗色下可能偏亮，这里仅保证容器布局 */
+@media (prefers-color-scheme: dark) {
+  .mermaid-svg {
+    filter: brightness(0.97);
+  }
+}
+
+/* 渲染失败的块：给出可读提示 */
+div.language-mermaid.mermaid-failed::after {
+  content: "⚠ Mermaid 渲染失败，请检查语法";
+  display: block;
+  color: #e05d44;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+}

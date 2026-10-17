@@ -23,10 +23,10 @@ flowchart TB
   INPUT --> HAS
   INPUT --> NOL
 
-  HAS --> COORD[L_coord: (√w·√h)·Σ(pred-t)²<br/>weight=5]
-  HAS --> BOX[L_box: (√w·√h)·(1-IoU)²<br/>weight=1]
-  HAS --> OBJ[L_obj: (1-conf)²<br/>weight=1]
-  HAS --> CLASS[L_class: Σ(p_c-t_c)²<br/>weight=1]
+  HAS --> COORD["L_coord: (√w·√h)·Σ(pred-t)²<br/>weight=5"]
+  HAS --> BOX["L_box: (√w·√h)·(1-IoU)²<br/>weight=1"]
+  HAS --> OBJ["L_obj: (1-conf)²<br/>weight=1"]
+  HAS --> CLASS["L_class: Σ(p_c-t_c)²<br/>weight=1"]
   NOL --> NOOBJ[L_noobj: conf²<br/>weight=0.5]
 
   COORD --> SUM[加权求和]

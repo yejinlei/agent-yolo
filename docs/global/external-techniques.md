@@ -56,12 +56,12 @@ flowchart LR
   RNN --> FRNN[Fast R-CNN<br/>2014]
   FRNN --> FFRNN[Faster R-CNN<br/>2015]
   AlexNet --> YOLO1[YOLOv1<br/>2015]
-  FFRNN -.Anchor 启发-> YOLO2[YOLOv2<br/>2017]
+  FFRNN -. Anchor 启发 .-> YOLO2[YOLOv2<br/>2017]
   YOLO1 --> YOLO2
   YOLO2 --> YOLO3[YOLOv3<br/>2018]
-  SSD[SSD · Multi-Scale<br/>2016] -.FPN 启发-> YOLO3
+  SSD[SSD · Multi-Scale<br/>2016] -. FPN 启发 .-> YOLO3
   YOLO3 --> YOLOv5[YOLOv5<br/>2020]
   YOLOv5 --> YOLOv8[YOLOv8<br/>2023 Anchor-free]
-  DETR[DETR · NMS-free<br/>2020] -.思想-> YOLOv10[YOLOv10<br/>2024 NMS-free]
+  DETR[DETR · NMS-free<br/>2020] -. 思想 .-> YOLOv10[YOLOv10<br/>2024 NMS-free]
   YOLOv8 --> YOLOv10
 ```
