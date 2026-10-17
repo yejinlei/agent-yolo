@@ -70,6 +70,8 @@ grid 总数：<SrcLink file="src/detection_layer.c" :line="44" />；结构参数
 ## 3. 每格多 Box 预测 (`concept-multi-box-per-cell`)
 
 > **v2 路标**：这两个"自由分化"的 box 就是 anchor 的前身——v2 换成 K-means 聚出的 5 个先验形状，且类别不再共享（[anchor 概念](/versions/v2/concepts)）。
+>
+> **v3 路标**：anchor 数量涨到 9 个、按尺度切成三组 mask 分给三个检测头（见 [v3 concepts §3](/versions/v3/concepts#_3-9-anchors-三组-mask-concept-anchors-9-mask)）。
 
 ### 原理图
 

@@ -116,6 +116,8 @@ flowchart LR
 | 小目标召回差 | Medium | v3 FPN + P3；v7 P2 anchor |
 | `test_yolo` 里检测头类型错误（bug） | Low | v2 快照未修，见 [源码走读](/versions/v2/code-walkthrough) |
 
+> **v3 路标**：这张表里的前两行在 v3 被正面解决——三尺度 FPN 头 + Darknet-53 残差骨干（见 [v3 概览](/versions/v3/index) 与 [v2→v3 差异表](/versions/v3/index#v2--v3-关键差异)）。
+
 ## 深入阅读
 
 - [论文精读](/versions/v2/paper)

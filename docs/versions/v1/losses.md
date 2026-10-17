@@ -44,6 +44,8 @@ $$L_{coord} = 5 \sum_{best} \Big[ (x-t_x)^2 + (y-t_y)^2 + (\sqrt{w}-\sqrt{t_w})^
 
 **白话**：预测框中心点离真实框有多远；宽高在 **√ 空间**比较，让大小目标的误差量级接近。
 
+> **v3 路标**：√ 空间回归到 v3 变成 sigmoid 偏移 + log 空间宽高，坐标权重换成 `2 − truth.w·truth.h`（小框权重更高），四个 scale 旋钮全部内联进代码（见 [v3 损失](/versions/v3/losses#_1-坐标回归-l2-loss-coord-l2)）。
+
 **要点**：
 - 只对 **best_index 那一个 box** 计算 coord 项（每个 cell 只有一个 box 被归为"命中"）
 - xy 直接做差；wh 的真值先取 `sqrt()`（`sqrt=1` 时，见 <SrcLink file="src/detection_layer.c" :line="167" :end="170" />），**没有额外的 √w·√h 权重因子**——那是后人物料里以讹传讹的说法
@@ -147,6 +149,8 @@ $$L_{class} = \sum_c (p_c - t_c)^2 \quad \text{（有目标格子，} c \in [0, 
 **weight = 1**
 
 **白话**：这个格子里的物体是什么类别。v1 把 20 类做成 one-hot，直接对每一类做 L2。
+
+> **v3 路标**：裸线性 L2 → v2 softmax 交叉熵 → v3 每类独立 logistic（多标签），delta 还要过 objectness 门控（见 [v3 多标签类头](/versions/v3/concepts#_4-多标签-logistic-类头-concept-multi-label-logistic)）。
 
 **要点**：
 - **softmax=0**（<SrcLink file="cfg/yolo.cfg" :line="227" />）：类别头是**裸线性输出**，既无 softmax 也无 sigmoid，训练直接对 20 个 logits 做 L2（推理时再与 confidence 相乘并按阈值清零）

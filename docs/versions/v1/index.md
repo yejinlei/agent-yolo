@@ -90,6 +90,8 @@ flowchart LR
 | 相似形状混淆 | Medium | v2 anchor |
 | NMS 阈值敏感 | Medium | v10 NMS-free |
 
+> **v3 路标**：表里的 FPN 解法在 v3 落地——13/26/52 三尺度检测头 + Darknet-53 残差骨干，小目标召回显著改善（见 [v3 概览](/versions/v3/index)）。
+
 ## 深入阅读
 
 - [论文精读](/versions/v1/paper)

@@ -15,6 +15,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 | WordTree 层级分类复杂 | Medium | 扁平多标签 | v3 |
 | NMS 阈值敏感（遗留自 v1） | Medium | NMS-free | v10 |
 
+> **v3 路标**：表里前几行在 v3 就有答案——FPN 三尺度头、多标签 logistic、9 anchors；"定位无 IoU 梯度"要到 v4 CIoU 才真正闭环（见 [v3 痛点追踪](/versions/v3/painpoints)）。
+
 ---
 
 ## 1. 单尺度检测头：小目标仍然弱 (`pain-single-scale-head`)

@@ -43,7 +43,7 @@ export const SOURCE_PAGES = {
   'v2:cfg/yolo.cfg':         '/versions/v2/source/yolo-cfg',
   // YOLOv3
   'v3:src/yolo_layer.c':     '/versions/v3/source/yolo-layer',
-  'v3:src/yolo.c':           '/versions/v3/source/yolo',
+  'v3:examples/yolo.c':      '/versions/v3/source/yolo', // v3 快照目录结构调整：yolo.c 移入 examples/
   'v3:src/box.c':            '/versions/v3/source/box',
   'v3:cfg/yolov3.cfg':       '/versions/v3/source/yolo-cfg'
 }

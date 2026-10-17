@@ -39,6 +39,8 @@ flowchart TB
 ## 1. 坐标回归 L2 (`loss-coord-l2`)
 
 > **v1 读者路标**：v1 的坐标目标是 √w√h（cell 内直接回归）；v2 改成"网格内偏移过 sigmoid + log 空间宽高相对 anchor"——梯度因此多了 σ′ 因子。
+>
+> **v3 路标**：coord/object/noobject/class 四个 scale 旋钮在 v3 全部删掉（硬编码进 yolo_layer.c），坐标梯度权重换成 `2 − truth.w·truth.h`——小框权重更高（见 [v3 损失 §1](/versions/v3/losses#_1-坐标回归-l2-loss-coord-l2)）。
 
 **公式**：
 
@@ -108,6 +110,8 @@ $$L_{noobj} = 1 \cdot \sigma(conf)^2 \cdot \sigma' \quad \text{（无目标 anch
 ## 4. Class 损失（softmax）(`loss-class-softmax`)
 
 > **v1 读者路标**：v1 类别是裸 logits 的 L2（目标 one-hot）；v2 softmax 化后 delta 即交叉熵形 one-hot − p。
+>
+> **v3 路标**：softmax 在 v3 被拆掉换回每类独立 logistic（多标签数据集需要），且类别 delta 只推正确类、受 objectness 门控（见 [v3 多标签类头](/versions/v3/concepts#_4-多标签-logistic-类头-concept-multi-label-logistic)）。
 
 **公式**：
 

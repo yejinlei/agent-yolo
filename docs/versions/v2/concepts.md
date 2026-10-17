@@ -7,6 +7,8 @@ YOLOv2 相比 v1 引入/演进了 8 个核心概念。每个都配**原理图 + 
 ## 1. Anchors + K-means 先验 (`concept-anchors-kmeans`)
 
 > **v1 读者路标**：v1 每个 cell 的 2 个 box 从零学框的形状；v2 改为 5 个 K-means 先验 anchor，网络只学相对偏移。
+>
+> **v3 路标**：anchor 扩到 9 个、按尺度切三组 mask 分给三个检测头（见 [v3 concepts §3](/versions/v3/concepts#_3-9-anchors-三组-mask-concept-anchors-9-mask)）。
 
 ### 原理图
 
@@ -83,6 +85,8 @@ flowchart LR
 ## 3. Passthrough：`route + reorg`（`concept-passthrough-reorg`）
 
 > **v1 读者路标**：v1 没有任何跨层连接，浅层细节全靠网络自己往下传；passthrough 是 v2 第一次显式拼接浅层特征（FPN 雏形）。
+>
+> **v3 路标**：reorg 的"把浅层压下来"被反过来——upsample 把深层语义送上去，单头变三头，FPN 成型（见 [v3 concepts §2](/versions/v3/concepts#_2-三尺度-fpn-检测头-concept-fpn-three-scales)）。
 
 ### 原理图
 
@@ -204,6 +208,8 @@ flowchart TD
 ## 7. Softmax 类别头 (`concept-softmax-classes`)
 
 > **v1 读者路标**：v1 类别头是裸线性 L2（`softmax=0`，无激活无互斥）；v2 改 softmax，类别此消彼长。
+>
+> **v3 路标**：softmax 又被删掉，换回每类独立 logistic——为了多标签数据集（见 [v3 concepts §4](/versions/v3/concepts#_4-多标签-logistic-类头-concept-multi-label-logistic)）。
 
 ### 原理图
 
