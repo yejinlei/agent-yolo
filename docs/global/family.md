@@ -58,4 +58,60 @@ flowchart LR
   RT-DETR[RT-DETR] -. End-to-End .-> YOLOv11/v12
 ```
 
+## v1→v4 精读版本逐项对照
+
+本站已完成 v1–v4 的快照级精读（论文 + cfg + 源码）。下表是四代的逐项差异一览，每项都可在对应版本页找到出处：
+
+| 维度 | [v1](/versions/v1/index) | [v2](/versions/v2/index) | [v3](/versions/v3/index) | [v4](/versions/v4/index) |
+|------|------|------|------|------|
+| 发布 | 2015 arXiv / ECCV 2016 | 2016 arXiv / CVPR 2017 | 2018 arXiv | 2020 arXiv / CVPR 2020 |
+| 代码快照 | pjreddie · `8322a58` | pjreddie · `c6afc7f` | pjreddie · `e84933b` | AlexeyAB · `4131ae1` |
+| 输入尺寸 | 448×448 | 416×416 | 416×416 | 608×608 |
+| 骨干 | 24 conv 自研 | Darknet-19 | Darknet-53（残差） | CSPDarknet53（CSP+残差） |
+| 层数 | 32（24 conv + 2 FC） | 31（22 conv + 5 maxpool + route/reorg） | 107（75 conv + 23 shortcut + upsample） | 162（110 conv + 23 shortcut + SPP/PANet） |
+| 参数量 | ≈272M（FC4096 占 2 亿） | ≈67M | ≈61.8M | ≈64.1M |
+| BN | ❌（v2 才引入） | ✅ 首次 | ✅ | ✅（CmBN） |
+| 检测头 | 单头 7×7，每格 2 框 | 单头 13×13，5 anchor | 三头 13/26/52，9 anchor | 三头 76/38/19，18 anchor（顺序反转） |
+| 输出维度 | 1470 = 49×30 | 13×13×425 | 3×255（每头） | 3×255（每头） |
+| Anchor | ❌ 直接回归 | ✅ 5 个 K-means | ✅ 9 个分三组 | ✅ 18 个分三组 |
+| 坐标损失 | SSE（√w√h 加权） | SSE + logistic 偏移 + σ′ 因子 | SSE，权重 `2−w·h` | **CIoU**（IoU 直接可导） |
+| 类别头 | 裸线性 + L2（softmax=0） | softmax | logistic 多标签 | logistic 多标签 |
+| 激活 | leaky | leaky | leaky | Mish（骨干）+ leaky（neck） |
+| 浅层融合 | ❌ | passthrough（reorg） | FPN 上采样回连 | FPN + **PANet** 双向 |
+| 感受野扩大 | — | — | — | **SPP**（5/9/13 并联池化） |
+| 数据增强 | jitter + flip | + 多尺度训练 | + hue/sat/exp 色彩增强 | + **Mosaic** 四图拼接 |
+| 特色 trick | dropout .5 | bias_match warmup | truth_thresh（死代码） | scale_x_y / multi-positive / SAT |
+| 指标 | VOC07 mAP 63.4 | VOC07 mAP 78.6 | COCO AP50 57.9 · AP 33.0 | COCO AP50 65.7 · AP 43.5 |
+
+## v1→v4 继承谱系
+
+```mermaid
+flowchart LR
+  subgraph V1[v1 定调]
+    A1[single-shot 端到端]
+    A2[网格 + 直接回归]
+    A3[SSE 全家桶]
+  end
+  subgraph V2[v2 继承 + 修正]
+    B1[继承网格回归]
+    B2[+ anchor / BN / log 回归]
+    B3[+ passthrough 浅层融合]
+  end
+  subgraph V3[v3 继承 + 放大]
+    C1[继承 anchor + BN]
+    C2[+ Darknet-53 残差]
+    C3[+ 三头 FPN 多尺度]
+    C4[类别 softmax→logistic]
+  end
+  subgraph V4[v4 继承 + 重构]
+    D1[继承三头 + logistic]
+    D2[+ CSP 骨干 / SPP / PANet]
+    D3[坐标 SSE→CIoU]
+    D4[+ Mosaic / multi-positive]
+  end
+  V1 --> V2 --> V3 --> V4
+```
+
+每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)（v1 哪些病被治好）、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)。
+
 详见 [演化事件](/global/evolutions) 与 [时间线](/global/timeline)。
