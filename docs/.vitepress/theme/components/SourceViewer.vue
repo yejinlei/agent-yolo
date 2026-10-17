@@ -2,7 +2,7 @@
 // @RELATED: components/SrcSnippet.vue（片段用同一套快照与配色）
 // @REASON: 站内源码浏览页；支持 #L157 与 #L157-L161 锚点高亮并滚动定位，hashchange 时重新定位
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { loadSource, githubUrl, langOf } from '../composables/useSource.js'
+import { loadSource, githubUrl, langOf, displayFile } from '../composables/useSource.js'
 import { highlightLines } from '../utils/highlight.js'
 
 const props = defineProps({
@@ -52,7 +52,7 @@ const gh = computed(() => githubUrl(props.file))
 <template>
   <div class="src-viewer">
     <div class="src-viewer-bar">
-      <span class="src-name"><span class="src-ic">⌗</span>{{ file }} <span class="src-range">{{ lines.length }} 行</span></span>
+      <span class="src-name"><span class="src-ic">⌗</span>{{ displayFile(file) }} <span class="src-range">{{ lines.length }} 行</span></span>
       <a :href="gh" target="_blank" rel="noopener">GitHub 查看 ↗</a>
     </div>
     <div class="src-body src-viewer-body" ref="bodyEl">

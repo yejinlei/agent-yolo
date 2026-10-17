@@ -61,7 +61,8 @@ export default defineConfig({
       { text: '时间线', link: '/global/timeline' },
       { text: '本体 Schema', link: '/ontology/schema' },
       { text: '版本', items: [
-        { text: 'YOLOv1', link: '/versions/v1/index' }
+        { text: 'YOLOv1', link: '/versions/v1/index' },
+        { text: 'YOLOv2', link: '/versions/v2/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -96,13 +97,38 @@ export default defineConfig({
           ]
         },
         {
-          text: '源码浏览（darknet 快照）',
+          text: '源码浏览（darknet 快照 · c7079e4）',
           collapsed: false,
           items: [
             { text: 'detection_layer.c', link: '/versions/v1/source/detection-layer' },
             { text: 'yolo.c', link: '/versions/v1/source/yolo' },
             { text: 'box.c', link: '/versions/v1/source/box' },
             { text: 'yolo.cfg', link: '/versions/v1/source/yolo-cfg' }
+          ]
+        },
+        {
+          text: 'YOLOv2 (2017-12)',
+          items: [
+            { text: '概览', link: '/versions/v2/index' },
+            { text: '论文精读', link: '/versions/v2/paper' },
+            { text: 'Architecture 逐层图解', link: '/versions/v2/architecture' },
+            { text: '理论 (Concept)', link: '/versions/v2/concepts' },
+            { text: '架构与层速查', link: '/versions/v2/layers' },
+            { text: '损失函数', link: '/versions/v2/losses' },
+            { text: '反向传播推导', link: '/versions/v2/loss-gradient' },
+            { text: '训练技巧', link: '/versions/v2/tricks' },
+            { text: '痛点追踪', link: '/versions/v2/painpoints' },
+            { text: '源码走读', link: '/versions/v2/code-walkthrough' }
+          ]
+        },
+        {
+          text: '源码浏览（darknet 快照 · c6afc7f）',
+          collapsed: true,
+          items: [
+            { text: 'region_layer.c', link: '/versions/v2/source/region-layer' },
+            { text: 'yolo.c', link: '/versions/v2/source/yolo' },
+            { text: 'box.c', link: '/versions/v2/source/box' },
+            { text: 'yolo.cfg', link: '/versions/v2/source/yolo-cfg' }
           ]
         }
       ],
