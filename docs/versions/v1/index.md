@@ -23,6 +23,10 @@ flowchart LR
 3. **置信度 = P(Object)·IoU**：把定位质量嵌入到分类分数里
 4. **在 VOC 2007 达到 63.4 mAP，35 FPS**
 
+## 推理效果一览
+
+<DiagramPipeline />
+
 ## 关键指标
 
 | 数据集 | 输入 | mAP@0.5 | FPS |

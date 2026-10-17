@@ -20,6 +20,8 @@ flowchart LR
     TWO -.-> ONE
 ```
 
+<DiagramPipeline caption="图：Single-Shot 的实际效果——同一张场景在四步里的形态变化（场景为示意，步骤与行号对应真实 test_yolo）" />
+
 ### 白话
 
 > 以前检测要分两口气：先找框，再看框里是什么。YOLO 改成一口气：图过一次网络，直接出所有框和类别。

@@ -11,6 +11,7 @@ import DiagramIou from './components/DiagramIou.vue'
 import DiagramDecode from './components/DiagramDecode.vue'
 import DiagramArch from './components/DiagramArch.vue'
 import DiagramNms from './components/DiagramNms.vue'
+import DiagramPipeline from './components/DiagramPipeline.vue'
 
 // @AI_GUARD: Mermaid 主题变量必须与 style.css 的 d-* 调色板保持一致；明暗两套都要维护
 const MERMAID_THEMES = {
@@ -53,6 +54,7 @@ export default {
     app.component('DiagramDecode', DiagramDecode)
     app.component('DiagramArch', DiagramArch)
     app.component('DiagramNms', DiagramNms)
+    app.component('DiagramPipeline', DiagramPipeline)
 
     if (typeof window === 'undefined') return
 
