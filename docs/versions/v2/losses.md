@@ -55,6 +55,14 @@ $$L_{coord} = 5 \sum_{best} \Big[ (\sigma(t_x)-\tau_x)^2 \sigma' + (\sigma(t_y)-
 
 <SrcSnippet file="v2:src/region_layer.c" :start="87" :end="106" hl="92-104" />
 
+::: details 逐行注释（L87–L106）
+- **L94-95**：算中心目标 `tx = truth.x×w − i`——真值中心相对 cell 左上角的网格内偏移（0~1）。
+- **L97-98**：算宽高目标 `tw = log(truth.w / anchor_w)`——相对 anchor 的对数缩放；`DOABS` 时先乘 grid 尺寸做归一。
+- **L100**：`iou = box_iou(pred, truth)` 只**返回**给调用方（rescore 用），不进坐标梯度。
+- **L101-102**：中心 delta = `scale×(tx − σ(输出))×σ'(输出)`——比 v1 多乘 sigmoid 导数（链式法则，推导见[反向传播 §3.3](/versions/v2/loss-gradient)）。
+- **L103-104**：宽高 delta = `scale×(tw − 输出)`——log 空间无激活，纯线性差。
+:::
+
 ## 2. Objectness L2 (`loss-object-l2`)
 
 **公式**：
@@ -68,6 +76,12 @@ $$L_{obj} = 1 \cdot (IoU_{conf} - \sigma(conf))^2 \quad \text{（有目标 ancho
 **源码对应**（先设 1，`rescore=1` 时用 IoU 覆盖）：
 
 <SrcSnippet file="v2:src/region_layer.c" :start="299" :end="304" hl="301-304" />
+
+::: details 逐行注释（L299–L304）
+- **L299**：`avg_obj` 只是日志统计量，不进梯度。
+- **L301**：object delta 先按常数目标 1 写：`object_scale×(1−σ)×σ'`。
+- **L302-304**：`rescore=1` 时覆盖为 `object_scale×(IoU−σ)×σ'`。与 v1 唯一区别是多了 σ'——v2 的 conf 过了 sigmoid。
+:::
 
 ## 3. No-Object L2 (`loss-noobject-l2`)
 
@@ -83,6 +97,12 @@ $$L_{noobj} = 1 \cdot \sigma(conf)^2 \cdot \sigma' \quad \text{（无目标 anch
 
 <SrcSnippet file="v2:src/region_layer.c" :start="230" :end="241" hl="231-232" />
 
+::: details 逐行注释（L230–L241）
+- **L230-232**：先算该 anchor 与**所有 GT** 的最大 IoU（`best_iou`），并累计 `avg_anyobj` 日志统计。
+- **L234**：默认 delta = `noobject_scale×(0−σ)×σ'`——先假定它无物体。
+- **L235-240**：两个豁免分支：`classfix==-1` 时目标改成软标签 `best_iou`；否则 IoU 超 `thresh` 的 anchor 直接 `delta=0`——"已经框得不错的 anchor 不再惩罚"。
+:::
+
 ## 4. Class 损失（softmax）(`loss-class-softmax`)
 
 **公式**：
@@ -96,6 +116,12 @@ $$\delta_n = scale \cdot \big( [n = class] - output_n \big) \quad \text{（交�
 **源码对应**：
 
 <SrcSnippet file="v2:src/region_layer.c" :start="125" :end="130" hl="127-128" />
+
+::: details 逐行注释（L125–L130）
+- **L127-128**：`delta = scale × ([n==正确类] − output[n])`——输出已是 softmax 概率，所以这就是交叉熵梯度的化简形。
+- **L129**：`avg_cat` 统计正确类概率（日志用）。
+- **C 语言冷知识**：`[n==class]` 是比较表达式，值就是 1 或 0，等价于 one-hot 向量——一行代码省掉一个数组。
+:::
 
 > 层次化分类（YOLO9000）是另一分支：`hier` 非空时沿树回溯父节点，见 <SrcLink file="v2:src/region_layer.c" :line="111" />。
 

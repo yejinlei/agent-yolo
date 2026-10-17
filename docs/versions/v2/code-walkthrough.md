@@ -57,6 +57,13 @@ passthrough 三连：route 回连 → reorg 重排 → route 拼接（见[架构
 
 <SrcSnippet file="v2:src/region_layer.c" :start="73" :end="85" hl="76-83" />
 
+::: details 逐行注释（L73–L85）
+- **L76**：`index + n*stride` 定位到第 n 个 anchor 的 5 维起点（stride = 85 = 4+1+80）。
+- **L78-79**：`b.x = (i + σ(x[0]))/w`——σ 把偏移压进 (0,1)，加 cell 索引 i 得网格坐标，除 w=13 归一到全图。
+- **L80-81**：`b.w = exp(x[2]) × biases[2n]`——e 的预测次幂 × anchor 宽；`DOABS` 时再除 w 归一（坐标系 hack，见[痛点 §6](/versions/v2/painpoints)）。
+- **L83**：`b.prob` 指向 objectness 槽位，解码后由 NMS 消费。
+:::
+
 - `b.x = (i + σ(x[0]))/w`：中心 = cell 索引 + sigmoid 偏移，再归一化
 - `b.w = exp(x[2])·biases[2n]`：宽 = e 的预测次幂 × anchor 先验
 - `DOABS`（<SrcLink file="v2:src/region_layer.c" :line="12" />）时再除一次 grid 尺寸做归一——v2 早期坐标系 hack（见[痛点 §6](/versions/v2/painpoints)）
@@ -152,6 +159,12 @@ NMS 阈值 `.4`（L299），与 valid 的 `.5` 不同。
 ### 4.2 NMS：按类排序、重叠置零
 
 <SrcSnippet file="v2:src/box.c" :start="249" :end="277" hl="254-256,268-271" />
+
+::: details 逐行注释（L249–L277）
+- **L254-256**：逐类别遍历：该类概率低于阈值的框先清零，再按该类概率 `qsort` 降序。
+- **L258-271**：每个框与**排在自己前面**的已保留框算 IoU，超阈值则**把该类概率置零**——框不删除，它在其他类别上的分数还活着。
+- **为什么按类做**：跨类别的重叠（人抱着狗）不该互相压制。
+:::
 
 - 逐类别：按该类概率 qsort → 与已保留框 IoU > thresh 则**该类概率置零**（框不删，其他类仍存活）
 - 阈值由调用方传（test .4 / valid .5）

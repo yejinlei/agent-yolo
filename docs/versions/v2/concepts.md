@@ -183,6 +183,12 @@ flowchart TD
 
 <SrcSnippet file="v2:src/region_layer.c" :start="272" :end="292" hl="275-282" />
 
+::: details 逐行注释（L272–L292）
+- **L275-279**：`bias_match=1` 时把 `pred.w/h` **替换成 anchor 尺寸**——匹配只看 anchor 先验，不看网络当前预测的框。
+- **L281**：`pred.x = pred.y = 0`、GT 也平移到原点——**只比形状，不比位置**。
+- **L283-291**：逐个 anchor 算 IoU，记录最大的 `best_n`；这个 anchor 独占该 GT 的 coord/obj/class 监督。
+:::
+
 ---
 
 ## 7. Softmax 类别头 (`concept-softmax-classes`)
@@ -203,6 +209,13 @@ flowchart LR
 <SrcLink file="v2:src/region_layer.c" :line="168" :end="174" />（训练前向时对 class 部分做 softmax）：
 
 <SrcSnippet file="v2:src/region_layer.c" :start="168" :end="175" hl="168-174" />
+
+::: details 逐行注释（L168–L175）
+- **L168-169**：`if(l.softmax)` 对每个 cell×anchor 的 80 维类头做 `softmax_array`——输出变互斥概率。
+- **L171-172**：`if(l.softmax_tree)` 是 YOLO9000 的层级 softmax 分支（VOC/COCO 不走这里）。
+- **L173-174**：objectness 槽位统一过 `logistic_activate`（sigmoid）压到 (0,1)。
+- **L177**（卡片外一行）：`if(!state.train) return`——推理到这里就返回，后面全是训练逻辑。
+:::
 
 ---
 

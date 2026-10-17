@@ -53,6 +53,12 @@ $$L_{coord} = 5 \sum_{best} \Big[ (x-t_x)^2 + (y-t_y)^2 + (\sqrt{w}-\sqrt{t_w})^
 
 <SrcSnippet file="src/detection_layer.c" :start="163" :end="170" hl="163-166,167-170" />
 
+::: details 逐行注释（L163–L170）
+- **L163-164**：x、y 方向直接写 `coord_scale × (真值 − 输出)`——标准 L2 梯度，"差多少、反着传"。
+- **L165-166**：w、h 先**也按普通 L2** 写一遍（此时目标是原始宽高）。
+- **L167-170**：`sqrt=1` 时把上两行**覆盖**：w/h 的目标换成 `sqrt(真值)`。只换目标、不乘任何额外因子——损失本来就定义在 √ 空间（推导见[反向传播 §3.4](/versions/v1/loss-gradient)）。
+:::
+
 ---
 
 ## 2. (1-IoU)²：只显示、不反传 (`loss-box-iou-l2`)
@@ -68,6 +74,11 @@ $$cost \mathrel{+}= (1 - IoU(pred,\ gt))^2$$
 - v1 没有任何 IoU 类损失（CIoU/GIoU/DIoU 都没有），这是定位粗糙的根源之一，见 [痛点追踪](/versions/v1/painpoints)
 
 <SrcSnippet file="src/detection_layer.c" :start="171" :end="173" />
+
+::: details 逐行注释（L171–L173）
+- **L171-172**：`*(l.cost) += pow(1-iou, 2)`——把 `(1−IoU)²` 加进 cost（训练日志里显示的那个 loss 数字）。
+- **关键**：这段**没有任何 `l.delta[...] =` 赋值**，对权重更新零影响，纯属日志装饰。别把它当成第五个真实损失项。
+:::
 
 ---
 
@@ -90,6 +101,14 @@ $$L_{obj} = (1 - conf_{pred})^2 \quad \text{（有目标格子）}$$
 
 <SrcSnippet file="src/detection_layer.c" :start="153" :end="161" hl="155,157,159-161" />
 
+::: details 逐行注释（L153–L161）
+- **L153**：算出 conf 在 delta 数组里的下标 `p_index`（类别区之后、按 box 编号排）。
+- **L155**：先**撤销** noobj 阶段给这个 box 记下的 cost（`-=`）——这个格子其实有物体。
+- **L157**：改记 object cost：`(1 − conf)²`。
+- **L159**：写 object delta：`object_scale × (1 − conf)`，把 conf 往 1 推。
+- **L160-161**：`rescore=1` 时**覆盖**上一行——目标从 1 换成实时 IoU，conf 顺带学会"框得准不准"。
+:::
+
 ---
 
 ## 4. No-Object L2 (`loss-noobject-l2`)
@@ -110,6 +129,12 @@ $$L_{noobj} = 0.5 \cdot conf^2 \quad \text{（无目标格子）}$$
 **源码对应**（注意 cost 与 delta 在同一循环内，先对两个 box 都置 noobj，命中者后面再被覆盖）：
 
 <SrcSnippet file="src/detection_layer.c" :start="75" :end="80" hl="76-78" />
+
+::: details 逐行注释（L75–L80）
+- **L75-76**：对 cell 的**每一个** box（j=0,1）先写 noobject delta：`0.5 × (0 − conf)`，往 0 压。
+- **L77-78**：同步把 `0.5 × conf²` 加进 cost。
+- **为什么先写**：这是"先假定全场无物体"的默认值；有物体的格子随后在 L155/L159 撤销并覆盖（见 §3 卡片注释）。
+:::
 
 ---
 
@@ -132,6 +157,12 @@ $$L_{class} = \sum_c (p_c - t_c)^2 \quad \text{（有目标格子，} c \in [0, 
 
 <SrcSnippet file="src/detection_layer.c" :start="90" :end="96" hl="92-93" />
 
+::: details 逐行注释（L90–L96）
+- **L90-92**：对 20 个类逐个写 delta：`class_scale × (one-hot 真值 − 输出)`。输出是**裸 logits**（`softmax=0`，无任何激活）。
+- **L93**：同步累加 class cost。
+- **白话**：每个类独立做 L2 回归，"正确类往 1 推、其余往 0 推"，类与类之间没有互斥约束——v2 才改成 softmax。
+:::
+
 ---
 
 ## 6. Rescore 项 (`loss-rescore-objectness`)
@@ -151,6 +182,11 @@ $$\delta_{conf} = object\_scale \cdot (IoU - conf_{pred}) \quad \text{（训练�
 **源码对应**（rescore 覆盖上一行的常数 1 目标）：
 
 <SrcSnippet file="src/detection_layer.c" :start="153" :end="161" hl="159-161" />
+
+::: details 逐行注释（L153–L161，聚焦 L159-161）
+- **L159**：先写常数目标：`object_scale × (1 − conf)`。
+- **L160-161**：`if(l.rescore)` 立刻覆盖成 `object_scale × (IoU − conf)`——**rescore 的全部秘密就这一行**：conf 的"老师"从常数 1 换成实时 IoU。
+:::
 
 ---
 
