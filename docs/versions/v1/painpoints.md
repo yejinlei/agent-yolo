@@ -16,6 +16,8 @@ YOLOv1 用速度换精度，付出的代价集中体现为 6 个痛点。这一�
 > **v4 路标**：表中"边界框定位粗糙"在 v4 由 CIoU loss 正面解决——坐标回归第一次有 IoU 直接梯度（见 [v4 痛点追踪](/versions/v4/painpoints)）。
 > **v5 路标**：表中"小目标召回差"在 v5 被大幅缓解——Focus 无损下采样 + 多正样本分配 + 多尺度训练，小物体召回率显著提升（见 [v5 痛点追踪](/versions/v5/painpoints)）。
 
+> **v6 路标**：小目标问题在 v6 继续靠多层特征缓解——`fuse_P2` 把 160×160 高分辨率 P2 特征也送进 Neck，BiFusion 多路融合 + TAL 软标签让"分类准的样本还必须定位准"（见 [v6 痛点追踪](/versions/v6/painpoints)）。
+
 ## 1. 小目标召回差 (`pain-small-object-recall`)
 
 **表现**：小目标（<32 像素）mAP 显著下降，mIoU < 0.5 时 miss rate 极高。

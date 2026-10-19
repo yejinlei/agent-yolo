@@ -19,6 +19,8 @@ YOLOv3 用三尺度头 + 残差骨干大幅提升了 AP50 和小目标召回，�
 >
 > **v5 路标**："GT 单 anchor 独占"在 v5 被多正样本分配彻底打破——wh 比例 + 邻居偏移，一个 GT 可产生最多 15 个正样本（见 [v5 痛点追踪](/versions/v5/painpoints)）。
 
+> **v6 路标**：多正样本思想在 v6 演进为 TAL——不再按 IoU 阈值一刀切，而是用"分类分数 × IoU"对齐度量选 top-13，并据此生成分类软标签（见 [v6 痛点追踪](/versions/v6/painpoints)）。
+
 ---
 
 ## 1. AP75 弱：坐标损失仍无 IoU 直接梯度 (`pain-no-iou-gradient`)

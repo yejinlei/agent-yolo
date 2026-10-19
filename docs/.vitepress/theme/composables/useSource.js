@@ -35,6 +35,11 @@ const modules = {
   v5: import.meta.glob(
     '../../../../source/yolov5/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v6 同为 PyTorch 项目（Meituan YOLOv6），源码以 .py 为主，配置是 Python dict（configs/*.py）
+  v6: import.meta.glob(
+    '../../../../source/yolov6/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -65,7 +70,12 @@ export const SOURCE_PAGES = {
   'v5:models/yolo.py':       '/versions/v5/source/yolo-py',
   'v5:models/common.py':     '/versions/v5/source/common-py',
   'v5:utils/loss.py':        '/versions/v5/source/loss-py',
-  'v5:models/yolov5s.yaml':  '/versions/v5/source/yolov5s-yaml'
+  'v5:models/yolov5s.yaml':  '/versions/v5/source/yolov5s-yaml',
+  // YOLOv6（Meituan，Python dict 配置）
+  'v6:yolov6/layers/common.py':       '/versions/v6/source/common-py',
+  'v6:yolov6/models/losses/loss.py':  '/versions/v6/source/loss-py',
+  'v6:yolov6/assigners/tal_assigner.py': '/versions/v6/source/tal-assigner-py',
+  'v6:configs/yolov6s.py':            '/versions/v6/source/yolov6s-config'
 }
 
 const GH_BASES = {
@@ -73,7 +83,8 @@ const GH_BASES = {
   v2: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov2/snapshot/',
   v3: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov3/snapshot/',
   v4: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov4/snapshot/',
-  v5: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov5/snapshot/'
+  v5: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov5/snapshot/',
+  v6: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov6/snapshot/'
 }
 
 function resolveKey(v, f) {

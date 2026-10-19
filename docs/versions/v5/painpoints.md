@@ -11,6 +11,8 @@
 | 模型 yaml 硬编码三头结构 | Medium | v8 解耦 head |
 | 无 anchor 可视化工具 | Low | v6+ 增加 anchor 分析脚本 |
 
+> **v6 路标**："Focus 部署不友好"与"anchor 仍存在"在 v6 同时解决——Focus 换成 RepConv stem，anchor 彻底移除；"无正式论文"也有了美团的同行技术报告可对照（见 [v6 痛点追踪](/versions/v6/painpoints)）。
+
 ## 1. 无正式论文 (`pain-no-paper`)
 
 - YOLOv5 没有 arXiv 论文，所有指标基于 README 声明

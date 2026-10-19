@@ -84,6 +84,27 @@ Spatial Pyramid Pooling：同一特征图并联 5×5/9×9/13×13 三个 same-pad
 
 ---
 
+### RepVGG 结构重参数化
+训练时用"3×3 卷积 + 1×1 卷积 + 恒等映射"三条并联分支求和堆容量，部署前用数学等价变换把三条分支**融成一个 3×3 卷积**——训练更猛、推理不慢。v6 全线采用，详解：[v6 RepVGG 概念](/versions/v6/concepts)。
+
+### RepBlock / BottleRep
+v6 的重复堆叠单元：BottleRep 是带 alpha 加权残差的双卷积块，RepBlock 把 n 个 RepVGGBlock（或 BottleRep）串起来。训练多分支、推理单路。
+
+### BepC3 / CSPStackRep
+v6 给中大模型准备的 CSP 版 Rep 块：三个 1×1 卷积 + 一串双卷积残差子块 + 跨阶段拼接。大模型再用纯单路 RepBlock 参数会爆炸，论文里 M/L 就换这个。
+
+### SimSPPF / CSPSPPF
+v6 把 v5 的 SPPF 再简化：串 3 个 MaxPool 后 concat，激活次数减半；CSPSPPF 是加 CSP 分支的版本，v6 骨干尾部使用。
+
+### BiFusion
+v6 Neck 的三路特征融合模块：当前尺度 + 上采样来的高级特征 + 下采样来的低级特征，三路 concat 再卷积。RepBiFPANNeck 的核心积木。
+
+### fuse_P2
+v6 骨干的可选开关：把 160×160 的 P2 高分辨率特征也输出给 Neck（v5 只出 P3/P4/P5），给小目标特征多一层保险；yolov6s 默认开启。
+
+### EffiDeHead
+v6 的高效解耦头：分类/回归各一条轻量分支、**没有 objectness 分支**、anchor-free 直接回归 ltrb 距离。蒸馏续训时加 proj_conv 做 DFL 解码。
+
 ## 训练与损失
 
 ### 损失函数（loss）
@@ -153,6 +174,24 @@ v5 的 anchor 自动学习：先 k-means 按训练集 wh 聚类 9 个 anchor，�
 v5 的网络配置不再用 cfg 逐层手写，而是 `models/yolov5s.yaml` 用 `[from, number, module, args]` 四元组 + `depth_multiple`/`width_multiple` 两个缩放系数描述整个网络——s/m/l/x 同一份代码只改两个数。详解：[v5 architecture](/versions/v5/architecture)。
 
 ---
+
+### SimOTA
+YOLOX 提出的动态标签分配：按"分类 cost + IoU cost"动态决定每个 GT 分几个正样本。YOLOv6 初版用它，技术报告评测后被 TAL 替代。
+
+### TAL（Task Alignment Learning）
+源自 TOOD 的任务对齐分配：对齐度量 = 分类分数^α × IoU^β，每个 GT 取 top-k（v6 是 13）当正样本，并用归一化度量当**分类软标签**——分类准的还必须定位准。详解：[v6 损失 §4](/versions/v6/losses)。
+
+### ATSS
+自适应训练样本选择：按 GT 与各层 anchor 中心的距离统计定阈值、再按 IoU 挑正样本。v6 保留它作可选 warmup 分配器（默认关闭）。
+
+### VarifocalLoss（VFL）
+非对称分类损失：负样本按预测分降权（p^γ），正样本用 IoU 软标签当目标且不降权。v6 用它取代 BCE，从此不再需要 objectness 分支。
+
+### DFL（Distribution Focal Loss）
+把"框边到网格点的距离"建模成 n 个离散 bin 上的分布，损失只打在真值两侧最近的 bin 上（线性加权交叉熵）。v6 里 reg_max=16，主要服务于**框回归自蒸馏**——标准训练默认不开。
+
+### Python dict 配置
+v6 把 v5 的 yaml 换成可执行 Python（model / solver / data_aug 三段 dict）：import 即校验、能写注释和逻辑，代价是失去语言中立性。
 
 ## darknet 源码黑话
 

@@ -21,6 +21,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 >
 > **v5 路标**："Anchor 先验依赖数据集"在 v5 由 autoanchor 自动化——k-means + 遗传算法按训练集自动重算 anchors，不再需要手工调参（见 [v5 痛点追踪](/versions/v5/painpoints)）。
 
+> **v6 路标**：anchor 先验在 v6 被釜底抽薪——EffiDeHead 转 anchor-free，解码与分配都不再有 anchor，"调锚"这门手艺连同 autoanchor 一起退出历史舞台（见 [v6 痛点追踪](/versions/v6/painpoints)）。
+
 ---
 
 ## 1. 单尺度检测头：小目标仍然弱 (`pain-single-scale-head`)
