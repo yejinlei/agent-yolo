@@ -208,3 +208,4 @@ flowchart LR
 - [训练技巧](/versions/v1/tricks) — NMS 是推理技巧，也是痛点源
 - [源码走读](/versions/v1/code-walkthrough)
 - [全局演化](/global/evolutions) — 跨版本痛点追踪
+- [v7 痛点追踪](/versions/v7/painpoints) — v7 对 anchor 等遗留议题的回应（路线在此分叉）

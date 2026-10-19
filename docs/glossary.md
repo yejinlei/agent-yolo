@@ -105,6 +105,18 @@ v6 骨干的可选开关：把 160×160 的 P2 高分辨率特征也输出给 Ne
 ### EffiDeHead
 v6 的高效解耦头：分类/回归各一条轻量分支、**没有 objectness 分支**、anchor-free 直接回归 ltrb 距离。蒸馏续训时加 proj_conv 做 DFL 解码。
 
+### ELAN / E-ELAN（高效层聚合）
+ELAN 把两条 1×1 旁路和多条 3×3 深链**每隔一个取一个** concat 到一起，梯度有短路可抄、不押注在一条深链上；E-ELAN（Extended ELAN）再加 expand/shuffle/merge（分组卷积 + 通道洗牌）增加路径多样性，是 v7 训练更大网络的骨架。快照里的落地形态就是 yaml 中的 4 路/6 路 Concat 块，详解：[v7 concepts §2](/versions/v7/concepts)。
+
+### RepConv / RepConvN（计划重参数化）
+v7 的训练期三分支卷积（3×3 + 1×1 + 恒等映射），部署前融成单个 3×3；RepConvN 是"条件恒等"版——只在 `c2==c1 且 stride==1` 时才保留 identity 分支，残差/Concat 邻接的 conv 一律禁用 identity，这就是论文 planned re-param 的规则。详解：[v7 concepts](/versions/v7/concepts)、[RepConv 源码](/versions/v7/source/common-py)。
+
+### compound scaling（复合缩放）
+放大 concat 型网络时，computational block 只缩 depth、transition 层按同样变化量缩 width——比 v4/v5 的 depth/width 各缩各的更匹配多路 concat 结构。v7 消融：51.7 → 52.9 AP，详解：[v7 concepts §3](/versions/v7/concepts)。
+
+### partial auxiliary head（部分辅助头）
+v7 的辅助监督头只接在**部分层**上（不逐层全接），且 aux 分支不带隐式知识、损失统一 ×0.25——只在训练期存在，推理时直接丢弃。详解：[v7 concepts](/versions/v7/concepts)、[IAuxDetect 源码](/versions/v7/source/yolo-py)。
+
 ## 训练与损失
 
 ### 损失函数（loss）
@@ -192,6 +204,15 @@ YOLOX 提出的动态标签分配：按"分类 cost + IoU cost"动态决定每�
 
 ### Python dict 配置
 v6 把 v5 的 yaml 换成可执行 Python（model / solver / data_aug 三段 dict）：import 即校验、能写注释和逻辑，代价是失去语言中立性。
+
+### trainable bag-of-freebies（可训练免费午餐）
+v7 的方法论：所有涨点手段（E-ELAN、compound scaling、planned re-param、双头标签分配、EMA……）都只花**训练期**成本，部署模型与基线同速——"免费涨点"。详解：[v7 论文精读](/versions/v7/paper)、[v7 训练技巧](/versions/v7/tricks)。
+
+### lead head guided label assigner（引导头标签分配）
+v7 的标签分配器：先用 dynamic-k（cost = 分类 + 3·(−log IoU)）给 lead head 挑好正样本，再把这份分配结果**引导**给 aux head——两个头看同一批 GT，但粗细粒度不同。详解：[v7 损失 §4](/versions/v7/losses)。
+
+### coarse-to-fine 标签分配（coarse-for-auxiliary / fine-for-lead）
+同一个 GT，lead 头用**细粒度**正样本（邻域 3 点采样、半径 g=0.5），aux 头用**粗粒度**正样本（5 点采样、g=1.0）：粗样本帮网络"先看清大概"，细样本再精修定位。详解：[v7 损失](/versions/v7/losses)、[find_5_positive 源码](/versions/v7/source/loss-py)。
 
 ## darknet 源码黑话
 

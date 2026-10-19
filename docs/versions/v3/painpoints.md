@@ -170,6 +170,7 @@ flowchart TB
     P2["大目标弱"] --> FIX2["分配策略重构"]
     P3["正样本稀疏<br/>GT 独占"] --> FIX2
     P4["anchor 依赖数据集"] --> FIX3["v8 anchor-free"]
+    FIX2 -.v7 lead-head 引导 + coarse-to-fine.-> V7["v7（anchor 仍在）"]
     P5["test_yolo side bug"] --> FIX4["走 detector.c"]
     P6["delta 缺 σ'"] --> FIX5["v4 损失重构"]
     P7["truth_thresh 死代码"] --> FIX2
@@ -184,3 +185,4 @@ flowchart TB
 - [损失函数](/versions/v3/losses) / [反向传播推导](/versions/v3/loss-gradient) — §1/§6 的详细数学
 - [源码走读](/versions/v3/code-walkthrough) — 逐段复核所有快照事实
 - [v2 痛点追踪](/versions/v2/painpoints) — 上游痛点全景
+- [v7 痛点追踪](/versions/v7/painpoints) — v7 用 lead-head 引导 + coarse-to-fine 双头分配继续回应"正样本稀疏"

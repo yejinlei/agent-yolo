@@ -62,6 +62,7 @@ flowchart TB
 
 ## 延伸阅读
 
+- [v7 痛点追踪](/versions/v7/painpoints) — P1 的"回归论文"方：trainable bag-of-freebies 路线
 - [v4 痛点追踪](/versions/v4/painpoints)
 - [v3 痛点追踪](/versions/v3/painpoints)
 - [v2 痛点追踪](/versions/v2/painpoints)

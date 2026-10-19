@@ -174,6 +174,7 @@ flowchart TB
     P2 -.v4 CIoU.-> V4[v4]
     P3 -.v3 sigmoid.-> V3
     P4 -.v8 anchor-free.-> V8[v8]
+    P4 -.v7 仍 anchor-based.-> V7[v7 路线分叉]
     P5 -.v2 后期 commit.-> V2L[v2 后期]
     P6 -.v2 后期 commit.-> V2L
     P7 -.v3 扁平化.-> V3
@@ -189,3 +190,4 @@ flowchart TB
 - [训练技巧](/versions/v2/tricks)
 - [源码走读](/versions/v2/code-walkthrough)
 - [v1 痛点追踪](/versions/v1/painpoints) — 对照看哪些是 v1 遗留、哪些是 v2 新引入
+- [v7 痛点追踪](/versions/v7/painpoints) — v7 对 anchor 依赖等遗留议题的回应（含指向 v8+ 的路标）

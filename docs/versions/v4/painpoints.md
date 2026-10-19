@@ -143,6 +143,8 @@ flowchart TB
     P5["SAT 未启用"] --> FIX5["社区后续 commit"]
     P6["DIoU-NMS 未启用"] --> FIX6["cfg 改 nms_kind"]
     P7["CIoU 梯度缺因子"] --> FIX7["v5 修正"]
+    P1 -.v7 trainable BoF 拉高 AP.-> V7["v7 51.4 AP<br/>（anchor 仍在）"]
+    FIX7 -.v7 沿用 autograd CIoU.-> V7
 ```
 
 ---
@@ -153,3 +155,4 @@ flowchart TB
 - [损失函数](/versions/v4/losses) / [反向传播推导](/versions/v4/loss-gradient) — CIoU 的详细数学
 - [源码走读](/versions/v4/code-walkthrough) — 逐段复核所有快照事实
 - [v3 痛点追踪](/versions/v3/painpoints) — 上游痛点全景
+- [v7 痛点追踪](/versions/v7/painpoints) — v7 把 v4 的 bag-of-freebies 升级为 trainable bag-of-freebies

@@ -40,6 +40,11 @@ const modules = {
   v6: import.meta.glob(
     '../../../../source/yolov6/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v7 同为 PyTorch 项目（WongKinYiu/yolov7），源码以 .py / .yaml 为主
+  v7: import.meta.glob(
+    '../../../../source/yolov7/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -75,7 +80,12 @@ export const SOURCE_PAGES = {
   'v6:yolov6/layers/common.py':       '/versions/v6/source/common-py',
   'v6:yolov6/models/losses/loss.py':  '/versions/v6/source/loss-py',
   'v6:yolov6/assigners/tal_assigner.py': '/versions/v6/source/tal-assigner-py',
-  'v6:configs/yolov6s.py':            '/versions/v6/source/yolov6s-config'
+  'v6:configs/yolov6s.py':            '/versions/v6/source/yolov6s-config',
+  // YOLOv7（WongKinYiu/yolov7，PyTorch 目录结构）
+  'v7:models/common.py':        '/versions/v7/source/common-py',
+  'v7:models/yolo.py':          '/versions/v7/source/yolo-py',
+  'v7:utils/loss.py':           '/versions/v7/source/loss-py',
+  'v7:cfg/training/yolov7.yaml': '/versions/v7/source/yolov7-yaml'
 }
 
 const GH_BASES = {
@@ -84,7 +94,8 @@ const GH_BASES = {
   v3: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov3/snapshot/',
   v4: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov4/snapshot/',
   v5: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov5/snapshot/',
-  v6: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov6/snapshot/'
+  v6: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov6/snapshot/',
+  v7: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov7/snapshot/'
 }
 
 function resolveKey(v, f) {

@@ -128,3 +128,4 @@ flowchart TB
 - [YOLOv6 网络结构](/versions/v6/architecture) — EfficientRep / RepBiFPANNeck / EffiDeHead
 - [YOLOv5 痛点追踪](/versions/v5/painpoints) — 本页"承接 v5 痛点"表格的上文
 - [术语表](/glossary) — 重参数化、TAL、DFL 等术语索引
+- [v7 痛点追踪](/versions/v7/painpoints) — "v7 路线" bullet 对应的完整版本页
