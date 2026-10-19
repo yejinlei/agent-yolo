@@ -23,6 +23,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 
 > **v6 路标**：anchor 先验在 v6 被釜底抽薪——EffiDeHead 转 anchor-free，解码与分配都不再有 anchor，"调锚"这门手艺连同 autoanchor 一起退出历史舞台（见 [v6 痛点追踪](/versions/v6/painpoints)）。
 
+> **v8 路标**："Anchor 先验依赖数据集"在 v8 以 anchor-free 归一收官——anchor、autoanchor、anchor_t 一并退场，只剩网格中心与 ltrb 距离分布；"Softmax 类别头限制多标签"也由逐类 BCE 一路延续到 v8（见 [v8 痛点追踪](/versions/v8/painpoints)）。
+
 ---
 
 ## 1. 单尺度检测头：小目标仍然弱 (`pain-single-scale-head`)

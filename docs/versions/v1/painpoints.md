@@ -18,6 +18,8 @@ YOLOv1 用速度换精度，付出的代价集中体现为 6 个痛点。这一�
 
 > **v6 路标**：小目标问题在 v6 继续靠多层特征缓解——`fuse_P2` 把 160×160 高分辨率 P2 特征也送进 Neck，BiFusion 多路融合 + TAL 软标签让"分类准的样本还必须定位准"（见 [v6 痛点追踪](/versions/v6/painpoints)）。
 
+> **v8 路标**：表中"Anchor 敏感性（v2+ 引入）"一行在 v8 划上句号——anchor-free 网格中心预测 + TAL 软标签，让"有没有物体"与"框得准不准"重新收敛进同一个分数（见 [v8 痛点追踪](/versions/v8/painpoints)）。
+
 ## 1. 小目标召回差 (`pain-small-object-recall`)
 
 **表现**：小目标（<32 像素）mAP 显著下降，mIoU < 0.5 时 miss rate 极高。

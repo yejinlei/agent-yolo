@@ -45,6 +45,11 @@ const modules = {
   v7: import.meta.glob(
     '../../../../source/yolov7/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v8 是 ultralytics 单一代码库（tag v8.0.100），源码以 .py / .yaml 为主
+  v8: import.meta.glob(
+    '../../../../source/yolov8/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -85,7 +90,12 @@ export const SOURCE_PAGES = {
   'v7:models/common.py':        '/versions/v7/source/common-py',
   'v7:models/yolo.py':          '/versions/v7/source/yolo-py',
   'v7:utils/loss.py':           '/versions/v7/source/loss-py',
-  'v7:cfg/training/yolov7.yaml': '/versions/v7/source/yolov7-yaml'
+  'v7:cfg/training/yolov7.yaml': '/versions/v7/source/yolov7-yaml',
+  // YOLOv8（ultralytics 单一代码库，tag v8.0.100 旧布局）；快照根是仓库根，源码在 ultralytics/ 包目录下
+  'v8:ultralytics/nn/tasks.py':           '/versions/v8/source/tasks-py',
+  'v8:ultralytics/nn/modules/block.py':   '/versions/v8/source/common-py',
+  'v8:ultralytics/yolo/utils/loss.py':    '/versions/v8/source/loss-py',
+  'v8:ultralytics/models/v8/yolov8.yaml': '/versions/v8/source/yolov8-yaml'
 }
 
 const GH_BASES = {
@@ -95,7 +105,8 @@ const GH_BASES = {
   v4: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov4/snapshot/',
   v5: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov5/snapshot/',
   v6: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov6/snapshot/',
-  v7: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov7/snapshot/'
+  v7: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov7/snapshot/',
+  v8: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov8/snapshot/'
 }
 
 function resolveKey(v, f) {

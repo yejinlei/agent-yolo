@@ -18,6 +18,8 @@ YOLOv4 用 BoF+BoS 大杂烩把 COCO AP 推到 43.5，但也引入/暴露了 7 �
 
 > **v6 路标**："anchor 手工超参"在 v6 彻底终结（anchor-free 无锚可调）；"AP75 落后"由 TAL 对齐度量 + VFL 软标签正面回应——定位不准的样本连正样本资格都没有（见 [v6 痛点追踪](/versions/v6/painpoints)）。
 
+> **v8 路标**：Mosaic 在 v8 学会"何时收手"——close_mosaic 让最后若干 epoch 回到真实分布收尾；"anchor 仍是手工超参"在 v8 彻底归一为 anchor-free（见 [v8 痛点追踪](/versions/v8/painpoints)）。
+
 ---
 
 ## 1. AP75 仍落后 EfficientDet (`pain-ap75-gap`)

@@ -13,6 +13,8 @@
 
 > **v6 路标**："Focus 部署不友好"与"anchor 仍存在"在 v6 同时解决——Focus 换成 RepConv stem，anchor 彻底移除；"无正式论文"也有了美团的同行技术报告可对照（见 [v6 痛点追踪](/versions/v6/painpoints)）。
 
+> **v8 路标**："无正式论文"与"anchor 仍存在"两笔旧账在 v8 一并了结——前者发展出"以代码为论文"的工程叙事（代价是 AGPL-3.0），后者由 anchor-free 解耦头彻底终结（见 [v8 痛点追踪](/versions/v8/painpoints)）。
+
 ## 1. 无正式论文 (`pain-no-paper`)
 
 - YOLOv5 没有 arXiv 论文，所有指标基于 README 声明

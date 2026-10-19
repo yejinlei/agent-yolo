@@ -12,6 +12,8 @@ YOLOv6（美团，2022-06）把"工业部署友好"推到了极致：重参数�
 | [4. 配置系统变成 Python dict，失去 yaml 的语言中立性](#_4-配置系统变成-python-dict-失去-yaml-的语言中立性-pain-python-config) | Medium | v8 回归 YAML 配置（`yolov8*.yaml`），重新可被非 Python 工具链读取 |
 | [5. 工业部署栈复杂，需维护多后端/多精度矩阵](#_5-工业部署栈复杂-需维护多后端-多精度矩阵-pain-deploy-stack) | High | v8 提供统一的 ONNX/TensorRT/TFLite 导出入口；蒸馏+QAT 流程收敛为一条主线 |
 
+> **v8 路标**：v6 的三笔债在 v8 逐一清偿——DFL 从布尔开关变成内建默认、配置从 Python dict 回归 YAML、TAL 从"论文与代码漂移"变成公开设计点（详见本页末尾"路标"小节的 v8 路线条目与 [v8 痛点追踪](/versions/v8/painpoints)）。
+
 ## 1. 重参数化只利好推理，训练期三分支显存/计算开销 (`pain-reparam-train-cost`)
 
 **痛点**：RepVGGBlock 的收益全部兑现于部署时刻，训练期反而是净亏损。

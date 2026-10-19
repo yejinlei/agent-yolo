@@ -117,6 +117,15 @@ v7 的训练期三分支卷积（3×3 + 1×1 + 恒等映射），部署前融成
 ### partial auxiliary head（部分辅助头）
 v7 的辅助监督头只接在**部分层**上（不逐层全接），且 aux 分支不带隐式知识、损失统一 ×0.25——只在训练期存在，推理时直接丢弃。详解：[v7 concepts](/versions/v7/concepts)、[IAuxDetect 源码](/versions/v7/source/yolo-py)。
 
+### anchor-free（无锚框）
+不预置 anchor 模板，网络直接在网格中心上出框。v6 首次全线采用，v8 起成为系列默认：预测点定在网格中心（+0.5 偏移），回归四条边的 ltrb 距离分布。详解：[v8 anchor-free 概念](/versions/v8/concepts#_1-anchor-free-网格中心预测-concept-anchor-free)。
+
+### C2f
+v8 取代 C3 的骨干模块：cv1 输出 split 成两半，一半走 n 个 Bottleneck，然后**两半与每个 Bottleneck 的输出全部拼起来**（n+2 路 concat）再过 cv2——比 C3 多 n 条梯度旁路，v7 ELAN 思想的轻量落地。详解：[v8 C2f 概念](/versions/v8/concepts#_6-c2f-梯度分流结构-concept-c2f)。
+
+### SPPF
+v5 引入的 SPP 等价实现：同一个 5×5 MaxPool **连池化 3 次**（感受野 5→9→13 递增），输入与三次结果 concat——比并联三种池化核更快。v6 简化成 SimSPPF，v8 把它从 CSP 大块里拆出来，当骨干尾部的独立轻量块。详解：[v8 SPPF 概念](/versions/v8/concepts#_7-sppf-串行池化-concept-sppf)。
+
 ## 训练与损失
 
 ### 损失函数（loss）
@@ -213,6 +222,9 @@ v7 的标签分配器：先用 dynamic-k（cost = 分类 + 3·(−log IoU)）给
 
 ### coarse-to-fine 标签分配（coarse-for-auxiliary / fine-for-lead）
 同一个 GT，lead 头用**细粒度**正样本（邻域 3 点采样、半径 g=0.5），aux 头用**粗粒度**正样本（5 点采样、g=1.0）：粗样本帮网络"先看清大概"，细样本再精修定位。详解：[v7 损失](/versions/v7/losses)、[find_5_positive 源码](/versions/v7/source/loss-py)。
+
+### close_mosaic
+v8 的训练超参：训练收尾的最后 N 个 epoch **关闭 Mosaic**，让模型在真实分布上定型（配置默认 0，实践中常用 10）——"先猛增广、后真分布"的两段式训练。详解：[v8 close_mosaic 概念](/versions/v8/concepts#_10-close-mosaic-末期关闭增广-concept-close-mosaic)。
 
 ## darknet 源码黑话
 

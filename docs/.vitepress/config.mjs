@@ -69,7 +69,8 @@ export default defineConfig({
         { text: 'YOLOv4', link: '/versions/v4/index' },
         { text: 'YOLOv5', link: '/versions/v5/index' },
         { text: 'YOLOv6', link: '/versions/v6/index' },
-        { text: 'YOLOv7', link: '/versions/v7/index' }
+        { text: 'YOLOv7', link: '/versions/v7/index' },
+        { text: 'YOLOv8', link: '/versions/v8/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -261,6 +262,31 @@ export default defineConfig({
           { text: 'models/yolo.py', link: '/versions/v7/source/yolo-py' },
           { text: 'utils/loss.py', link: '/versions/v7/source/loss-py' },
           { text: 'cfg/training/yolov7.yaml', link: '/versions/v7/source/yolov7-yaml' }
+        ]
+      },
+      {
+        text: 'YOLOv8 (2023-01)',
+        items: [
+          { text: '概览', link: '/versions/v8/index' },
+          { text: '论文精读', link: '/versions/v8/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v8/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v8/concepts' },
+          { text: '架构与层速查', link: '/versions/v8/layers' },
+          { text: '损失函数', link: '/versions/v8/losses' },
+          { text: '反向传播推导', link: '/versions/v8/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v8/tricks' },
+          { text: '痛点追踪', link: '/versions/v8/painpoints' },
+          { text: '源码走读', link: '/versions/v8/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（ultralytics 快照 · v8.0.100 · dce4efc）',
+        collapsed: true,
+        items: [
+          { text: 'ultralytics/nn/tasks.py', link: '/versions/v8/source/tasks-py' },
+          { text: 'ultralytics/nn/modules/block.py', link: '/versions/v8/source/common-py' },
+          { text: 'ultralytics/yolo/utils/loss.py', link: '/versions/v8/source/loss-py' },
+          { text: 'ultralytics/models/v8/yolov8.yaml', link: '/versions/v8/source/yolov8-yaml' }
         ]
       },
         {

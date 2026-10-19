@@ -15,6 +15,8 @@ YOLOv7（中央研究院 + YOLOv4 作者回归，2022-07）把"trainable bag-of-
 | [7. V100 测速口径与部署实测不可比](#_7-v100-测速口径与部署实测不可比-pain-bench-caliber) | Medium | 后续版本与第三方榜单逐步统一测速口径 |
 | [8. 训练 schedule 与部分公式细节未核实](#_8-训练-schedule-与部分公式细节未核实-pain-unverified-items) | Low | 待附录与细节核实后本站补充 |
 
+> **v8 路标**：2022 年的路线分叉在 v8 给出答案——anchor-free + TAL 归一、独立 objectness 分支取消、辅助头不再采用；v7 的成绩单（51.4 AP @ 161 FPS）仍是 anchor-based 路线在这条收敛线上最强的对照证据（见 [v8 痛点追踪](/versions/v8/painpoints)）。
+
 ## 1. anchor-based 路线与同期 anchor-free 分道扬镳 (`pain-anchor-route-split`)
 
 **现状**：2022 年年中，"anchor 是否过时"并没有共识，而是一次公开分叉：一个月前的 v6 全线 anchor-free + TAL，v7 则完整保留 anchor-based 三件套——cfg 里的 3 组手工 anchors（<SrcLink file="v7:cfg/training/yolov7.yaml" :line="7" :end="10" />）、按宽高比筛候选的 `anchor_t` 匹配、decode 时的 anchor_grid 还原（`wh=(sigmoid*2)^2*anchor_grid`，<SrcLink file="v7:models/yolo.py" :line="134" :end="135" />）。同一年里两个"最强实时检测器"的路线完全相反。
