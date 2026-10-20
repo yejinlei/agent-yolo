@@ -61,14 +61,14 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph 骨干 ELAN · 4 路
+    subgraph G_E["骨干 ELAN · 4 路"]
         A0["x"] --> B1["1×1 #4"] --> CAT1["Concat<br/>4 路"]
         A0 --> B2["1×1 #5"] --> C1["3×3 #6"] --> C2["3×3 #7"] --> CAT1
         B1 -. skip .-> CAT1
         B2 -. skip .-> CAT1
         CAT1 --> O1["1×1 #11 → 256ch"]
     end
-    subgraph 头部 ELAN · 6 路
+    subgraph G_H["头部 ELAN · 6 路"]
         A1["x"] --> D1["1×1 #56"] --> CAT2["Concat<br/>6 路"]
         A1 --> D2["1×1 #57"] --> E1["3×3 #58"] --> E2["3×3 #59"] --> E3["3×3 #60"] --> E4["3×3 #61"] --> CAT2
         D1 -. skip .-> CAT2
@@ -85,12 +85,12 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph MP 块 · #12-16
+    subgraph G_MP["MP 块 · #12-16"]
         X0["x 256ch @160"] --> MP["MaxPool2d k=2<br/>256ch @80"] --> P1["1×1 #13 → 128"] --> P2["3×3 s2 #15 → 128"] --> CATP["Concat #16"]
         X0 --> Q1["1×1 #14 → 128"] --> CATP
         CATP --> OUTP["256ch @80"]
     end
-    subgraph SPPCSPC · #51
+    subgraph G_SPP["SPPCSPC · #51"]
         X1["x 1024ch @20"] --> CV["cv1 拆分两路"]
         CV --> SPP1["SPP 5/9/13 金字塔"] --> CV2["cv2"]
         CV --> CV3["cv3"]
@@ -144,7 +144,7 @@ y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]                    # 
 
 ```mermaid
 flowchart TB
-    subgraph 训练态 · train_aux.py + IAuxDetect
+    subgraph G_TR["训练态 · train_aux.py + IAuxDetect"]
         TIN["输入"] --> TB["ELAN 骨干（多路 Concat）"]
         TB --> TN["SPPCSPC + PAN · 6 路 ELAN"]
         TN --> TR["RepConv ×3（三分支求和）"]
@@ -159,7 +159,7 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph 推理态 · fuse 后
+    subgraph G_IN["推理态 · fuse 后"]
         IIN["输入"] --> IB["ELAN 骨干"]
         IB --> IN2["SPPCSPC + PAN · 6 路 ELAN"]
         IN2 --> IR["RepConv 融合为单 3×3<br/>get_equivalent_kernel_bias"]

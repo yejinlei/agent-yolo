@@ -77,7 +77,9 @@ export default {
         theme: 'base',
         securityLevel: 'loose',
         themeVariables: {
-          fontSize: '12px',
+          // 原为修复「文字被裁」而临时降到 12px；根因已在 style.css 中修掉
+          // （.mermaid-svg foreignObject p 的 line-height 泄漏），故恢复为可读的 14px
+          fontSize: '14px',
           ...vars
         },
         flowchart: { htmlLabels: true, curve: 'basis', padding: 14 },

@@ -19,9 +19,9 @@ $$L_{total} = 5 \cdot L_{coord} + 1 \cdot L_{obj} + 1 \cdot L_{noobj} + 1 \cdot 
 
 ```mermaid
 flowchart TB
-  INPUT[每个 cell × 5 anchor 的预测]
-  HAS[有目标 anchor<br/>best_n 命中]
-  NOL[无目标 anchor]
+  INPUT["每个 cell × 5 anchor 的预测"]
+  HAS["有目标 anchor<br/>best_n 命中"]
+  NOL["无目标 anchor"]
 
   INPUT --> HAS
   INPUT --> NOL
@@ -29,8 +29,8 @@ flowchart TB
   HAS --> COORD["L_coord: Σ(pred-t)²<br/>tx,ty sigmoid / tw,th log<br/>weight=5"]
   HAS --> OBJ["L_obj: (target-conf)²<br/>target=IoU(rescore)<br/>weight=1"]
   HAS --> CLASS["L_class: softmax<br/>交叉熵式 delta<br/>weight=1"]
-  NOL --> NOOBJ[L_noobj: conf²<br/>weight=1（比 v1 重） ]
-  COORD --> SUM[delta 加权求和<br/>cost = Σ(delta²)]
+  NOL --> NOOBJ["L_noobj: conf²<br/>weight=1（比 v1 重）"]
+  COORD --> SUM["delta 加权求和<br/>cost = Σ(delta²)"]
   OBJ --> SUM
   CLASS --> SUM
   NOOBJ --> SUM
@@ -178,10 +178,10 @@ flowchart TB
     WARM -->|是| PSEUDO["用 anchor 当伪 GT<br/>学 shape"]
     WARM -->|否| GT["对每个 GT：<br/>best_n = argmax IoU"]
     GT --> COMPUTE["对该 anchor："]
-    COMPUTE --> COORD[coord_scale=5: tx,ty,tw,th]
-    COMPUTE --> OBJ[obj_scale=1: conf→IoU(rescore)]
-    COMPUTE --> CLS[class_scale=1: softmax 交叉熵]
-    COORD --> SUM[cost = Σ delta²]
+    COMPUTE --> COORD["coord_scale=5: tx,ty,tw,th"]
+    COMPUTE --> OBJ["obj_scale=1: conf→IoU(rescore)"]
+    COMPUTE --> CLS["class_scale=1: softmax 交叉熵"]
+    COORD --> SUM["cost = Σ delta²"]
     OBJ --> SUM
     CLS --> SUM
     NOOBJ --> SUM

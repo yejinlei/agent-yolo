@@ -357,7 +357,8 @@ flowchart TB
         D5a --> D5b --> D5c --> D5d --> D5e
     end
     S4 --> B1 --> B2 --> B3
-    D3e --> D5a  %% passthrough from Dense3 倒数第2层
+    %% D3e 是 Dense3 的倒数第 2 层，经 passthrough 接到 D5a
+    D3e --> D5a
     D3f --> D4a
     D4e --> D5c
     D5e --> R["Region 13×13×5×85"]

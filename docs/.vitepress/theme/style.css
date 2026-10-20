@@ -125,6 +125,16 @@ svg .d-title, svg .d-label, svg .d-sub, svg .d-tiny, svg text {
   height: auto;
   margin: 0 auto;
 }
+/* @AI_GUARD: 勿删——这是「mermaid 节点文字被裁掉」的真正修复点。
+ * mermaid(htmlLabels) 把每一行标签包进 <p>，并按 line-height:1.5 测量节点框高度；
+ * 但 VitePress 的 .vp-doc p { line-height: 28px }（vitepress/dist/.../vp-doc.css）
+ * 以显式声明覆盖了继承值 → 渲染出的文字行高(28px)大于测量值(18px)，
+ * 文字下沉且比节点框高出约 10px，视觉上就是「节点里的小字被框裁掉」。
+ * 只重置 p；切勿动 div 的 line-height——div 的 1.5 是 mermaid 测量基准。 */
+.mermaid-svg foreignObject p {
+  margin: 0 !important;
+  line-height: inherit !important;
+}
 .diagram-figure {
   margin: 1.6rem 0;
   display: flex;
