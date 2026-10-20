@@ -19,6 +19,8 @@ YOLOv7（中央研究院 + YOLOv4 作者回归，2022-07）把"trainable bag-of-
 
 > **v9 路标**：v7 的两笔账在 v9 各有下文——RepConvN 从"论文命名"落成快照里真实存在的独立类（GELAN 积木）；partial aux head 的辅助监督延续为 DualDDetect 双头 + 双 assigner 独立 TAL，主头输出 1.0 / 辅助输出 0.25 的加权混音（见 [v9 痛点追踪](/versions/v9/painpoints#_2-重参数化的梯度浪费与拓扑规划-pain-reparam-topology)、[辅助头梯度稀释](/versions/v9/painpoints#_3-辅助头梯度稀释-pain-aux-gradient-dilution)）。
 
+> **v10 路标**：v7 的双头（lead/aux）都稠密出框、推理仍靠 NMS 收口；v10 的第二个头反过来——one2one 训练期陪跑、推理期接管，每目标只出一个框，NMS 从推理链路退场（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+
 ## 1. anchor-based 路线与同期 anchor-free 分道扬镳 (`pain-anchor-route-split`)
 
 **现状**：2022 年年中，"anchor 是否过时"并没有共识，而是一次公开分叉：一个月前的 v6 全线 anchor-free + TAL，v7 则完整保留 anchor-based 三件套——cfg 里的 3 组手工 anchors（<SrcLink file="v7:cfg/training/yolov7.yaml" :line="7" :end="10" />）、按宽高比筛候选的 `anchor_t` 匹配、decode 时的 anchor_grid 还原（`wh=(sigmoid*2)^2*anchor_grid`，<SrcLink file="v7:models/yolo.py" :line="134" :end="135" />）。同一年里两个"最强实时检测器"的路线完全相反。

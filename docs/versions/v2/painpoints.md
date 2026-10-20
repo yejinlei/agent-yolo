@@ -27,6 +27,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 
 > **v9 路标**：v2 时代"IoU 不直接微分、梯度语义靠手写 delta"是早期"梯度不可信"的具体样本；v9 把这类问题升维成机制命题——PGI 的辅助可逆分支逐尺度把深层特征注回浅层，让监督信号绕开信息瓶颈（见 [v9 痛点追踪](/versions/v9/painpoints#_1-信息瓶颈与梯度不可靠-pain-info-bottleneck)）。
 
+> **v10 路标**：表里两行标着 v10 的账一次结清——"Anchor 先验依赖数据集"早由 anchor-free 收官，"NMS 阈值敏感（遗留自 v1）"在 v10 由一致性双分配正面解决：one2one 头每目标只出一个框，推理链路不再需要 NMS（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+
 ---
 
 ## 1. 单尺度检测头：小目标仍然弱 (`pain-single-scale-head`)

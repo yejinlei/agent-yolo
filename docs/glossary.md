@@ -144,6 +144,21 @@ v9 的双头检测头：6 路输入 = 辅助 A3/A4/A5 + 主路 P3/P4/P5，两套
 ### RepConvN（GELAN 积木）
 v7 RepConv 的 N 版重参数化：训练态 3×3 + 1×1（BN 恒等支路可选）并行相加，部署融合成单个 3×3；GELAN 的 RepNBottleneck 拿它当 cv1，是 RepNCSPELAN4 之"N"的来源。详解：[v9 RepConvN 概念](/versions/v9/concepts#_10-repconvn-重参数化-concept-repconvn)。
 
+### 一致性双分配（Consistent Dual Assignments）
+v10 的核心机制：训练时同一个 TAL 分配器实例化两次——one2many 取 topk=10 给足监督，one2one 取 topk=1 让每个 GT 恰好拿到 1 个正样本；两套分配同 α=0.5/β=6.0、损失直接相加，"分类准的还必须定位准"的度量在两条支路上保持一致。推理只用 one2one 分支。详解：[v10 损失函数](/versions/v10/losses)。
+
+### NMS-free
+推理不需要 NMS 的端到端范式。v10 用 one2one 头（每个目标只出一个框）把去重搬进训练目标，再配 v10postprocess 纯 topk（无 IoU 计算）收口——predict/val/export 三条推理链里都搜不到 NMS。详解：[v10 核心概念](/versions/v10/concepts)。
+
+### SCDown（空间-通道解耦下采样）
+Spatial-Channel Decoupled Downsampling：先用 1×1 s1 卷积把通道砍到目标宽度，再用无激活的 k×k s2 深度卷积走步长，替代标准 3×3 s2 Conv——空间降采样和通道压缩分开干，参数更省、延迟更低。详解：[v10 层页](/versions/v10/layers)。
+
+### CIB（Compact Inverted Block）
+紧凑倒置残差块：DWConv 3×3 → 1×1 升维 → 中段 → 1×1 → DWConv 3×3 的三明治结构，带残差连接；lk=True 时中段换成 RepVGGDW 7×7 大核（训练多分支、推理融合单路）。C2fCIB 就是把 C2f 的内瓶 Bottleneck 换成 CIB，v10 用在 P5 融合处。详解：[v10 层页](/versions/v10/layers)。
+
+### PSA（部分自注意力）
+Partial Self-Attention：v10 第一次把注意力写进官方 yaml，但全网只在 SPPF 之后放一个；特征按通道劈成两半，注意力 + FFN 只吃其中一半再 concat 回去——"部分"二字就是省算力的关键。详解：[v10 层页](/versions/v10/layers)。
+
 ## 训练与损失
 
 ### 损失函数（loss）

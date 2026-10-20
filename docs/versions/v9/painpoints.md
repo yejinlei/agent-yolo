@@ -16,6 +16,8 @@ YOLOv9（Wang 等人，论文 arXiv:2402.13616，2024-02-21 发布；本站快�
 | [6. hyp 键重复与 v7 残留](#_6-hyp-键重复与-v7-残留-pain-hyp-residue) | Low | 本站按 yaml 覆盖语义以 1.5 口径讲解 |
 | [7. DualDDetect 推理仍输出双路](#_7-dualddetect-推理仍输出双路-pain-dual-inference-output) | Medium | 部署前手动裁剪辅助分支，导出自证 |
 
+> **v10 路标**：v9 的主辅双头各做一遍 topk=10 稠密分配，推理收口仍是 NMS 外挂（下文延续性表里 v1/v2/v3 的 NMS 行全是"未回应"）；v10 把同一个 TAL 分配器的 topk 拧成 10/1 两档——one2one 每目标恰 1 个正样本、直接接管推理，NMS 退场（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+
 ## 1. 信息瓶颈与梯度不可靠 (`pain-info-bottleneck`)
 
 **现状**：论文核心命题——网络加深后，前向逐层压缩信息（信息瓶颈），反向传播时浅层收到的梯度来自深层"已经丢掉部分信息的表征"，**未必还能正确指导浅层学出想要的答案**（what you want to learn）。此前所有加深加宽的堆料路线都默认"深层梯度回传浅层即可"，没有机制保证其可靠性。v9 的回应是 PGI，代码落点两处：可学习先验 [ImplicitA](/versions/v9/source/common-py#L605-L613)/[ImplicitM](/versions/v9/source/common-py#L616-L624)（<SrcLink file="v9:models/common.py" :line="605" :end="624" />，v7 YOLOR 隐式知识的复用），以及**多级可逆辅助分支**——CBLinear 从骨干抽头、CBFuse 逐级回注（<SrcLink file="v9:models/detect/yolov9-c.yaml" :line="81" :end="116" />，见 [yolov9-c.yaml 源码页](/versions/v9/source/yolov9-c-yaml)）。

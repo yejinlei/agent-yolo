@@ -71,7 +71,8 @@ export default defineConfig({
         { text: 'YOLOv6', link: '/versions/v6/index' },
         { text: 'YOLOv7', link: '/versions/v7/index' },
         { text: 'YOLOv8', link: '/versions/v8/index' },
-        { text: 'YOLOv9', link: '/versions/v9/index' }
+        { text: 'YOLOv9', link: '/versions/v9/index' },
+        { text: 'YOLOv10', link: '/versions/v10/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -306,13 +307,28 @@ export default defineConfig({
         ]
       },
       {
-        text: '源码浏览（PyTorch 快照 · 7d639b1）',
+        text: 'YOLOv10 (2024-05)',
+        items: [
+          { text: '概览', link: '/versions/v10/index' },
+          { text: '论文精读', link: '/versions/v10/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v10/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v10/concepts' },
+          { text: '架构与层速查', link: '/versions/v10/layers' },
+          { text: '损失函数', link: '/versions/v10/losses' },
+          { text: '反向传播推导', link: '/versions/v10/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v10/tricks' },
+          { text: '痛点追踪', link: '/versions/v10/painpoints' },
+          { text: '源码走读', link: '/versions/v10/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（ultralytics fork 快照 · 8d9f45a）',
         collapsed: true,
         items: [
-          { text: 'models/common.py', link: '/versions/v9/source/common-py' },
-          { text: 'models/yolo.py', link: '/versions/v9/source/yolo-py' },
-          { text: 'utils/loss_tal_dual.py', link: '/versions/v9/source/loss-tal-dual-py' },
-          { text: 'models/detect/yolov9-c.yaml', link: '/versions/v9/source/yolov9-c-yaml' }
+          { text: 'nn/modules/head.py', link: '/versions/v10/source/head-py' },
+          { text: 'utils/loss.py', link: '/versions/v10/source/loss-py' },
+          { text: 'utils/tal.py', link: '/versions/v10/source/tal-py' },
+          { text: 'cfg/models/v10/yolov10n.yaml', link: '/versions/v10/source/yolov10-yaml' }
         ]
       },
         {

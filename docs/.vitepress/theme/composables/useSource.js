@@ -55,6 +55,11 @@ const modules = {
   v9: import.meta.glob(
     '../../../../source/yolov9/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v10 是 THU-MIG/yolov10（ultralytics 8.1.34 fork），目录同 v8 快照布局
+  v10: import.meta.glob(
+    '../../../../source/yolov10/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -105,7 +110,12 @@ export const SOURCE_PAGES = {
   'v9:models/common.py':             '/versions/v9/source/common-py',
   'v9:models/yolo.py':               '/versions/v9/source/yolo-py',
   'v9:utils/loss_tal_dual.py':       '/versions/v9/source/loss-tal-dual-py',
-  'v9:models/detect/yolov9-c.yaml':  '/versions/v9/source/yolov9-c-yaml'
+  'v9:models/detect/yolov9-c.yaml':  '/versions/v9/source/yolov9-c-yaml',
+  // YOLOv10（THU-MIG/yolov10，ultralytics 8.1.34 fork，目录同 v8 布局）
+  'v10:ultralytics/nn/modules/head.py':         '/versions/v10/source/head-py',
+  'v10:ultralytics/utils/loss.py':              '/versions/v10/source/loss-py',
+  'v10:ultralytics/utils/tal.py':               '/versions/v10/source/tal-py',
+  'v10:ultralytics/cfg/models/v10/yolov10n.yaml': '/versions/v10/source/yolov10-yaml'
 }
 
 const GH_BASES = {
@@ -117,7 +127,8 @@ const GH_BASES = {
   v6: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov6/snapshot/',
   v7: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov7/snapshot/',
   v8: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov8/snapshot/',
-  v9: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov9/snapshot/'
+  v9: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov9/snapshot/',
+  v10: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov10/snapshot/'
 }
 
 function resolveKey(v, f) {

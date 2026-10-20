@@ -22,6 +22,8 @@ YOLOv4 用 BoF+BoS 大杂烩把 COCO AP 推到 43.5，但也引入/暴露了 7 �
 
 > **v9 路标**：v4 的 CSP"劈两半、旁路直通"是梯度路径规划的雏形；v9 的 GELAN 把它推广成"任意计算块当节点、按拓扑规划梯度路径"——RepNCSPELAN4 两级级联、4 路 concat 收束（见 [v9 痛点追踪](/versions/v9/painpoints#_2-重参数化的梯度浪费与拓扑规划-pain-reparam-topology)）。
 
+> **v10 路标**：v4 的"DIoU-NMS 代码就绪但用 greedy"止步于换一个更好的 NMS；v10 换了个问法——把 NMS 从推理链路里整个拿掉：one2one 头每目标只出一个框，v10postprocess 纯 topk 无 IoU，部署端连 IoU 阈值都不用调了（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+
 ---
 
 ## 1. AP75 仍落后 EfficientDet (`pain-ap75-gap`)

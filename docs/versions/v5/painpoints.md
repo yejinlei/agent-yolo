@@ -17,6 +17,8 @@
 
 > **v9 路标**："无正式论文"这笔账在 v9 翻篇——arXiv:2402.13616 带着正式论文与逐组件消融回归；"Focus 部署不友好"的同题讨论延续到 v9 的 ADown——下采样不再只挑最便宜的那种算子（见 [v9 痛点追踪](/versions/v9/painpoints#_1-信息瓶颈与梯度不可靠-pain-info-bottleneck)）。
 
+> **v10 路标**："Focus 部署不友好"把部署端负担立为痛点；v10 把部署栈里最难缠的 NMS 算子也省了——导出图直接吐最终结果，后处理只剩一次 topk（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+
 ## 1. 无正式论文 (`pain-no-paper`)
 
 - YOLOv5 没有 arXiv 论文，所有指标基于 README 声明

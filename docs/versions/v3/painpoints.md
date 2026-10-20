@@ -25,6 +25,8 @@ YOLOv3 用三尺度头 + 残差骨干大幅提升了 AP50 和小目标召回，�
 
 > **v9 路标**：v3 的"坐标 delta 缺 σ′、BCE/MSE 混合梯度语义"快照问题同样是"梯度不可靠"的早期注脚；v9 以 PGI 正面回应——辅助可逆分支保证浅层收到的监督信号不被深层表征污染（见 [v9 痛点追踪](/versions/v9/painpoints#_1-信息瓶颈与梯度不可靠-pain-info-bottleneck)）。
 
+> **v10 路标**：v3 的多尺度头治好了小目标，但推理收口仍是 NMS 外挂——这笔从 v1 遗留的账在 v10 由一致性双分配正面解决：one2one 头每目标只出一个框，NMS 从推理链路退场；而"GT 单 anchor 独占"的稀疏监督在 one2one 分支上换了一副面孔回来，这次身后站着 one2many 兜底（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+
 ---
 
 ## 1. AP75 弱：坐标损失仍无 IoU 直接梯度 (`pain-no-iou-gradient`)
