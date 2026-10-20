@@ -77,10 +77,10 @@ export default {
         theme: 'base',
         securityLevel: 'loose',
         themeVariables: {
-          fontSize: '14px',
+          fontSize: '12px',
           ...vars
         },
-        flowchart: { htmlLabels: true, curve: 'basis', padding: 12 },
+        flowchart: { htmlLabels: true, curve: 'basis', padding: 14 },
         pie: { useWidth: true }
       })
       return mermaid

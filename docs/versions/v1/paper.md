@@ -12,8 +12,8 @@
 
 ```mermaid
 flowchart LR
-    IMG["输入图像"] --> RP["阶段 1：生成候选框<br/>R-CNN: Selective Search<br/>Faster R-CNN: RPN"]
-    RP --> CLS["阶段 2：对每个框<br/>做分类 + 回归"]
+    IMG["输入图像"] --> RP["阶段1 候选框<br/>R-CNN / Faster R-CNN"]
+    RP --> CLS["阶段2 分类+回归"]
     CLS --> OUT["最终结果"]
 ```
 
@@ -30,7 +30,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    IMG["输入图像"] --> NET["单个卷积网络"] --> OUT["一次性输出<br/>所有框 + 类别"]
+    IMG["输入图像"] --> NET["单个卷积网络"] --> OUT["一次性输出<br/>所有框+类别"]
 ```
 
 ---
@@ -143,11 +143,11 @@ $$\begin{aligned} L = \ & \lambda_{coord} \sum \Big[ (x-\hat{x})^2 + (y-\hat{y})
 
 ```mermaid
 flowchart TB
-    COORD["Coord Loss<br/>值域 [0,1]<br/>平方后极小<br/>→ 权重 5 放大"] --> SUM
-    BOX["Box IoU Loss<br/>天然 [0,1]<br/>→ 权重 1"] --> SUM
-    OBJ["Objectness Loss<br/>→ 权重 1"] --> SUM
-    CLS["Class Loss<br/>→ 权重 1"] --> SUM
-    NOOBJ["No-Object Loss<br/>背景格子占 90%+<br/>→ 权重 0.5 抑制"] --> SUM
+    COORD["Coord Loss<br/>权重 5"] --> SUM
+    BOX["IoU Loss<br/>权重 1"] --> SUM
+    OBJ["Obj Loss<br/>权重 1"] --> SUM
+    CLS["Class Loss<br/>权重 1"] --> SUM
+    NOOBJ["NoObj Loss<br/>权重 0.5"] --> SUM
     SUM["L_total"]
 ```
 
@@ -193,7 +193,7 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    A["阶段 1：ImageNet 分类预训练<br/>前 20 层 conv + 1 FC<br/>160 epochs"] --> B["阶段 2：检测微调<br/>+4 conv + 2 FC<br/>约 23k iterations"]
+    A["阶段1 ImageNet预训练<br/>20conv+1FC · 160ep"] --> B["阶段2 检测微调<br/>+4conv+2FC · 23k iter"]
 ```
 
 ### 7.2 学习率调度

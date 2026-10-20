@@ -180,11 +180,11 @@ v12    ✅极致   ✅极致   ✅极致    ✅消除   ✅消除     ✅消除
 ```mermaid
 flowchart LR
   V1[v1: 6 痛点]
-  V2[v2: 5 痛点<br/>+anchor敏感 -定位/形状]
-  V3[v3: 4 痛点<br/>+FPN小目标改善]
-  V7[v7: 2 痛点<br/>+P2 anchor]
-  V8[v8: 1 痛点<br/>+anchor-free]
-  V10[v10: 0 痛点<br/>+NMS-free]
+  V2[v2·5<br/>anchor敏感]
+  V3[v3·4<br/>FPN小目标]
+  V7[v7·2<br/>P2 anchor]
+  V8[v8·1<br/>anchor-free]
+  V10[v10·0<br/>NMS-free]
 
   V1 -.加 anchor 换精度.-> V2
   V2 -.FPN 改善小目标.-> V3

@@ -81,11 +81,11 @@ cfg 起始行均可点击直达：<SrcLink file="cfg/yolo.cfg" :line="24" />。�
 block-beta
     columns 5
     img["448×448×3"]:5
-    conv1["Conv 7×7 s2<br/>64 filters"]:5
+    conv1["Conv 7×7 s2<br/>64"]:5
     pool1["MaxPool 2×2"]:5
-    conv2["Conv 3×3<br/>192 filters"]:5
+    conv2["Conv 3×3<br/>192"]:5
     pool2["MaxPool 2×2"]:5
-    conv3["1×1→128<br/>3×3→256<br/>1×1→256<br/>3×3→512"]:5
+    conv3["Conv 叠加<br/>→ 512"]:5
     pool3["MaxPool 2×2"]:5
     out["28×28×512"]:5
 
@@ -111,11 +111,11 @@ block-beta
 ```mermaid
 flowchart LR
     IN["28×28×512"]
-    subgraph BLOCK["重复 4 次的瓶颈块"]
+    subgraph BLOCK["瓶颈块 ×4"]
         C1["1×1 Conv<br/>→ 256"]
         C2["3×3 Conv<br/>→ 512"]
     end
-    TRANS["1×1 → 512<br/>3×3 → 1024"]
+    TRANS["1×1/3×3<br/>→ 1024"]
     OUT["14×14×1024"]
 
     IN --> C1 --> C2 --> C1 --> C2 --> C1 --> C2 --> C1 --> C2
@@ -144,12 +144,12 @@ flowchart LR
     D["Conv 3×3 s2<br/>→ 7×7×1024"]
     C1["Conv 3×3<br/>→ 7×7×1024"]
     C2["Conv 3×3<br/>→ 7×7×1024"]
-    FLATTEN["展平<br/>50176 维"]
+    FLATTEN["展平<br/>50176"]
     FC1["FC 4096"]
     DROP["Dropout"]
     FC2["FC 1470"]
     DET["Detection Layer"]
-    OUT["7×7 × 2 box × 25 维"]
+    OUT["7×7×2box×25"]
 
     IN --> D --> C1 --> C2 --> FLATTEN --> FC1 --> DROP --> FC2 --> DET --> OUT
 ```
