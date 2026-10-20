@@ -50,6 +50,11 @@ const modules = {
   v8: import.meta.glob(
     '../../../../source/yolov8/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v9 是 WongKinYiu/yolov9（v7 代码库 fork），源码以 .py / .yaml 为主
+  v9: import.meta.glob(
+    '../../../../source/yolov9/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -95,7 +100,12 @@ export const SOURCE_PAGES = {
   'v8:ultralytics/nn/tasks.py':           '/versions/v8/source/tasks-py',
   'v8:ultralytics/nn/modules/block.py':   '/versions/v8/source/common-py',
   'v8:ultralytics/yolo/utils/loss.py':    '/versions/v8/source/loss-py',
-  'v8:ultralytics/models/v8/yolov8.yaml': '/versions/v8/source/yolov8-yaml'
+  'v8:ultralytics/models/v8/yolov8.yaml': '/versions/v8/source/yolov8-yaml',
+  // YOLOv9（WongKinYiu/yolov9，v7 代码库 fork 的目录结构）
+  'v9:models/common.py':             '/versions/v9/source/common-py',
+  'v9:models/yolo.py':               '/versions/v9/source/yolo-py',
+  'v9:utils/loss_tal_dual.py':       '/versions/v9/source/loss-tal-dual-py',
+  'v9:models/detect/yolov9-c.yaml':  '/versions/v9/source/yolov9-c-yaml'
 }
 
 const GH_BASES = {
@@ -106,7 +116,8 @@ const GH_BASES = {
   v5: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov5/snapshot/',
   v6: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov6/snapshot/',
   v7: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov7/snapshot/',
-  v8: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov8/snapshot/'
+  v8: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov8/snapshot/',
+  v9: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov9/snapshot/'
 }
 
 function resolveKey(v, f) {

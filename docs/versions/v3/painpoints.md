@@ -23,6 +23,8 @@ YOLOv3 用三尺度头 + 残差骨干大幅提升了 AP50 和小目标召回，�
 
 > **v8 路标**：多正样本这条线走到 v8 的 TAL——"分类分数 × CIoU"对齐度量取 top-10，归一化度量写成分类软标签；"AP75 弱"由 CIoU + DFL 分布回归继续推（见 [v8 痛点追踪](/versions/v8/painpoints)）。
 
+> **v9 路标**：v3 的"坐标 delta 缺 σ′、BCE/MSE 混合梯度语义"快照问题同样是"梯度不可靠"的早期注脚；v9 以 PGI 正面回应——辅助可逆分支保证浅层收到的监督信号不被深层表征污染（见 [v9 痛点追踪](/versions/v9/painpoints#_1-信息瓶颈与梯度不可靠-pain-info-bottleneck)）。
+
 ---
 
 ## 1. AP75 弱：坐标损失仍无 IoU 直接梯度 (`pain-no-iou-gradient`)

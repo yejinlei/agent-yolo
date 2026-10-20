@@ -126,6 +126,24 @@ v8 取代 C3 的骨干模块：cv1 输出 split 成两半，一半走 n 个 Bott
 ### SPPF
 v5 引入的 SPP 等价实现：同一个 5×5 MaxPool **连池化 3 次**（感受野 5→9→13 递增），输入与三次结果 concat——比并联三种池化核更快。v6 简化成 SimSPPF，v8 把它从 CSP 大块里拆出来，当骨干尾部的独立轻量块。详解：[v8 SPPF 概念](/versions/v8/concepts#_7-sppf-串行池化-concept-sppf)。
 
+### PGI（可编程梯度信息）
+Programmable Gradient Information：v9 的总方法论——训练时在主分支旁挂一条多级辅助可逆分支，把深层特征逐尺度注回辅助主干与辅助检测头，让浅层拿到不受信息瓶颈污染的可靠梯度；推理时辅助分支整段拆除、主分支零开销。损失加权主分支输出 ×1.0、辅助分支输出 ×0.25。详解：[v9 PGI 概念](/versions/v9/concepts#_1-pgi-可编程梯度信息总览-concept-pgi)。
+
+### GELAN（Generalized ELAN）
+广义 ELAN：把 ELAN 从"Conv 级联 + 隔一取一"的固定拼法推广成"任意计算块当节点、按拓扑规划梯度路径"；落地实例 RepNCSPELAN4 两级级联、4 路 concat 收束——比 C2f 的 n+2 路全拼接更省拼接预算。详解：[v9 GELAN 概念](/versions/v9/concepts#_4-gelan-与-repncspelan4-两级级联-4-路拼接-concept-gelan)。
+
+### 辅助可逆分支（CBLinear/CBFuse）
+PGI 的工程形态：CBLinear 在骨干 5/7/9 层抽头（一个 conv 出 sum(c2s) 通道再按组拆），CBFuse 把多路特征对齐尺寸后逐元素相加、逐级回注辅助主干——训练专用，推理拆除。详解：[v9 辅助分支概念](/versions/v9/concepts#_2-辅助可逆分支与-cblinear-cbfuse-路由-concept-aux-branch)。
+
+### ADown
+v9 的下采样模块：先 2×2 平均池化（尺寸不变），再 chunk 成两半——一半走 Conv 3×3 s2、另一半走 MaxPool 3×3 s2 + Conv 1×1，最后 concat。骨干与 neck 的下采样全换成它。详解：[v9 ADown 概念](/versions/v9/concepts#_5-adown-平均池化下采样-concept-adown)。
+
+### DualDDetect
+v9 的双头检测头：6 路输入 = 辅助 A3/A4/A5 + 主路 P3/P4/P5，两套 cv 分支各带一个 DFL、中段 g=4 分组卷积；训练返回主辅双路输出，推理主路承接 v8 Detect 的解耦头结构。详解：[v9 DualDDetect 概念](/versions/v9/concepts#_7-dualddetect-双头解耦-concept-dual-ddetect)。
+
+### RepConvN（GELAN 积木）
+v7 RepConv 的 N 版重参数化：训练态 3×3 + 1×1（BN 恒等支路可选）并行相加，部署融合成单个 3×3；GELAN 的 RepNBottleneck 拿它当 cv1，是 RepNCSPELAN4 之"N"的来源。详解：[v9 RepConvN 概念](/versions/v9/concepts#_10-repconvn-重参数化-concept-repconvn)。
+
 ## 训练与损失
 
 ### 损失函数（loss）

@@ -20,6 +20,8 @@ YOLOv4 用 BoF+BoS 大杂烩把 COCO AP 推到 43.5，但也引入/暴露了 7 �
 
 > **v8 路标**：Mosaic 在 v8 学会"何时收手"——close_mosaic 让最后若干 epoch 回到真实分布收尾；"anchor 仍是手工超参"在 v8 彻底归一为 anchor-free（见 [v8 痛点追踪](/versions/v8/painpoints)）。
 
+> **v9 路标**：v4 的 CSP"劈两半、旁路直通"是梯度路径规划的雏形；v9 的 GELAN 把它推广成"任意计算块当节点、按拓扑规划梯度路径"——RepNCSPELAN4 两级级联、4 路 concat 收束（见 [v9 痛点追踪](/versions/v9/painpoints#_2-重参数化的梯度浪费与拓扑规划-pain-reparam-topology)）。
+
 ---
 
 ## 1. AP75 仍落后 EfficientDet (`pain-ap75-gap`)

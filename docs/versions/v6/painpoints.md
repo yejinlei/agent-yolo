@@ -14,6 +14,8 @@ YOLOv6（美团，2022-06）把"工业部署友好"推到了极致：重参数�
 
 > **v8 路标**：v6 的三笔债在 v8 逐一清偿——DFL 从布尔开关变成内建默认、配置从 Python dict 回归 YAML、TAL 从"论文与代码漂移"变成公开设计点（详见本页末尾"路标"小节的 v8 路线条目与 [v8 痛点追踪](/versions/v8/painpoints)）。
 
+> **v9 路标**：v6 的"重参数化训练期开销"在 v9 收到新答卷——GELAN 把多分支预算从"单元内部三分支"挪到拓扑层（两级级联 + 4 路 concat），RepConvN 融合后仍是单路推理（见 [v9 痛点追踪](/versions/v9/painpoints#_2-重参数化的梯度浪费与拓扑规划-pain-reparam-topology)）。
+
 ## 1. 重参数化只利好推理，训练期三分支显存/计算开销 (`pain-reparam-train-cost`)
 
 **痛点**：RepVGGBlock 的收益全部兑现于部署时刻，训练期反而是净亏损。

@@ -25,6 +25,8 @@ YOLOv2 用 anchor + BN + 全卷积大幅提升了 mAP，但也引入/暴露了 8
 
 > **v8 路标**："Anchor 先验依赖数据集"在 v8 以 anchor-free 归一收官——anchor、autoanchor、anchor_t 一并退场，只剩网格中心与 ltrb 距离分布；"Softmax 类别头限制多标签"也由逐类 BCE 一路延续到 v8（见 [v8 痛点追踪](/versions/v8/painpoints)）。
 
+> **v9 路标**：v2 时代"IoU 不直接微分、梯度语义靠手写 delta"是早期"梯度不可信"的具体样本；v9 把这类问题升维成机制命题——PGI 的辅助可逆分支逐尺度把深层特征注回浅层，让监督信号绕开信息瓶颈（见 [v9 痛点追踪](/versions/v9/painpoints#_1-信息瓶颈与梯度不可靠-pain-info-bottleneck)）。
+
 ---
 
 ## 1. 单尺度检测头：小目标仍然弱 (`pain-single-scale-head`)

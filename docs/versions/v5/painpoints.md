@@ -15,6 +15,8 @@
 
 > **v8 路标**："无正式论文"与"anchor 仍存在"两笔旧账在 v8 一并了结——前者发展出"以代码为论文"的工程叙事（代价是 AGPL-3.0），后者由 anchor-free 解耦头彻底终结（见 [v8 痛点追踪](/versions/v8/painpoints)）。
 
+> **v9 路标**："无正式论文"这笔账在 v9 翻篇——arXiv:2402.13616 带着正式论文与逐组件消融回归；"Focus 部署不友好"的同题讨论延续到 v9 的 ADown——下采样不再只挑最便宜的那种算子（见 [v9 痛点追踪](/versions/v9/painpoints#_1-信息瓶颈与梯度不可靠-pain-info-bottleneck)）。
+
 ## 1. 无正式论文 (`pain-no-paper`)
 
 - YOLOv5 没有 arXiv 论文，所有指标基于 README 声明

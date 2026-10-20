@@ -15,6 +15,8 @@ YOLOv8（Ultralytics 团队，2023-01 首发，本站快照 v8.0.100 @ dce4efc�
 | [7. 指标与测速口径](#_7-指标与测速口径-pain-bench-caliber) | Medium | README 注明 val2017 单模型单尺度，本站沿用并标注口径 |
 | [8. anchor-free 路线收敛的证据边界](#_8-anchor-free-路线收敛的证据边界-pain-route-convergence) | Medium | 以代码为准还原组件位置，不替论文下结论 |
 
+> **v9 路标**：v8 的 TAL/DFL 在 v9 一字未改地延续——assigner 复制成主辅两套（topk=10/α=0.5/β=6.0 原样），三分量增益 7.5/0.5/1.5 原样保留；"证据边界"则由 v9 的论文级消融（gelan-c vs yolov9-c，结构与辅助拆开算账）补强（见 [v9 痛点追踪](/versions/v9/painpoints#_3-辅助头梯度稀释-pain-aux-gradient-dilution)、[大模型小数据泛化](/versions/v9/painpoints#_4-大模型小数据泛化-pain-large-model-small-data)）。
+
 ## 1. 无正式论文 文档即论文 (`pain-no-paper`)
 
 **现状**：v1~v7 每一代都有一篇论文（或技术报告）作为引用与消融的锚点；v8 没有正式论文，官方口径是 docs.ultralytics.com 与发布博客（快照 README 只指向文档站）。设计依据散落在代码注释里：TAL 的分配器注释直接写明参考 PPYOLOE 实现（<SrcLink file="v8:ultralytics/yolo/utils/tal.py" :line="85" :end="85" />），DFL 的出处写在 loss 注释里（<SrcLink file="v8:ultralytics/yolo/utils/loss.py" :line="54" :end="54" />）。
