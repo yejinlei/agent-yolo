@@ -60,6 +60,11 @@ const modules = {
   v10: import.meta.glob(
     '../../../../source/yolov10/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v11 是 ultralytics/ultralytics tag v8.3.0（YOLO11 首发），目录同 v8/v10 布局
+  v11: import.meta.glob(
+    '../../../../source/yolov11/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -115,7 +120,12 @@ export const SOURCE_PAGES = {
   'v10:ultralytics/nn/modules/head.py':         '/versions/v10/source/head-py',
   'v10:ultralytics/utils/loss.py':              '/versions/v10/source/loss-py',
   'v10:ultralytics/utils/tal.py':               '/versions/v10/source/tal-py',
-  'v10:ultralytics/cfg/models/v10/yolov10n.yaml': '/versions/v10/source/yolov10-yaml'
+  'v10:ultralytics/cfg/models/v10/yolov10n.yaml': '/versions/v10/source/yolov10-yaml',
+  // YOLOv11（ultralytics/ultralytics tag v8.3.0 首发；目录同 v8/v10 布局；注意 cfg 目录是 11/ 不带 v 前缀）
+  'v11:ultralytics/nn/modules/head.py':         '/versions/v11/source/head-py',
+  'v11:ultralytics/utils/loss.py':              '/versions/v11/source/loss-py',
+  'v11:ultralytics/utils/tal.py':               '/versions/v11/source/tal-py',
+  'v11:ultralytics/cfg/models/11/yolo11.yaml':  '/versions/v11/source/yolo11-yaml'
 }
 
 const GH_BASES = {
@@ -128,7 +138,8 @@ const GH_BASES = {
   v7: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov7/snapshot/',
   v8: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov8/snapshot/',
   v9: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov9/snapshot/',
-  v10: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov10/snapshot/'
+  v10: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov10/snapshot/',
+  v11: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov11/snapshot/'
 }
 
 function resolveKey(v, f) {

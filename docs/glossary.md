@@ -159,6 +159,12 @@ Spatial-Channel Decoupled Downsampling：先用 1×1 s1 卷积把通道砍到目
 ### PSA（部分自注意力）
 Partial Self-Attention：v10 第一次把注意力写进官方 yaml，但全网只在 SPPF 之后放一个；特征按通道劈成两半，注意力 + FFN 只吃其中一半再 concat 回去——"部分"二字就是省算力的关键。详解：[v10 层页](/versions/v10/layers)。
 
+### C3k2
+v11 的骨干内瓶模块：`class C3k2(C2f)` 直接继承 v8 的 C2f、**无独立 forward**，只重写 `__init__` 把每层 Bottleneck 换成带 `shortcut` 参数的变体；`c3k=True` 走标准 C3k（浅层用 `c3k=False` + `e=0.25` 走轻量路径）。yolo11.yaml 里出现 8 次（骨干 4 + 头 4），替代 v10 的 C2f 群。详解：[v11 C3k2 概念](/versions/v11/concepts)。
+
+### C2PSA
+v11 的骨干尾注意力模块：把 C3k2 的残差支路与 Attention + FFN 支路**拼在同一个 CSP 里**——替代 v10「SPPF + 独立 PSA」的两件套，减少一次 concat + 一次残差相加。骨架仍是 Attention（qkv 合并、位置编码 3×3 DWConv），只是把它包进 C3k2 里跑。详解：[v11 C2PSA 概念](/versions/v11/concepts)、[v11 层页](/versions/v11/layers)。
+
 ## 训练与损失
 
 ### 损失函数（loss）

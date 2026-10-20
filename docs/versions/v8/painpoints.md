@@ -18,6 +18,8 @@ YOLOv8（Ultralytics 团队，2023-01 首发，本站快照 v8.0.100 @ dce4efc�
 > **v9 路标**：v8 的 TAL/DFL 在 v9 一字未改地延续——assigner 复制成主辅两套（topk=10/α=0.5/β=6.0 原样），三分量增益 7.5/0.5/1.5 原样保留；"证据边界"则由 v9 的论文级消融（gelan-c vs yolov9-c，结构与辅助拆开算账）补强（见 [v9 痛点追踪](/versions/v9/painpoints#_3-辅助头梯度稀释-pain-aux-gradient-dilution)、[大模型小数据泛化](/versions/v9/painpoints#_4-大模型小数据泛化-pain-large-model-small-data)）。
 
 > **v10 路标**：v8 把 anchor 扫进历史，但推理收口仍是 conf 过滤 + class-wise NMS；v10 把去重搬进训练目标——一致性双分配的 one2one 头每目标只出一个框，v10postprocess 纯 topk，NMS 从推理链路退场（见 [v10 痛点追踪](/versions/v10/painpoints)）。
+>
+> **v11 路标**：v11 又把 v8 的 Detect 单头 + NMS 收口接回来——C3k2 换 C2f、C2PSA 换 SPPF 后独立的 PSA、TAL 默认 topk 从 10 提到 13、α 从 0.5 提到 1.0（检测训练仍显式传 v8 值）；损失与分配器实现与 v8 同源，是本站唯一与 v8 骨架完全对齐的一代（见 [v11 痛点追踪](/versions/v11/painpoints)）。
 
 ## 1. 无正式论文 文档即论文 (`pain-no-paper`)
 

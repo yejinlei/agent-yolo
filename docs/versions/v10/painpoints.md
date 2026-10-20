@@ -14,6 +14,8 @@ YOLOv10（清华 THU-MIG，Ao Wang 等，论文 arXiv:2405.14447，2024-05-23；
 
 **遗留**：① 端到端只到「图内 topk」为止——Python 推理链仍保留 conf 阈值过滤（<SrcLink file="v10:ultralytics/models/yolov10/predict.py" :line="23" :end="23" />），评估链 top-max_det 候选全量进 mAP（<SrcLink file="v10:ultralytics/models/yolov10/val.py" :line="10" :end="20" />）；② one2one 头必须从头一起训，已训好的 v8/v9 权重不能靠换后处理升级成端到端；③ 训练图多一份 deepcopy 的检测头（<SrcLink file="v10:ultralytics/nn/modules/head.py" :line="508" :end="509" />），训练图与部署图的参数口径不同。
 
+> **v11 路标**：v11 又把 v10 收掉的口子重新打开——v10Detect 换回 v8 的 Detect 单头、v10postprocess 换成 class-wise NMS、SCDown / C2fCIB / PSA 三件套全部撤回；骨干内瓶从 C2f 换成 C3k2、尾端从 PSA 换成 C2PSA；NMS 外挂这条系列最持久的痛点在 v10 收口后于 v11 又重新打开（见 [v11 痛点追踪](/versions/v11/painpoints)）。
+
 ## 3 个新痛点全景
 
 > 已读过 [v9 痛点页](/versions/v9/painpoints)？v9 的痛点冲着梯度可靠性去，v10 的痛点全是「端到端化」的代价：为了摘掉 NMS，分配被拧成两套、分类头被砍瘦、梯度被 detach 隔离——每一步端到端化都在别处留下账单。

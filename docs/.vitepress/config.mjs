@@ -72,7 +72,8 @@ export default defineConfig({
         { text: 'YOLOv7', link: '/versions/v7/index' },
         { text: 'YOLOv8', link: '/versions/v8/index' },
         { text: 'YOLOv9', link: '/versions/v9/index' },
-        { text: 'YOLOv10', link: '/versions/v10/index' }
+        { text: 'YOLOv10', link: '/versions/v10/index' },
+        { text: 'YOLOv11', link: '/versions/v11/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -329,6 +330,31 @@ export default defineConfig({
           { text: 'utils/loss.py', link: '/versions/v10/source/loss-py' },
           { text: 'utils/tal.py', link: '/versions/v10/source/tal-py' },
           { text: 'cfg/models/v10/yolov10n.yaml', link: '/versions/v10/source/yolov10-yaml' }
+        ]
+      },
+      {
+        text: 'YOLOv11 (2024-09)',
+        items: [
+          { text: '概览', link: '/versions/v11/index' },
+          { text: '论文精读', link: '/versions/v11/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v11/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v11/concepts' },
+          { text: '架构与层速查', link: '/versions/v11/layers' },
+          { text: '损失函数', link: '/versions/v11/losses' },
+          { text: '反向传播推导', link: '/versions/v11/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v11/tricks' },
+          { text: '痛点追踪', link: '/versions/v11/painpoints' },
+          { text: '源码走读', link: '/versions/v11/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（ultralytics 快照 · tag v8.3.0 @ 6e43d1e1）',
+        collapsed: true,
+        items: [
+          { text: 'nn/modules/head.py', link: '/versions/v11/source/head-py' },
+          { text: 'utils/loss.py', link: '/versions/v11/source/loss-py' },
+          { text: 'utils/tal.py', link: '/versions/v11/source/tal-py' },
+          { text: 'cfg/models/11/yolo11.yaml', link: '/versions/v11/source/yolo11-yaml' }
         ]
       },
         {
