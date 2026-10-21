@@ -158,4 +158,7 @@ flowchart TB
 - [YOLOv9 utils/loss_tal_dual.py 源码页](/versions/v9/source/loss-tal-dual-py) — 0.25/1.0 权重不对称的代码落点
 - [YOLOv9 models/detect/yolov9-c.yaml 源码页](/versions/v9/source/yolov9-c-yaml) — 可逆辅助分支的结构配置
 - [YOLOv8 痛点追踪](/versions/v8/painpoints) — 本页延续性痛点表的直接上文
+- [YOLOv10 痛点追踪](/versions/v10/painpoints) — 下代「去 NMS」的代价
+- [YOLOv11 痛点追踪](/versions/v11/painpoints) — 下下代结构性回退的代价
+- [YOLOv12 痛点追踪](/versions/v12/painpoints) — 注意力进骨干的新代价（FlashAttention 硬依赖等）
 - [术语表](/glossary) — [ELAN](/glossary#elan-e-elan-高效层聚合)、[RepConvN](/glossary#repconv-repconvn-计划重参数化)、[lead head](/glossary#lead-head-guided-label-assigner-引导头标签分配) 等术语索引

@@ -104,7 +104,7 @@ self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, bet
   1. `topk` 从 10 提到 13（更接近「每个 GT 更多正样本」的多正样本学习策略，与 v6 TAL 论文的默认 topk=13 一致，可视为「回归到 TAL 原论文推荐值」）；
   2. `alpha` 从 0.5 提到 1.0（分类项从「开方压权」变成「原权」，与定位项等权竞争）。
 
-分配流水线仍走 <SrcLink file="v11:ultralytics/utils/tal.py" :line="38" /> 起的 `forward`：三重 mask → 对齐度量 `align_metric = s^α × u^β`（L120 附近）→ 抢占去重 → one-hot 造目标 → 归一化软标签。`bbox2dist`（DFL 目标构造）、`dist2bbox`（分布回归解码）、`make_anchors`（网格生成）都在同一文件，与 v8 相同。
+分配流水线仍走 <SrcLink file="v11:ultralytics/utils/tal.py" :line="39" /> 起的 `forward`：三重 mask → 对齐度量 `align_metric = s^α × u^β`（L120 附近）→ 抢占去重 → one-hot 造目标 → 归一化软标签。`bbox2dist`（DFL 目标构造）、`dist2bbox`（分布回归解码）、`make_anchors`（网格生成）都在同一文件，与 v8 相同。
 
 `RotatedTaskAlignedAssigner`（<SrcLink file="v11:ultralytics/utils/tal.py" :line="268" />）只覆写 `iou_calculation` 换 probiou，OBB 任务专用。
 

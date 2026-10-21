@@ -7,10 +7,10 @@
 
 > 快照路径：`source/yolov11/snapshot/ultralytics/utils/tal.py`（355 行）。点击左侧行号可复制/分享行锚点。
 
-**这个文件在 v11 里的角色**：**v11 的 topk / α 上调是类默认值层面的回调，但检测训练实际用的仍是 v8 参数**——因为 [loss.py L170](#) `v8DetectionLoss.__init__` 里 assigner 是显式传参 `TaskAlignedAssigner(topk=10, alpha=0.5, beta=6.0)`，不读类默认。也就是说：
+**这个文件在 v11 里的角色**：**v11 的 topk / α 上调是类默认值层面的回调，但检测训练实际用的仍是 v8 参数**——因为 loss.py L176 `v8DetectionLoss.__init__` 里 assigner 是显式传参 `TaskAlignedAssigner(topk=tal_topk, alpha=0.5, beta=6.0)`，不读类默认。也就是说：
 
 - 若你**直接实例化** `TaskAlignedAssigner()` 不带参数（研究代码 / 外部脚本），拿到的是 v11 新默认 topk=13、α=1.0；
-- 若你**训练 `yolo11.yaml`**，`v8DetectionLoss` 内部走 loss.py L170 的显式传参，仍是 topk=10、α=0.5。
+- 若你**训练 `yolo11.yaml`**，`v8DetectionLoss` 内部走 loss.py L176 的显式传参，仍是 topk=10、α=0.5。
 
 也就是说，v11 的默认值上调是「面向外部实例化」的架构级回调，检测主线未直接吃到。这一点必须澄清，否则读者会误以为 v11 检测训练自动用 topk=13。
 
@@ -20,7 +20,7 @@
 |------|------|------|
 | <SrcLink file="v11:ultralytics/utils/tal.py" :line="13" :end="258" /> | **TaskAlignedAssigner** | TAL 分配器主体 |
 | <SrcLink file="v11:ultralytics/utils/tal.py" :line="28" :end="36" /> | __init__ | **v11 默认 topk=13, α=1.0, β=6.0**（v8/v10 是 topk=10, α=0.5） |
-| <SrcLink file="v11:ultralytics/utils/tal.py" :line="38" :end="88" /> | forward | 五步流水：mask → metric → 去重 → targets → 归一化 |
+| <SrcLink file="v11:ultralytics/utils/tal.py" :line="39" :end="88" /> | forward | 五步流水：mask → metric → 去重 → targets → 归一化 |
 | <SrcLink file="v11:ultralytics/utils/tal.py" :line="90" :end="100" /> | get_pos_mask | 三重 mask 相乘得正样本位 |
 | <SrcLink file="v11:ultralytics/utils/tal.py" :line="102" :end="121" /> | get_box_metrics | L120 `align_metric = s^α × u^β` |
 | <SrcLink file="v11:ultralytics/utils/tal.py" :line="123" :end="125" /> | iou_calculation | [CIoU](/glossary#ciou-loss) 且 clamp 到 0 |
@@ -58,11 +58,11 @@ def __init__(self, topk=13, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
 
 **再次强调**：以上默认只对「外部直接实例化 `TaskAlignedAssigner()`」生效。`v8DetectionLoss.__init__` 在 <SrcLink file="v11:ultralytics/utils/loss.py" :line="170" /> 显式传 `topk=10, alpha=0.5`，因此 `yolo11.yaml` 检测训练实际用的仍是 v8 参数。
 
-> **v1~v10 读者路标**：v6 读者注意 v6 论文的 TAL 分配器默认就是 topk=13 / α=1.0 / β=6.0——v11 直接把 v8/v9 时代的「topk=10 / α=0.5」回调到 v6 论文原值，但**只在类默认层面**；检测损失走 loss.py L170 显式传参，仍用 v8 值。v8 读者按 v8 tal.py 走一遍就能读懂 v11 的分配机制，唯一差别就是 `__init__` 那两行数字。v10 读者请把 v10 里 tal.py 的 topk=10 / α=0.5 视为历史遗留——v10 用两次实例化取 topk=10 与 topk=1 实现「一致性双分配」，v11 完全放弃了这套设计。
+> **v1~v10 读者路标**：v6 读者注意 v6 论文的 TAL 分配器默认就是 topk=13 / α=1.0 / β=6.0——v11 直接把 v8/v9 时代的「topk=10 / α=0.5」回调到 v6 论文原值，但**只在类默认层面**；检测损失走 loss.py L176 显式传参，仍用 v8 值。v8 读者按 v8 tal.py 走一遍就能读懂 v11 的分配机制，唯一差别就是 `__init__` 那两行数字。v10 读者请把 v10 里 tal.py 的 topk=10 / α=0.5 视为历史遗留——v10 用两次实例化取 topk=10 与 topk=1 实现「一致性双分配」，v11 完全放弃了这套设计。
 
-## forward 五步流水（L38-88）
+## forward 五步流水（L39-88）
 
-整个 `forward` 挂在 <SrcLink file="v11:ultralytics/utils/tal.py" :line="38" /> 的 `@torch.no_grad()` 下——分配是纯训练期路由，永不回传梯度（loss.py 调用前还额外 detach 了一次预测，双保险）。
+整个 `forward`（<SrcLink file="v11:ultralytics/utils/tal.py" :line="39" />）挂在 L38 的 `@torch.no_grad()` 下——分配是纯训练期路由，永不回传梯度（loss.py 调用前还额外 detach 了一次预测，双保险）。
 
 1. **空 GT 早退**<SrcLink file="v11:ultralytics/utils/tal.py" :line="62" :end="70" />：`n_max_boxes == 0` 时直接返回全背景（`bg_idx = num_classes`）；
 2. **求正样本位**<SrcLink file="v11:ultralytics/utils/tal.py" :line="72" :end="74" />：`get_pos_mask`——「中心在 GT 内」×「对齐度量 topk」×「GT 有效」三重 mask 相乘；
@@ -77,7 +77,7 @@ def __init__(self, topk=13, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
 - <SrcLink file="v11:ultralytics/utils/tal.py" :line="120" /> `align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)`——**α 与 β 的幂运算决定分类项与定位项的相对权重**：
   - v8/v9/v10：`s^0.5 × u^6.0`——分类项开方压权（分数区间 [0,1] 开方后仍大于原值，实际是「放大分类项」而不是压权，但相对 β=6 的定位项仍弱），定位项六次方放大；
   - v11 默认：`s^1.0 × u^6.0`——分类项原权、定位项六次方；
-  - `yolo11.yaml` 检测训练实际用：仍 `s^0.5 × u^6.0`（loss.py L170 显式传参）。
+  - `yolo11.yaml` 检测训练实际用：仍 `s^0.5 × u^6.0`（loss.py L176 显式传参）。
 
 ## select_topk_candidates（L127-161）：topk 决定正样本数
 
@@ -89,7 +89,7 @@ def __init__(self, topk=13, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
 - <SrcLink file="v11:ultralytics/utils/tal.py" :line="159" /> `count_tensor.masked_fill_(count_tensor > 1, 0)`——计数超过 1 的位置清零；
 - L161 返回 float mask。
 
-**v11 默认 topk=13 的实际意义**：一个 GT 最多 13 个 anchor 拿正样本监督——比 v8 的 10 更激进，接近「让 GT 附近一大片 anchor 都参与监督」的思路。但由于 loss.py L170 显式传参覆盖了这个默认，v11 检测训练实际仍用 10。
+**v11 默认 topk=13 的实际意义**：一个 GT 最多 13 个 anchor 拿正样本监督——比 v8 的 10 更激进，接近「让 GT 附近一大片 anchor 都参与监督」的思路。但由于 loss.py L176 显式传参覆盖了这个默认，v11 检测训练实际仍用 10。
 
 ## select_highest_overlaps（L231-258）：GT 抢占
 
@@ -128,8 +128,8 @@ v11 的 tal.py 里**没有 `MakeMultiClass` 函数**——这个函数是 v12 �
 | assigner 结构 | 独立实现 | 8.0.100 同结构 | 8.1.34 基线复用 | **8.3.0 类默认上调** |
 | __init__ 默认 topk | 13 | 10 | 10 | **13** |
 | __init__ 默认 α / β | 1.0 / 6.0 | 0.5 / 6.0 | 0.5 / 6.0 | **1.0 / 6.0** |
-| 检测损失实际用 | — | topk=10, α=0.5 | topk=10 与 1 各一份 | **topk=10, α=0.5**（loss.py L170 覆盖） |
-| OBB 用 | topk=13, α=1.0 | topk=13, α=1.0 | 同 v8 | **同 v8** |
+| 检测损失实际用 | — | topk=10, α=0.5 | topk=10 与 1 各一份 | **topk=10, α=0.5**（loss.py L176 显式传参） |
+| OBB 用 | topk=10, α=0.5 | topk=10, α=0.5 | 同 v8 | **topk=10, α=0.5（loss.py L619）** |
 | 一致性约束 | 无 | 无 | 同分配器两次实例化 | **无（放弃一致性双分配）** |
 | MakeMultiClass | 无 | 无 | 无 | **无（v12 才加）** |
 

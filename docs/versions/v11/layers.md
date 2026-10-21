@@ -63,7 +63,7 @@
 | `SPPF` | <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="169" :end="186" /> | 串行 3 次 k=5 MaxPool 等效 SPP 5/9/13 | v5 | 骨干 #9 |
 | `C3k` | <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="734" :end="751" /> | 大核内瓶（c3k=True 时启用，3×3 DW + 3×3 全密度） | v8 | C3k2 内部 |
 | `C2f` | <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="224" :end="251" /> | chunk 拆半 → 串行 Bottleneck → 全拼接 | v6 | C3k2 / C2PSA 基类 |
-| `Detect` | <SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="68" /> | anchor-free 单头：cv1 升维 → cv2 box + cv3 cls + dfl | v8 | #23（唯一检测头） |
+| `Detect` | <SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="68" /> | anchor-free 单头：cv2 box + cv3 cls + dfl（**无 cv1**） | v8 | #23（唯一检测头） |
 | `Conv` | <SrcLink file="v11:ultralytics/nn/modules/conv.py" :line="37" /> | 标准卷积 + autopad + BN + 激活 | v5 | #0/#1/#3/#5/#7/#17/#20 |
 | `Upsample` | `nn.Upsample` | 空间上采样（scale_factor=2, nearest） | PyTorch | #11/#14 |
 | `Concat` | `torch.cat(dim=1)` | 通道维拼接 | PyTorch | #12/#15/#18/#21 |
@@ -202,23 +202,23 @@ flowchart LR
 
 > **v10 读者路标**：v11 直接用 v8 沿用的 `Detect` 类（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="68" />），**不用** v10 的 `v10Detect`（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="564" :end="597" /> 类仍在源码里，但本 yaml 未引用）——这是 v11 相对 v10 最显著的**功能回退**：不再有 one2many/one2one 双头、不再有 `v10postprocess`、不再有 detach 梯度截断。
 
-**构造**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="38" :end="48" />）：
+**构造**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="34" :end="52" />）：
 
-- `cv1`：1×1 逐尺度升维，`c2 = max(ch[i] * 4, reg_max * 4, nc)`（基准 640）——三尺度都升到 640
-- `cv2`（box 分支）：`Conv(640, 640, 3) → Conv(640, 640, 3) → Conv2d(640, 4*reg_max, 1)`——出口 64 维分布
-- `cv3`（cls 分支）：`Conv(640, 640, 3) → Conv(640, 640, 3) → Conv2d(640, nc, 1)`——出口 nc 维分类分
-- `dfl = Conv1D(reg_max, 1, 1, reg_max + 1)`——把 4×reg_max=64 维分布解回 4 维距离
+- **没有 cv1**：v11 的 Detect 直接把 neck 三尺度特征送进 cv2 / cv3
+- `c2 = max(16, ch[0] // 4, reg_max*4)`（基准 640 时为 64）、`c3 = max(ch[0], min(nc, 100))`（基准 640 时为 100）——L40
+- `cv2`（box 分支，L41-43）：`Conv(x, c2, 3) → Conv(c2, c2, 3) → Conv2d(c2, 4*reg_max, 1)`——出口 64 维分布
+- `cv3`（cls 分支，L44-51）：**两段 DW-separable**（`DWConv(x,x,3) → Conv(x,c3,1)`、`DWConv(c3,c3,3) → Conv(c3,c3,1)`）+ `Conv2d(c3, nc, 1)`——沿用 v10 思路，v11 无 legacy 开关
+- `dfl = DFL(reg_max) if reg_max > 1 else nn.Identity()`（L52）——把 4×16=64 维分布解回 4 维距离
 
-**前向**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="49" :end="68" />）：
+**前向**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="58" :end="68" />）：
 
 ```mermaid
 flowchart TB
-    IN["P3 #16 · P4 #19 · P5 #22"] --> CV1["cv1 1×1 逐尺度升维<br/>256→640 · 512→640 · 1024→640"]
-    CV1 --> SPLIT["split (4*reg_max, nc)<br/>box + cls 两支"]
-    SPLIT --> CV2["cv2 · box 分支<br/>3×3 → 3×3 → 1×1"]
-    SPLIT --> CV3["cv3 · cls 分支<br/>3×3 → 3×3 → 1×1"]
-    CV2 --> DECODE["dfl 期望积分<br/>64 → 4 距离"]
-    CV3 --> DECODE
+    IN["P3 #16 · P4 #19 · P5 #22"] --> CV2["cv2 · box 分支<br/>3×3 → 3×3 → 1×1"]
+    IN --> CV3["cv3 · cls 分支<br/>DW 3×3 → DW 3×3 → 1×1"]
+    CV2 --> CAT["逐尺度 cat(box, cls)"]
+    CV3 --> CAT
+    CAT --> DECODE["_inference：make_anchors<br/>dfl 期望积分 64 → 4 距离<br/>dist2bbox"]
     DECODE --> TRAIN["训练：TAL 分配<br/>box + cls + dfl 三分量"]
     DECODE --> INF["推理：conf 过滤 → class-wise NMS"]
 ```
@@ -233,7 +233,7 @@ flowchart TB
 |------|-----------|---------------|------------|
 | 类定义位置 | head.py L21 | head.py L497（v10）→ L564（v11 快照） | head.py L21（沿用 v8） |
 | 头数量 | 单头 | 双头（one2many + one2one deepcopy） | **单头** |
-| cv3 分类头 | 标准 3×3 两段 | DW-separable 三段（省 FLOPs） | 标准 3×3 两段（沿用 v8） |
+| cv3 分类头 | 标准 3×3 两段 | DW-separable 两段（省 FLOPs） | **DW-separable 两段（沿用 v10，无 legacy 开关）** |
 | 训练分配 | TAL topk=10 | 双分配 topk=10 + topk=1 | **TAL topk=10** |
 | 梯度截断 | 无 | `one2one = [xi.detach() for xi in x]` | **无** |
 | 推理后处理 | conf 过滤 + class-wise NMS | v10postprocess（两次 topk） | **conf 过滤 + class-wise NMS** |

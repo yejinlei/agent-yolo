@@ -101,4 +101,6 @@ flowchart TB
 - [YOLOv10 utils/tal.py 源码页](/versions/v10/source/tal-py) — topk=1 分配的代码细节
 - [YOLOv8 痛点追踪](/versions/v8/painpoints) — 工程化默认的代价（上文）
 - [YOLOv9 痛点追踪](/versions/v9/painpoints) — v1-v8 全谱系延续表（上文）
+- [YOLOv11 痛点追踪](/versions/v11/painpoints) — 下代把 v10 的「去 NMS + 双头」整套撤回
+- [YOLOv12 痛点追踪](/versions/v12/painpoints) — 再下代延续 NMS 单头、把注意力搬进骨干的新代价
 - [术语表](/glossary) — TAL、DFL、NMS、multi-positive 等术语索引

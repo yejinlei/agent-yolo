@@ -73,7 +73,8 @@ export default defineConfig({
         { text: 'YOLOv8', link: '/versions/v8/index' },
         { text: 'YOLOv9', link: '/versions/v9/index' },
         { text: 'YOLOv10', link: '/versions/v10/index' },
-        { text: 'YOLOv11', link: '/versions/v11/index' }
+        { text: 'YOLOv11', link: '/versions/v11/index' },
+        { text: 'YOLOv12', link: '/versions/v12/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -355,6 +356,32 @@ export default defineConfig({
           { text: 'utils/loss.py', link: '/versions/v11/source/loss-py' },
           { text: 'utils/tal.py', link: '/versions/v11/source/tal-py' },
           { text: 'cfg/models/11/yolo11.yaml', link: '/versions/v11/source/yolo11-yaml' }
+        ]
+      },
+      {
+        text: 'YOLOv12 (2025-02)',
+        items: [
+          { text: '概览', link: '/versions/v12/index' },
+          { text: '论文精读', link: '/versions/v12/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v12/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v12/concepts' },
+          { text: '架构与层速查', link: '/versions/v12/layers' },
+          { text: '损失函数', link: '/versions/v12/losses' },
+          { text: '反向传播推导', link: '/versions/v12/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v12/tricks' },
+          { text: '痛点追踪', link: '/versions/v12/painpoints' },
+          { text: '源码走读', link: '/versions/v12/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（sunsmarterjie/yolov12 快照 · tag v1.0 @ b1035f8）',
+        collapsed: true,
+        items: [
+          { text: 'nn/modules/block.py', link: '/versions/v12/source/block-py' },
+          { text: 'nn/modules/head.py', link: '/versions/v12/source/head-py' },
+          { text: 'utils/loss.py', link: '/versions/v12/source/loss-py' },
+          { text: 'utils/tal.py', link: '/versions/v12/source/tal-py' },
+          { text: 'cfg/models/v12/yolov12.yaml', link: '/versions/v12/source/yolov12-yaml' }
         ]
       },
         {

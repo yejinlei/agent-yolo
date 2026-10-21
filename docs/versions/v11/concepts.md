@@ -200,7 +200,7 @@ flowchart LR
 
 > **v1~v10 读者路标**：v10 的头戏是端到端去 [NMS](/glossary#nms-非极大值抑制)（见 [v10 Concept §3](/versions/v10/concepts#_3-nms-free-推理-concept-nms-free)）——one2many/one2one 双头 + v10postprocess；v11 **直接放弃这条路线**，回到 v8 的 Detect 单头 + TAL topk=10 + class-wise NMS。**这不是保守，而是工程权衡**。
 
-**定义**：v11 的检测头就是 v8 沿用的 `Detect`（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="68" />）——cv2 box 分支 + cv3 cls 分支 + dfl，导出图里**保留 NMS 算子**，推理走 `class-aware NMS`（<SrcLink file="v11:ultralytics/utils/nms.py" :line="1" />）。**没有** one2one 分支、**没有** `v10postprocess`、**没有** `detach()` 梯度截断。
+**定义**：v11 的检测头就是 v8 沿用的 `Detect`（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="162" />）——cv2 box 分支 + cv3 cls 分支 + dfl，导出图里**保留 NMS 算子**，推理走 `class-aware NMS`（<SrcLink file="v11:ultralytics/utils/ops.py" :line="163" />）。**没有** one2one 分支、**没有** `v10postprocess`、**没有** `detach()` 梯度截断。
 
 **为什么放弃 v10 的 NMS-free**：
 
@@ -244,7 +244,7 @@ flowchart TB
 **与上版差异**：v10 是「论文卖点驱动的架构」，v11 是「工程稳健驱动的架构」——两代都是"YOLO 家族"，但设计哲学不同。
 
 <SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="68" />
-<SrcLink file="v11:ultralytics/utils/nms.py" :line="1" />
+<SrcLink file="v11:ultralytics/utils/ops.py" :line="163" />
 
 > **v1~v10 读者路标**：v1~v9 都是 NMS 路线（v1 就有 NMS）；v10 是唯一的端到端去 NMS 尝试；**v11 撤回这条路线**——不是保守，而是「论文想法 vs 工程现实」的成熟取舍。
 
@@ -347,7 +347,7 @@ flowchart TB
 - <SrcLink file="v11:ultralytics/nn/modules/head.py" :line="21" :end="68" />——Detect 类定义（v11 检测头）
 - <SrcLink file="v11:ultralytics/cfg/models/11/yolo11.yaml" :line="6" :end="12" />——scales 五档集中定义
 - <SrcLink file="v11:ultralytics/cfg/models/11/yolo11.yaml" :line="27" />——C2PSA 挂载位置
-- <SrcLink file="v11:ultralytics/utils/nms.py" :line="1" />——NMS 工具（v11 沿用）
+- <SrcLink file="v11:ultralytics/utils/ops.py" :line="163" />——NMS 工具（v11 沿用）
 
 > **v1~v10 读者路标**：这 11 处 SrcLink 覆盖了 v11 全部自研模块、配置关键行与后处理工具——对照 v10 的 [concepts 全文](/versions/v10/concepts) 与 v8 的 [concepts 全文](/versions/v8/concepts)，可以完整 diff 三代差异。
 

@@ -136,20 +136,18 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    IN["P3 #16<br/>P4 #19<br/>P5 #22<br/>三路特征"] --> CV1["cv1 1×1 逐尺度升维<br/>256→640, 512→640, 1024→640"]
-    CV1 --> SPLIT["split 成 box+cls 两支"]
-    SPLIT --> CV2["cv2 = box 分支<br/>Conv 3×3 → Conv 3×3 → 1×1 (4×reg_max)"]
-    SPLIT --> CV3["cv3 = cls 分支<br/>Conv 3×3 → Conv 3×3 → 1×1 (nc)"]
-    CV2 --> DECODE["dfl = Conv1D reg_max → 4<br/>分布焦点损失解距离"]
+    IN["P3 #16<br/>P4 #19<br/>P5 #22<br/>三路特征"] --> CV2["cv2 = box 分支<br/>Conv 3×3 → Conv 3×3 → 1×1 (4×reg_max)"]
+    IN --> CV3["cv3 = cls 分支<br/>DW 3×3 → DW 3×3 → 1×1 (nc)"]
+    CV2 --> DECODE["dfl = DFL(reg_max)<br/>分布焦点损失解距离"]
     CV3 --> DECODE
     DECODE --> TRAIN["训练期<br/>TAL 分配 · topk=10<br/>box+cls+dfl 三项损失"]
     DECODE --> INF["推理期<br/>conf 过滤 → class-wise NMS<br/>→ max_det 输出"]
 ```
 
-- **构造**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="38" :end="48" />）：`cv1` 用 1×1 把每个尺度的通道升到 `c2 = max(ch[i] * 4, reg_max * 4, nc)`（基准 640）；`cv2`（box）是两段 3×3 + 1×1 出 `4*reg_max`（160），`cv3`（cls）是两段 3×3 + 1×1 出 `nc`——与 v8 完全同款
-- **前向**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="49" :end="68" />）：先 `cv1` 逐尺度升维、`split((4*reg_max, nc), 1)` 分出两支；`cat(x, 0)` 沿 batch 维度把 3 个尺度展平；export 模式下末尾接 dfl
-- **DFL**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="52" />）：`self.dfl = Conv(x[0], 1, 1, 1, reg_max + 1, 1, False)`——把 `4*reg_max` 维的分布预测解回 4 维距离，配合 [DFL 损失](/versions/v8/losses)（v8 引入，v11 沿用）
-- **推理**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="60" :end="68" />）：export 模式返回 `(box, cls)` 元组，训练模式返回 `(box, cls, x)`——与 v8 完全同款，**没有** `one2one/one2many` 字典
+- **构造**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="34" :end="52" />）：**没有 cv1 升维层**；L40 定义 `c2, c3 = max((16, ch[0] // 4, reg_max*4)), max(ch[0], min(nc, 100))`；`cv2`（box，L41-43）是两段 3×3 + 1×1 出 `4*reg_max`（64），`cv3`（cls，L44-51）是**两段 DW-separable + 1×1** 出 `nc`——cv2 与 v8 同款，cv3 沿用 v10 的 DW 思路（v11 无 legacy 开关）
+- **前向**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="58" :end="68" />）：L63-64 逐尺度 `cat((cv2[i](x[i]), cv3[i](x[i])), 1)`；训练模式 L65-66 直接返回 list；推理走 L67 `_inference`，L68 按 `export` 决定返回 `y` 还是 `(y, x)`
+- **DFL**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="52" />）：`self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()`——把 `4*reg_max` 维分布解回 4 维距离，配合 [DFL 损失](/versions/v8/losses)（v8 引入，v11 沿用）
+- **推理**（<SrcLink file="v11:ultralytics/nn/modules/head.py" :line="94" :end="138" />）：`_inference` 里 `make_anchors → split → dfl 期望积分 → dist2bbox`，输出 `(dbox, cls, x)` 元组；**没有** `one2one/one2many` 字典
 
 ### 4.1 Detect vs v10Detect 对比
 
@@ -157,7 +155,7 @@ flowchart TB
 |------|-----------|---------------|------------|
 | 类定义位置 | `head.py` L21 | `head.py` L497 | `head.py` L21（沿用 v8） |
 | 头数量 | 单头 | 双头（one2many + one2one deepcopy） | **单头** |
-| cv3 分类头 | 标准 3×3 两段 | DW-separable 三段（省 FLOPs） | 标准 3×3 两段（沿用 v8） |
+| cv3 分类头 | 标准 3×3 两段 | DW-separable 两段（省 FLOPs） | **DW-separable 两段（沿用 v10，无 legacy 开关）** |
 | 训练分配 | TAL topk=10 | 双分配 topk=10 + topk=1 | **TAL topk=10** |
 | 梯度截断 | 无 | `one2one = [xi.detach() for xi in x]` | **无** |
 | 推理后处理 | conf 过滤 + class-wise NMS | v10postprocess（两次 topk） | **conf 过滤 + class-wise NMS** |

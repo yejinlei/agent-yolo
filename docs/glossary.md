@@ -165,6 +165,30 @@ v11 的骨干内瓶模块：`class C3k2(C2f)` 直接继承 v8 的 C2f、**无独
 ### C2PSA
 v11 的骨干尾注意力模块：把 C3k2 的残差支路与 Attention + FFN 支路**拼在同一个 CSP 里**——替代 v10「SPPF + 独立 PSA」的两件套，减少一次 concat + 一次残差相加。骨架仍是 Attention（qkv 合并、位置编码 3×3 DWConv），只是把它包进 C3k2 里跑。详解：[v11 C2PSA 概念](/versions/v11/concepts)、[v11 层页](/versions/v11/layers)。
 
+### A2C2f
+v12 的新骨干块：**不继承 C2f** 的独立 `nn.Module`，内瓶按 `a2` 二选一——`a2=True` 时每段是两个 ABlock（AAttn + Conv-FFN），`a2=False` 时退化成 C3k。隐藏通道必须 `c_ % 32 == 0`，head 数写死 `num_heads = c_ // 32`；`gamma` layer-scale 只在 `residual=True` 时创建，而 `parse_model` 只给 **L/X 档**补 `residual=True, mlp_ratio=1.2`。yaml 里出现 6 次（骨干 P4/P5 两处 `a2=True`，head 四处 `a2=False`）。详解：[v12 concepts §2](/versions/v12/concepts)、[v12 源码页](/versions/v12/source/block-py)。
+
+### AAttn（Area Attention）
+v12 的注意力算子：qkv 由一次 1×1 Conv 得到，按 `area` 把特征图切成若干组独立做注意力（`area=4` 时计算量降到 1/4），**硬依赖 FlashAttention**（`flash_attn_func`，`assert False` 兜底），并在输出侧用 `x = x + self.pe(v)` 注入 7×7 DWConv 位置编码。**没有 LayerNorm**，归一化靠 Conv 的 BN。详解：[v12 concepts §2](/versions/v12/concepts)。
+
+### ABlock
+v12 的注意力-FFN 块：`x = x + attn(x)` 再 `x = x + mlp(x)` 的**两级 post-residual**，FFN 是两段 1×1 Conv（`mlp_ratio` 默认 1.2，但 n/s/m 档被 A2C2f 传成 2.0）；全部权重用 ViT 式 `trunc_normal_(std=.02)` 初始化。详解：[v12 concepts §3](/versions/v12/concepts)。
+
+### Area Attention（区域注意力）
+把整张特征图的 token 序列**按 `area` 分组**，每组内部做自注意力，组间不交互——用「局部化」换掉全局注意力的 $O(N^2)$。v12 的 `area=4` 用在 P4，`area=1`（等价全局）用在 P5。**与窗口注意力（Swin）的区别：这里的分组不滑窗、不重叠，且只在部分层使用**。详解：[v12 concepts §2](/versions/v12/concepts)。
+
+### R-ELAN
+v12 论文提出的「残差高效层聚合」：在 ELAN 的多级 concat 结构上加一条**带缩放（layer-scale）的跨段残差**，缓解注意力块堆叠时的梯度衰减。代码落点是 `A2C2f` 的 `gamma` + `residual` 组合，但**只在 L/X 档启用**（n/s/m 档 `residual=False`）。详解：[v12 architecture §4](/versions/v12/architecture)。
+
+### FlashAttention
+把 attention 的 `softmax(QKᵀ/√d)V` 做成 IO 感知的 CUDA kernel，避免把 $N \times N$ 注意力矩阵写回显存，长序列下更快更省显存。v12 在 `block.py` L1159-1162 **导入即硬依赖**（缺包 `assert False`），且 forward 里对 q/k/v 强制 `.half()`。详解：[v12 tricks §3](/versions/v12/tricks)、[v12 painpoints §1](/versions/v12/painpoints)。
+
+### layer-scale（层缩放）
+给某个分支的输出乘一个**初始接近 0 的可学习向量**（v12 用 `0.01 × ones(c)`），让新加分支在训练初期近似旁路，深层网络更容易训稳。ViT/DeepNorm 系常用；v12 把它做成 A2C2f 的 `gamma`，**仅 L/X 档开启**。详解：[v12 tricks §5](/versions/v12/tricks)。
+
+### DW 可分离卷积（depthwise separable conv）
+把一个 3×3 卷积拆成「逐通道 3×3（DW）+ 1×1 跨通道（PW）」两步，参数量与 FLOPs 大幅下降。v12 的 Detect 分类分支 `cv3` 在 `legacy=False` 时走这条路径（`DWConv + Conv` 交替 5 段），由 `parse_model` 隐式赋值，yaml 里看不出来。详解：[v12 tricks §6](/versions/v12/tricks)、[v12 painpoints §8](/versions/v12/painpoints)。
+
 ## 训练与损失
 
 ### 损失函数（loss）
@@ -239,7 +263,7 @@ v5 的网络配置不再用 cfg 逐层手写，而是 `models/yolov5s.yaml` 用 
 YOLOX 提出的动态标签分配：按"分类 cost + IoU cost"动态决定每个 GT 分几个正样本。YOLOv6 初版用它，技术报告评测后被 TAL 替代。
 
 ### TAL（Task Alignment Learning）
-源自 TOOD 的任务对齐分配：对齐度量 = 分类分数^α × IoU^β，每个 GT 取 top-k（v6 是 13）当正样本，并用归一化度量当**分类软标签**——分类准的还必须定位准。详解：[v6 损失 §4](/versions/v6/losses)。
+源自 TOOD 的任务对齐分配：对齐度量 = 分类分数^α × IoU^β，每个 GT 取 top-k（v6 是 13）当正样本，并用归一化度量当**分类软标签**——分类准的还必须定位准。详解：[v6 损失 §4](/versions/v6/losses)。**v12 的调用点显式传 `topk=10, alpha=0.5, beta=6.0`**（`loss.py` L176），覆盖了 `tal.py` 类默认的 `topk=13, alpha=1.0`——读代码时两处必须对照，见 [v12 损失 §4](/versions/v12/losses)。
 
 ### ATSS
 自适应训练样本选择：按 GT 与各层 anchor 中心的距离统计定阈值、再按 IoU 挑正样本。v6 保留它作可选 warmup 分配器（默认关闭）。

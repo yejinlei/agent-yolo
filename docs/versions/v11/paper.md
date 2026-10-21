@@ -248,7 +248,7 @@ v11 是「**ultralytics 主线在 v10 出现之后的官方结构性回退**」�
 | 骨干内瓶 | C2f + C2fCIB（大核 RepVGGDW） | **C3k2（C2f 的 shortcut 变体）** |
 | 下采样 | **SCDown（空间-通道解耦）** | **Conv 3×3 s2（回归 v8）** |
 | 骨干尾 | SPPF + PSA | **SPPF + C2PSA** |
-| 分类头 | 深度可分离两段 | **两个 3×3 + 1×1（回归 v8）** |
+| 分类头 | 深度可分离两段 | **DW-separable 两段（沿用 v10 思路，无 legacy 开关）** |
 | 档位 | n/s/m/**b**/l/x 六档 | **n/s/m/l/x 五档**（去 B） |
 | 结构文件 | yolov10{nsblmx}.yaml 六份各带 scales | **yolo11.yaml 单份，五档 scales 集中** |
 | cfg 目录 | `models/v10/` | **`models/11/`（去 v 前缀，全站独一份）** |

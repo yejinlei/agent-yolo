@@ -23,7 +23,7 @@ flowchart LR
 
 本页记号：
 
-- $\theta_{\text{back}}$：C3k2 骨干 + SPPF + C2PSA 参数；$\theta_{\text{neck}}$：#11–#22 四段 C3k2 参数；$\theta_h$：Detect 头 cv1/cv2/cv3/dfl 参数
+- $\theta_{\text{back}}$：C3k2 骨干 + SPPF + C2PSA 参数；$\theta_{\text{neck}}$：#11–#22 四段 C3k2 参数；$\theta_h$：Detect 头 cv2/cv3/dfl 参数
 - $x$：neck 输出的三尺度特征（P3/P4/P5），640 输入共 $80^2+40^2+20^2=8400$ 个预测位置
 - $L = \lambda_{\text{box}}\, L_{\text{box}} + \lambda_{\text{cls}}\, L_{\text{cls}} + \lambda_{\text{dfl}}\, L_{\text{dfl}}$，出厂权重 7.5 / 0.5 / 1.5（v8 默认）
 - $q$：TAL 软标签质量（detach 常量，$q\in(0,1]$）；$\Sigma_q = \max(\sum \text{target\_scores},\ 1)$ 归一化分母
@@ -235,17 +235,17 @@ Input 640×640
   → SPPF
   → C2PSA（Attention + FFN，一半通道走 PSABlock）
   → FPN+PAN 头（4 段 C3k2，全部 c3k=True）
-  → Detect 单头（cv1 升维 → split → cv2 box / cv3 cls）
-    → TAL topk=13 α=1.0 β=6.0 分配（@torch.no_grad + 预测侧 detach）
+  → Detect 单头（cv2 box / cv3 cls，无 cv1）
+    → TAL topk=10 α=0.5 β=6.0 分配（loss.py L176 显式传参；@torch.no_grad + 预测侧 detach）
     → 三分量损失：L_box × 7.5 + L_cls × 0.5 + L_dfl × 1.5
   → backward：三条分量梯度沿 autograd 图回传
     → 更新 θ_back（C3k2 + SPPF + C2PSA）
     → 更新 θ_neck（4 段 C3k2）
-    → 更新 θ_h（Detect 的 cv1/cv2/cv3/dfl）
+    → 更新 θ_h（Detect 的 cv2/cv3/dfl）
   → 推理：Detect 输出 → conf 过滤 → class-wise NMS → max_det 输出
 ```
 
-（总装 <SrcLink file="v11:ultralytics/utils/loss.py" :line="157" :end="225" />；分配器 <SrcLink file="v11:ultralytics/utils/tal.py" :line="13" :end="13" />；头前向 <SrcLink file="v11:ultralytics/nn/modules/head.py" :line="49" :end="68" />；C3k2 与 C2PSA <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="723" /> 与 <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="1002" :end="1041" />）
+（总装 <SrcLink file="v11:ultralytics/utils/loss.py" :line="157" :end="261" />；分配器 <SrcLink file="v11:ultralytics/utils/tal.py" :line="13" :end="266" />；头前向 <SrcLink file="v11:ultralytics/nn/modules/head.py" :line="58" :end="68" />；C3k2 与 C2PSA <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="723" /> 与 <SrcLink file="v11:ultralytics/nn/modules/block.py" :line="1002" :end="1041" />）
 
 ## 8. 数值示例：topk=13 与 α=1.0 的梯度分布 (`grad-example`)
 

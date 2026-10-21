@@ -24,7 +24,7 @@ flowchart TB
   V9 --> V10[YOLOv10 · 2024<br/>NMS-free]
   V8 -.->|"Ultralytics 8.1.34 fork"| V10
   V8 --> V11[YOLOv11 · 2024<br/>C3k2 + C2PSA]
-  V11 --> V12[YOLOv12 · 2025<br/>Global Attn]
+  V11 --> V12[YOLOv12 · 2025<br/>A2C2f 骨干注意力<br/>第三方 fork]
 ```
 
 ## 四条主线
@@ -43,9 +43,9 @@ flowchart TB
 - **多尺度 Neck**：v3 首次 FPN，v4 PAFPN，v8 BiFPN
 - **CSP 结构**：v5 起 CSPNet，v8 起 C2f
 - **Decoupled Head**：v7 实验，v8 正式
-- **Attention 引入**：v7 EVA、v10 部分自注意力（PSA，全网仅一处）、v11 C2PSA（骨干尾一体化 PSABlock）、v12 Global Attention
-- **NMS-free**：v10 端到端消 NMS；v11 又回归 NMS
-- **cfg 命名**：v8/v9/v10 用 `models/v8|v9|v10/`；**v11 首次去掉 v 前缀**，落 `models/11/`
+- **Attention 引入**：v7 EVA、v10 部分自注意力（PSA，全网仅一处）、v11 C2PSA（骨干尾一体化 PSABlock）、v12 **A2C2f 骨干 P4/P5 内嵌 AAttn（Area Attention）**
+- **NMS-free**：v10 端到端消 NMS；v11 又回归 NMS；v12 继续 NMS
+- **cfg 命名**：v8/v9/v10 用 `models/v8|v9|v10/`；**v11 首次去掉 v 前缀**，落 `models/11/`；**v12 回归 `models/v12/`**（带 v）
 
 ## 与外部检测家族的收敛
 
@@ -62,7 +62,7 @@ flowchart LR
 
 ## v1→v11 精读版本逐项对照
 
-本站已完成 v1–v11 的快照级精读（论文 + cfg/yaml/Python dict + 源码）。下表是十一代的逐项差异一览，每项都可在对应版本页找到出处：
+本站已完成 v1–v12 的快照级精读（论文 + cfg/yaml/Python dict + 源码）。下表是十一代的逐项差异一览，每项都可在对应版本页找到出处：
 
 | 维度 | [v1](/versions/v1/index) | [v2](/versions/v2/index) | [v3](/versions/v3/index) | [v4](/versions/v4/index) | [v5](/versions/v5/index) | [v6](/versions/v6/index) | [v7](/versions/v7/index) | [v8](/versions/v8/index) | [v9](/versions/v9/index) | [v10](/versions/v10/index) | [v11](/versions/v11/index) |
 |------|------|------|------|------|------|------|------|------|------|------|------|
@@ -87,7 +87,26 @@ flowchart LR
 | 特色 trick | dropout .5 | bias_match warmup | truth_thresh（死代码） | scale_x_y / multi-positive / SAT | autoanchor / EMA / AMP / OneCycle LR | **RepVGG 重参数化 / TAL / VFL / 自蒸馏 / RepOptimizer 量化** | **trainable bag-of-freebies**：E-ELAN / compound scaling / planned re-param / coarse-to-fine 双头标签分配 / partial aux head | **TAL topk=10 / DFL 内建默认 / scales 复合缩放查表 / 单库多任务**（detect/segment/pose/classify） | **PGI 辅助可逆分支 / GELAN 拓扑规划 / RepConvN 重参数化 / 双 assigner 独立 TAL topk=10 / 主辅 0.25-1.0 加权** | **一致性双分配**（one2many topk=10 + one2one topk=1）/ **NMS-free**（v10postprocess 纯 topk）/ 轻量分类头 / SCDown / CIB 大核 / PSA | **C3k2**（v8 C2f 轻量替代）/ **C2PSA**（骨干尾注意力）/ **TAL topk=13 α=1.0**（类默认，实际训练仍传 10/0.5）/ 单 yolo11.yaml 五档 scales / **回归 NMS 单头**|
 | 指标 | VOC07 mAP 63.4 | VOC07 mAP 78.6 | COCO AP50 57.9 · AP 33.0 | COCO AP50 65.7 · AP 43.5 | COCO AP50 56.8 · AP 37.4（yolov5s） | COCO AP 43.5 @ 495 FPS（S，T4 报告口径） | COCO AP **51.4** @ 161 FPS（V100 test-dev，36.9M/104.7G） | COCO AP 37.3~53.9（n~x，val2017，README 口径单模型单尺度） | COCO val AP **53.0**（C）/ **55.6**（E），README 口径 | COCO AP **38.5~54.4**（n~x，val2017，README 口径，T4 TRT FP16 batch1 延迟 1.84-10.70ms） | COCO AP **39.5~54.7**（n~x，val2017，博客+README 口径；快照内不可复核）|
 
-## v1→v11 继承谱系
+## v12 增补对照（相对 v11）
+
+v12 不是 ultralytics 官方发布，而是第三方 fork（`sunsmarterjie/yolov12` @ tag `v1.0`，基线 `8.3.63`）。下表只列**与 v11 不同**的项，其余全部沿用：
+
+| 维度 | [v11](/versions/v11/index) | [v12](/versions/v12/index) |
+|------|------|------|
+| 发布 | ultralytics 官方博客（无论文）+ README + tag `v8.3.0` | **arXiv:2502.12524**（2025-02-18）+ README + tag `v1.0` |
+| 代码快照 | ultralytics/ultralytics · `v8.3.0` @ `6e43d1e1` | **sunsmarterjie/yolov12 · `v1.0` @ `b1035f8f`**，fork 自 `8.3.63` |
+| 归属 | Ultralytics 官方主线 | **第三方（UB SUNY + UCAS）** |
+| 配置 | 单 `yolo11.yaml`（`cfg/models/11/`，**不带 v**） | 单 `yolov12.yaml`（`cfg/models/v12/`，**带 v**） |
+| 骨干 | C3k2 ×8 + SPPF + C2PSA 尾端 | **C3k2 ×3（浅层/P5-large）+ A2C2f ×6（P4/P5 `a2=True`）+ 无 SPPF** |
+| 注意力 | C2PSA（psablock，纯 PyTorch） | **AAttn（Area Attention，FlashAttention 硬依赖）** |
+| 检测头 | Detect 单头，全卷积 | **Detect 单头，`legacy=False` → DW-separable cv3** |
+| 损失 | v8DetectionLoss（类默认 topk=13 α=1.0） | **v8DetectionLoss（显式 topk=10 α=0.5 β=6.0）** |
+| 训练配方 | 与 v8 完全一致 | **600 epoch / batch 256 + 分档 mixup/copy_paste** |
+| 参数量 | 2.62M（n）~56.97M（x） | **2.60M（n）~59.22M（x）** |
+| 特色 trick | C3k2 / C2PSA / TAL topk=13 | **A2C2f(R-ELAN) / AAttn / 分档增强 / layer-scale 仅 L/X 档** |
+| 指标 | COCO AP 39.5~54.7 | **COCO AP 40.6~55.2**（README 声明，快照内不可复核） |
+
+## v1→v12 继承谱系
 
 ```mermaid
 flowchart LR
@@ -155,6 +174,12 @@ flowchart LR
     K3["+ C2PSA 收骨干尾（一体化 PSABlock）"]
     K4["+ TAL topk=13 α=1.0（类默认）/ 单 yolo11.yaml 五档"]
   end
+  subgraph V12["v12 继承 + 注意力进骨干"]
+    L1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
+    L2["+ A2C2f（R-ELAN）取代 P4/P5 主通路"]
+    L3["+ AAttn（Area Attention）/ FlashAttention 硬依赖"]
+    L4["+ 去 SPPF / DW-separable cv3 / 分档配方"]
+  end
   V1 --> V2 --> V3 --> V4 --> V5 --> V6
   V4 -.BoF 路线延续.-> V7
   V5 -.Ultralytics 产品线延续.-> V8
@@ -165,8 +190,10 @@ flowchart LR
   V8 -.->|"Ultralytics 8.1.34 fork"| V10
   V9 --> V10
   V8 -.->|"8.3.0 官方回归 + C3k2/C2PSA 增补"| V11
+  V11 --> V12
+  V8 -.->|"8.3.63 fork · 注意力进骨干"| V12
 ```
 
-每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)（v1 哪些病被治好）、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)、[v5 痛点追踪](/versions/v5/painpoints)、[v6 痛点追踪](/versions/v6/painpoints)、[v7 痛点追踪](/versions/v7/painpoints)、[v8 痛点追踪](/versions/v8/painpoints)、[v9 痛点追踪](/versions/v9/painpoints)、[v10 痛点追踪](/versions/v10/painpoints)（NMS 外挂这条全系列最持久的痛点在此收口）、[v11 痛点追踪](/versions/v11/painpoints)（把 v10 的双头、SCDown/CIB/PSA 三件套全部撤掉，回退到 v8 检测头 + NMS）。
+每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)（v1 哪些病被治好）、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)、[v5 痛点追踪](/versions/v5/painpoints)、[v6 痛点追踪](/versions/v6/painpoints)、[v7 痛点追踪](/versions/v7/painpoints)、[v8 痛点追踪](/versions/v8/painpoints)、[v9 痛点追踪](/versions/v9/painpoints)、[v10 痛点追踪](/versions/v10/painpoints)（NMS 外挂这条全系列最持久的痛点在此收口）、[v11 痛点追踪](/versions/v11/painpoints)（把 v10 的双头、SCDown/CIB/PSA 三件套全部撤掉，回退到 v8 检测头 + NMS）、[v12 痛点追踪](/versions/v12/painpoints)（FlashAttention 硬依赖、num_heads 硬编码、第三方 fork 的归属问题）。
 
 详见 [演化事件](/global/evolutions) 与 [时间线](/global/timeline)。

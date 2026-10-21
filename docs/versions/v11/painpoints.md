@@ -8,7 +8,7 @@ YOLOv11（Glenn Jocher & Jing Qiu，ultralytics/ultralytics tag `v8.3.0`，2024-
 
 | 痛点 | 严重度 | v1~v10 处理 | v11 处理 | 后续回应 |
 | --- | --- | --- | --- | --- |
-| [1. 命名坑](#1-命名坑cfgmodels11-不带-v-pain-naming) | High | 前 10 代目录都带 v 前缀 | **首次去 v**——独一份不一致 | 后续版本已回到 v12/ 目录（本快照不含） |
+| [1. 命名坑](#1-命名坑cfgmodels11-不带-v-pain-naming) | High | 前 10 代目录都带 v 前缀 | **首次去 v**——独一份不一致 | **v12 已回到 `models/v12/`**（见 [v12 痛点页](/versions/v12/painpoints)） |
 | [2. 无 arXiv 论文](#2-无-arxiv-论文博客-readme-pain-no-paper) | High | v6/v7 有论文 · v8/v9 无 · v10 有 | **无论文**——三层材料构成 | 官方定位"工程版本"，不追求学术发布 |
 | [3. 回归 NMS 单头](#3-回归-nms-单头-部署图有-nms-算子-pain-nms-again) | Medium | v1~v9 全部 NMS · v10 首创去 NMS | **回归 NMS** | 部署工具链兼容性换精度 |
 | [4. C3k2 简化版](#4-c3k2-简化版无-attention-分流-pain-c3k2-simple) | Medium | v8 C2f / v10 C2fCIB（大核） | **C3k2 无 Attention 分流** | 后续版本补 sca/gconv 变体 |
@@ -98,7 +98,7 @@ YOLOv11（Glenn Jocher & Jing Qiu，ultralytics/ultralytics tag `v8.3.0`，2024-
 
 ## 4. C3k2 简化版：无 Attention 分流 (`pain-c3k2-simple`)
 
-> **v1~v10 读者路标**：v8 骨干用 C2f（<SrcLink file="v8:ultralytics/nn/modules/block.py" :line="147" />），纯残差结构；v9 引入 CBLinear/C2SPC（<SrcLink file="v9:ultralytics/nn/modules/block.py" />），带 CBAM 注意力；v10 引入 C2fCIB（大核 RepVGGDW），带大感受野；**v11 引入 C3k2**，是"C2f 的 shortcut 变体"，**本快照内没有 Attention 分流**。
+> **v1~v10 读者路标**：v8 骨干用 C2f（<SrcLink file="v8:ultralytics/nn/modules/block.py" :line="147" />），纯残差结构；v9 引入 CBLinear / CBFuse 的辅助可逆分支（<SrcLink file="v9:models/common.py" :line="631" />）；v10 引入 C2fCIB（大核 RepVGGDW），带大感受野；**v11 引入 C3k2**，是"C2f 的 shortcut 变体"，**本快照内没有 Attention 分流**。
 
 **现象**：`class C3k2(C2f)`（<SrcLink file="v11:ultralytics/nn/modules/block.py" :line="723" />）直接继承 C2f，只重写 `__init__` 把每层 Bottleneck 内瓶换成 C3k 变体；`__init__(c1,c2,n=1,c3k=False,e=0.5,g=1,shortcut=True)` 六参数——**没有 `sca`、`gconv`、`attn` 之类的可选参数**。
 
@@ -156,7 +156,7 @@ YOLOv11（Glenn Jocher & Jing Qiu，ultralytics/ultralytics tag `v8.3.0`，2024-
 
 ## 6. 5 档 scales 集中定义：单文件编辑影响全部档位 (`pain-scales-centralized`)
 
-> **v1~v10 读者路标**：v8 是 `yolov8{nsmllx}.yaml` 五份各带独立 scales（<SrcLink file="v8:ultralytics/cfg/models/v8/yolov8.yaml" />）；v9 是 `yolov9{nsm}.yaml` 三份各带 scales；v10 是 `yolov10{nsmblx}.yaml` **六份各带 scales**（首个带 B 档）；**v11 首次把五档 scales 集中到 `yolo11.yaml` 一个文件**——单文件编辑就改全部档位。
+> **v1~v10 读者路标**：v8 是 `yolov8{nsmllx}.yaml` 五份各带独立 scales（<SrcLink file="v8:ultralytics/models/v8/yolov8.yaml" />）；v9 是 `yolov9{nsm}.yaml` 三份各带 scales；v10 是 `yolov10{nsmblx}.yaml` **六份各带 scales**（首个带 B 档）；**v11 首次把五档 scales 集中到 `yolo11.yaml` 一个文件**——单文件编辑就改全部档位。
 
 **现象**：`yolo11.yaml` 顶部一个 `scales:` 块（<SrcLink file="v11:ultralytics/cfg/models/11/yolo11.yaml" :line="6" :end="12" />）定义五档 n/s/m/l/x，每个档是 `[depth, width, max_channels]` 三元组：
 
@@ -252,4 +252,5 @@ flowchart TB
 - [v8 痛点追踪](/versions/v8/painpoints) — v11 的"回归目标"（上文）
 - [v9 痛点追踪](/versions/v9/painpoints) — 上上代的对照（上文）
 - [v10 痛点追踪](/versions/v10/painpoints) — 上代"去 NMS 端到端"的代价（上文）
+- [v12 痛点追踪](/versions/v12/painpoints) — 下代「注意力进骨干」的代价（FlashAttention 硬依赖、num_heads 硬编码、第三方 fork）
 - [术语表](/glossary) — TAL、DFL、NMS、CSP、C3k2、C2PSA、Mosaic 等术语索引
