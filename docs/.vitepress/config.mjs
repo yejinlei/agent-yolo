@@ -75,7 +75,9 @@ export default defineConfig({
         { text: 'YOLOv10', link: '/versions/v10/index' },
         { text: 'YOLOv11', link: '/versions/v11/index' },
         { text: 'YOLOv12', link: '/versions/v12/index' },
-        { text: 'YOLOv13', link: '/versions/v13/index' }
+        { text: 'YOLOv13', link: '/versions/v13/index' },
+        { text: 'YOLOv14 (Omni)', link: '/versions/v14/index' },
+        { text: 'YOLO26', link: '/versions/v26/index' }
       ]},
       { text: '实战案例', link: '/cases' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -410,6 +412,62 @@ export default defineConfig({
           { text: 'utils/loss.py', link: '/versions/v13/source/loss-py' },
           { text: 'utils/tal.py', link: '/versions/v13/source/tal-py' },
           { text: 'cfg/models/v13/yolov13.yaml', link: '/versions/v13/source/yolov13-yaml' }
+        ]
+      },
+      {
+        text: 'YOLOv14 / YOLO-Omni (2026-08)',
+        items: [
+          { text: '概览', link: '/versions/v14/index' },
+          { text: '论文精读', link: '/versions/v14/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v14/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v14/concepts' },
+          { text: '架构与层速查', link: '/versions/v14/layers' },
+          { text: '损失函数', link: '/versions/v14/losses' },
+          { text: '反向传播推导', link: '/versions/v14/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v14/tricks' },
+          { text: '痛点追踪', link: '/versions/v14/painpoints' },
+          { text: '源码走读', link: '/versions/v14/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（zhangcbb/yolov14 快照 · 0b8610d）',
+        collapsed: true,
+        items: [
+          { text: 'nn/modules/block.py', link: '/versions/v14/source/block-py' },
+          { text: 'nn/modules/head.py', link: '/versions/v14/source/head-py' },
+          { text: 'utils/loss.py', link: '/versions/v14/source/loss-py' },
+          { text: 'utils/tal.py', link: '/versions/v14/source/tal-py' },
+          { text: 'cfg/models/v14/yolov14.yaml', link: '/versions/v14/source/yolov14-yaml' },
+          { text: 'cfg/models/v14/*variants.yaml', link: '/versions/v14/source/yolov14-variants' }
+        ]
+      },
+      {
+        text: 'YOLO26 (2026-06)',
+        items: [
+          { text: '概览', link: '/versions/v26/index' },
+          { text: '论文精读', link: '/versions/v26/paper' },
+          { text: 'Architecture 逐层图解', link: '/versions/v26/architecture' },
+          { text: '理论 (Concept)', link: '/versions/v26/concepts' },
+          { text: '架构与层速查', link: '/versions/v26/layers' },
+          { text: '损失函数', link: '/versions/v26/losses' },
+          { text: '反向传播推导', link: '/versions/v26/loss-gradient' },
+          { text: '训练技巧', link: '/versions/v26/tricks' },
+          { text: '痛点追踪', link: '/versions/v26/painpoints' },
+          { text: '源码走读', link: '/versions/v26/code-walkthrough' }
+        ]
+      },
+      {
+        text: '源码浏览（ultralytics 官方主线 快照 · 2e241d0）',
+        collapsed: true,
+        items: [
+          { text: 'nn/tasks.py', link: '/versions/v26/source/tasks-py' },
+          { text: 'nn/modules/block.py', link: '/versions/v26/source/block-py' },
+          { text: 'nn/modules/conv.py', link: '/versions/v26/source/conv-py' },
+          { text: 'nn/modules/head.py', link: '/versions/v26/source/head-py' },
+          { text: 'utils/loss.py', link: '/versions/v26/source/loss-py' },
+          { text: 'utils/tal.py', link: '/versions/v26/source/tal-py' },
+          { text: 'cfg/models/yolo26.yaml', link: '/versions/v26/source/yolo26-yaml' },
+          { text: 'cfg/models/*variants.yaml', link: '/versions/v26/source/yolo26-variants' }
         ]
       },
         {

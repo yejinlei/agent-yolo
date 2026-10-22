@@ -75,6 +75,16 @@ const modules = {
   v13: import.meta.glob(
     '../../../../source/yolov13/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v14 是 zhangcbb/yolov14（学术论文 2608.04720v3 YOLO-Omni 官方实现），cfg 目录扁平为 cfg_models_v14/
+  v14: import.meta.glob(
+    '../../../../source/yolov14/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
+  ),
+  // v26 是 ultralytics/ultralytics 官方主线（arXiv 2606.03748），cfg 目录扁平为 cfg_models_26/
+  v26: import.meta.glob(
+    '../../../../source/yolo26/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -148,7 +158,22 @@ export const SOURCE_PAGES = {
   'v13:ultralytics/nn/modules/head.py':         '/versions/v13/source/head-py',
   'v13:ultralytics/utils/loss.py':              '/versions/v13/source/loss-py',
   'v13:ultralytics/utils/tal.py':               '/versions/v13/source/tal-py',
-  'v13:ultralytics/cfg/models/v13/yolov13.yaml': '/versions/v13/source/yolov13-yaml'
+  'v13:ultralytics/cfg/models/v13/yolov13.yaml': '/versions/v13/source/yolov13-yaml',
+  // YOLOv14 / YOLO-Omni（zhangcbb/yolov14 @ 0b8610d；cfg 目录扁平为 cfg_models_v14/）
+  'v14:nn/modules/block.py':                    '/versions/v14/source/block-py',
+  'v14:nn/modules/head.py':                     '/versions/v14/source/head-py',
+  'v14:utils/loss.py':                          '/versions/v14/source/loss-py',
+  'v14:utils/tal.py':                           '/versions/v14/source/tal-py',
+  'v14:cfg_models_v14/yolov14.yaml':            '/versions/v14/source/yolov14-yaml',
+  'v14:cfg_models_v14/yolov14-panorama.yaml':   '/versions/v14/source/yolov14-variants',
+  // YOLO26（ultralytics/ultralytics @ 2e241d0；cfg 目录扁平为 cfg_models_26/）
+  'v26:nn/tasks.py':                            '/versions/v26/source/tasks-py',
+  'v26:nn/modules/block.py':                    '/versions/v26/source/block-py',
+  'v26:nn/modules/conv.py':                     '/versions/v26/source/conv-py',
+  'v26:nn/modules/head.py':                     '/versions/v26/source/head-py',
+  'v26:utils/loss.py':                          '/versions/v26/source/loss-py',
+  'v26:utils/tal.py':                           '/versions/v26/source/tal-py',
+  'v26:cfg_models_26/yolo26.yaml':              '/versions/v26/source/yolo26-yaml'
 }
 
 const GH_BASES = {
@@ -164,7 +189,9 @@ const GH_BASES = {
   v10: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov10/snapshot/',
   v11: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov11/snapshot/',
   v12: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov12/snapshot/',
-  v13: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov13/snapshot/'
+  v13: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov13/snapshot/',
+  v14: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov14/snapshot/',
+  v26: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolo26/snapshot/'
 }
 
 function resolveKey(v, f) {

@@ -1,6 +1,6 @@
 # YOLO 系列家族
 
-YOLO 家族从 2015 年 v1 开始，迄今已超过 10 年。整个家族不是单一演进线，而是**主线 + tiny 线 + enterprise 线 + 若干分叉**并存。
+YOLO 家族从 2015 年 v1 开始，迄今已超过 10 年。整个家族不是单一演进线，而是**主线 + 官方线 + 学术线 + tiny 线 + enterprise 线 + 若干分叉**并存。**2026 年从 v13 起，家族第一次出现「同一父版本、两条独立路线」的分叉**——v14（学术线，YOLO-Omni）与 v26（官方线，Ultralytics End2End）并行推进。
 
 ## 分支谱系
 
@@ -26,28 +26,36 @@ flowchart TB
   V8 --> V11[YOLOv11 · 2024<br/>C3k2 + C2PSA]
   V11 --> V12[YOLOv12 · 2025<br/>A2C2f 骨干注意力<br/>第三方 fork]
   V12 -.->|"iMoonLab fork · 8.3.63 基线"| V13[YOLOv13 · 2025-11<br/>HyperACE 超图 + FullPAD 门控<br/>DS 深度可分离体系]
+
+  V13 -.->|"2026 双线路分叉"| V14[YOLOv14 · 2026-08<br/>YOLO-Omni · CircularConv + DAL<br/>学术线 · 4 任务]
+  V13 -.->|"2026 双线路分叉"| V26[YOLOv26 · 2026-06<br/>官方线 · End2End 双分支<br/>六任务统一 backbone]
 ```
 
-## 四条主线
+> **v26 是双线路的第一个「官方线」版本**（Ultralytics 官方 @ 2e241d0），**v14 是学术线**（zhangcbb/yolov14 @ 0b8610d，arXiv 2608.04720v3）。v14 与 v26 均以上游 `cfg/models/v13/` fork 为起点，但走了两条独立路线：v14 把 backbone 换成 CircularConv + ViewEmbedding + DAL + DeformableA2C2f 的"多相机/多视角感知"结构；v26 把 Detect 换成 end2end 双分支 + reg_max=1 的极简 anchor-free 头，并把 Depth/Semantic/OBB/CLS/YOLOE 全部塞进同一 backbone。
+
+## 六条主线
 
 | 分支 | 代表版本 | 目标 | 主导 |
 |------|---------|------|------|
 | 主线 | v1→v2→v3→v4→v8→v9→v10→v11→v12→v13 | 精度优先 | 学术界 + Ultralytics |
+| **官方线** | v13 → v26 | **六任务统一 backbone + End2End 双分支** | Ultralytics 官方 |
+| **学术线** | v13 → v14 | **多相机 / 多视角感知（YOLO-Omni）** | zhangcbb（AGPL-3.0 fork） |
 | Tiny 线 | v2-tiny→v3-tiny→v4-tiny→v5n→v8n→v11n | 参数量最小 | Ultralytics |
 | Enterprise 线 | v9, v10 | 推理延迟优化 | CWI / THU-MIG |
-| 分叉实验 | v6 (Megvii), v7 (WongKinYiu) | 特定改进 | 独立团队 |
+| 分叉实验 | v6 (Megvii), v7 (WongKinYiu), v12 (UB SUNY + UCAS), v13 (iMoonLab) | 特定改进 | 独立团队 |
 
 ## 贯穿家族的关键主题
 
 - **Single-shot**：v1 定调，至今未变
-- **Anchor vs Anchor-free**：v2 起用 anchor，v8 起默认 anchor-free
+- **Anchor vs Anchor-free**：v2 起用 anchor，v8 起默认 anchor-free；**v26 `reg_max=1` 让 DFL 退化为 Identity，直接输出 4 维 ltrb**
 - **多尺度 Neck**：v3 首次 FPN，v4 PAFPN，v8 BiFPN
 - **CSP 结构**：v5 起 CSPNet，v8 起 C2f
 - **Decoupled Head**：v7 实验，v8 正式
-- **Attention 引入**：v7 EVA、v10 部分自注意力（PSA，全网仅一处）、v11 C2PSA（骨干尾一体化 PSABlock）、v12 **A2C2f 骨干 P4/P5 内嵌 AAttn（Area Attention）**、v13 **A2C2f 沿用 + HyperACE 超图融合**（骨干后首层做 P3/P4/P5 高阶融合）
-- **NMS-free**：v10 端到端消 NMS；v11 又回归 NMS；v12 继续 NMS；v13 继续 NMS
-- **cfg 命名**：v8/v9/v10 用 `models/v8|v9|v10/`；**v11 首次去掉 v 前缀**，落 `models/11/`；**v12 回归 `models/v12/`**（带 v）；**v13 沿用 `models/v13/`**（带 v，与 v12 一致）
-- **档位收敛**：v8/v9/v10/v11/v12 都有五档（n/s/m/l/x），**v13 缩到四档（n/s/l/x，无 m）**
+- **Attention 引入**：v7 EVA、v10 部分自注意力（PSA，全网仅一处）、v11 C2PSA（骨干尾一体化 PSABlock）、v12 **A2C2f 骨干 P4/P5 内嵌 AAttn（Area Attention）**、v13 **A2C2f 沿用 + HyperACE 超图融合**、**v14 DeformableA2C2f 变形注意力进骨干**、**v26 C2PSA 回归 v11 一体化（去 A2C2f）**
+- **NMS-free**：v10 端到端消 NMS；v11 又回归 NMS；v12 继续 NMS；v13 继续 NMS；**v14 继续 NMS**；**v26 用 `end2end=True` 再次无 NMS**（`postprocess` 走 `_grouped_topk` 无 IoU 计算）
+- **cfg 命名**：v8/v9/v10 用 `models/v8|v9|v10/`；**v11 首次去掉 v 前缀**，落 `models/11/`；**v12/v13 回归 `models/v12/`/`models/v13/`**（带 v）；**v14 用顶层独立目录 `cfg_models_v14/`**（与 v8~v13 的 `cfg/models/...` 相反）；**v26 用顶层独立目录 `cfg_models_26/`**（沿用 v14 破例）
+- **档位收敛**：v8/v9/v10/v11/v12 都有五档（n/s/m/l/x），**v13 缩到四档（n/s/l/x，无 m）**，**v14/v26 都回归五档（n/s/m/l/x）**
+- **任务广度**：v1~v13 单任务（detect 为主 + segment/pose/obb/classify 可选）；**v26 首次把 Depth / SemanticSeg / OBB / CLS / YOLOE 全部塞进同一 backbone**，达 9 种模式（六任务 + RTDETR/World/YOLOE 模型变体）
 
 ## 与外部检测家族的收敛
 
@@ -60,34 +68,26 @@ flowchart LR
   EfficientDet[BiFPN] -. Backbone .-> YOLOv8
   CSPNet[CSPNet] -. Architecture .-> YOLOv5
   RT-DETR[RT-DETR] -. End-to-End .-> YOLOv11/v12
+  Grounded-SAM[Grounded-SAM] -. 开放词汇 .-> YOLOv26(YOLOE)
+  RealNVP[RealNVP 归一化流] -. Pose 生成 .-> YOLOv26(Pose26)
 ```
 
-## v1→v11 精读版本逐项对照
+## v1→v13 精读版本逐项对照
 
-本站已完成 v1–v12 的快照级精读（论文 + cfg/yaml/Python dict + 源码）。下表是十一代的逐项差异一览，每项都可在对应版本页找到出处：
+本站已完成 v1–v13 的快照级精读（论文 + cfg/yaml/Python dict + 源码）。下表是十三代的逐项差异一览，每项都可在对应版本页找到出处。**v14（学术线）与 v26（官方线）另见表尾双线路对照表**。
 
-| 维度 | [v1](/versions/v1/index) | [v2](/versions/v2/index) | [v3](/versions/v3/index) | [v4](/versions/v4/index) | [v5](/versions/v5/index) | [v6](/versions/v6/index) | [v7](/versions/v7/index) | [v8](/versions/v8/index) | [v9](/versions/v9/index) | [v10](/versions/v10/index) | [v11](/versions/v11/index) |
-|------|------|------|------|------|------|------|------|------|------|------|------|
-| 发布 | 2015 arXiv / ECCV 2016 | 2016 arXiv / CVPR 2017 | 2018 arXiv | 2020 arXiv / CVPR 2020 | 2021 GitHub（无论文） | 2022 GitHub / 2022-09 arXiv 报告 | 2022-07 arXiv（2207.02696） | 2023-01 GitHub 首发（**无论文**，官方口径 docs.ultralytics.com + 发布博客） | 2024-02 arXiv（**2402.13616**，WongKinYiu——v4/v7 团队） | 2024-05 arXiv（**2405.14447**，清华 THU-MIG） | 2024-09 ultralytics 官方博客（**无论文**）+ README + PyPI tag `v8.3.0`|
-| 代码快照 | pjreddie · `8322a58` | pjreddie · `c6afc7f` | pjreddie · `e84933b` | AlexeyAB · `4131ae1` | ultralytics · `f5b8f7d` | meituan · main 分支 | WongKinYiu · main @ `a207844` | ultralytics/ultralytics · `v8.0.100` @ `dce4efc`（**AGPL-3.0**，单库产品线） | WongKinYiu · main @ `7d639b1`（**无 LICENSE 文件**，快照口径） | THU-MIG · main @ `8d9f45a`（**AGPL-3.0**，ultralytics **8.1.34** fork，586 文件） | ultralytics/ultralytics · tag `v8.3.0` @ `6e43d1e1`（**AGPL-3.0**，664 文件，`__version__="8.3.0"`）|
-| 实现语言 | C（darknet） | C（darknet） | C（darknet） | C（darknet） | **Python（PyTorch）** | **Python（PyTorch）** | Python（PyTorch） | Python（PyTorch） | Python（PyTorch） | Python（PyTorch） | Python（PyTorch）|
-| 配置格式 | cfg（自定义文本） | cfg（自定义文本） | cfg（自定义文本） | cfg（自定义文本） | **yaml（标准格式）** | **Python dict（可执行）** | yaml（cfg/training/*.yaml） | **yaml（从 Python dict 回归）**（models/v8/*.yaml + default.yaml） | yaml（v7 式目录回归：models/detect/*.yaml + data/hyps/*.yaml） | yaml（ultralytics 8.1.34 式：cfg/models/v10/*.yaml 六档各带 scales + default.yaml） | **单文件 yolo11.yaml**（cfg/models/**11**/*.yaml——目录首次去 v 前缀）+ default.yaml，scales 表定义五档|
-| 输入尺寸 | 448×448 | 416×416 | 416×416 | 608×608 | 640×640 | 640×640 | 640×640 | 640×640 | 640×640 | 640×640 | 640×640|
-| 骨干 | 24 conv 自研 | Darknet-19 | Darknet-53（残差） | CSPDarknet53（CSP+残差） | CSPDarknet53（C3 模块） | **EfficientRep（RepVGG 重参数化）** | **ELAN 堆叠**（4 路 Concat 聚合 + Conv/MP） | CSP 风格（**C2f** 模块 + SPPF 收尾） | **GELAN**（CSPDarknet 衍生：RepNCSPELAN4 堆叠 + ADown 下采样） | C2f + SPPF（v8 同款起步），下采样换 **SCDown**、SPPF 后加 **PSA**，P5 融合用大核 **C2fCIB** | CSP 风格（**C3k2** 内瓶 + SPPF 收尾 + **C2PSA** 尾端一体化注意力）|
-| 层数 | 32（24 conv + 2 FC） | 31（22 conv + 5 maxpool + route/reorg） | 107（75 conv + 23 shortcut + upsample） | 162（110 conv + 23 shortcut + SPP/PANet） | 24（yaml 驱动，C3 内部 Bottleneck） | 模块化组装：骨干 5 段 + RepBiFPANNeck + 3 头 | yaml 驱动 105 模块（骨干 51 + 头 54，4/6 路 ELAN 块） | yaml 驱动 22 模块（n 档注释 225 层 / 3.16M / 8.9 GFLOPs） | yaml 驱动（主路骨干/neck + 层 23-37 训练期辅助支路 + DualDDetect） | yaml 驱动（yolov10n 物理 40 行：骨干 0-10 / neck 11-22 / **v10Detect 双头**） | yaml 驱动 24 顶层条目（骨干 #0~#10 + head #11~#23）；n/s 319 / m 409 / l/x 631 层|
-| 参数量 | ≈272M（FC4096 占 2 亿） | ≈67M | ≈61.8M | ≈64.1M | ≈7.2M（yolov5s） | ≈18.5M（yolov6s） | 36.9M（yolov7） | ≈3.2M（yolov8n）~68.2M（yolov8x） | ≈25.5M（C）~58.1M（E），README 口径 | ≈**2.3M（N）~29.5M（X）**，README 口径（含独有的 B 档 19.1M） | ≈**2.62M（n）~56.97M（x）**，五档 README 口径|
-| BN | ❌（v2 才引入） | ✅ 首次 | ✅ | ✅（CmBN） | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅|
-| 检测头 | 单头 7×7，每格 2 框 | 单头 13×13，5 anchor | 三头 13/26/52，9 anchor | 三头 76/38/19，18 anchor（顺序反转） | 三头 80/40/20，9 anchor | 三头 80/40/20 **anchor-free 解耦**，fuse_P2 时 P2 也进 Neck | 三头 80/40/20 anchor-based（RepConv 收口 + IDetect），可选 IAuxDetect 辅助头 | 三头 80/40/20 **anchor-free 解耦**（cv2 回归 / cv3 分类，**无 objectness**） | 三头 80/40/20 **anchor-free 解耦**，DualDDetect 双头（辅助 A3-A5 + 主路 P3-P5、双 DFL、g=4 分组卷积） | 三头 80/40/20 **anchor-free 解耦**，v10Detect 双头（one2many + one2one deepcopy、轻量分类头 cv3 深度可分离） | 三头 80/40/20 **anchor-free 解耦**（**Detect 单头**——v8 沿用版，非 v10Detect）|
-| 输出维度 | 1470 = 49×30 | 13×13×425 | 3×255（每头） | 3×255（每头） | 3×255（每头） | 3 头 × 84（4 ltrb + 80 cls，**无 obj**） | 3×255（每头） | 3 头 × 84（4 ltrb 由 64 维分布 DFL 解码 + 80 cls，无 obj），合计 8400 预测 | 3 头 × 84（64 维分布 DFL 解码 + 80 cls，无 obj）；训练态主辅双路输出，推理取主路 | 3 头 × 84（DFL 解码 + 80 cls，无 obj）；训练态 one2many + one2one 双分支（one2one 输入 detach），导出态 v10postprocess 直接吐 cat([boxes, scores, labels]) | 3 头 × 84（4 ltrb 由 64 维分布 DFL 解码 + 80 cls，无 obj），合计 8400 预测；推理回归 **NMS 收口**|
-| Anchor | ❌ 直接回归 | ✅ 5 个 K-means | ✅ 9 个分三组 | ✅ 18 个分三组 | ✅ 9 个 + autoanchor 自动学 | ❌ **彻底 anchor-free** | ✅ 9 个分三组（**仍 anchor-based**，与 v6 路线分叉） | ❌ **彻底 anchor-free**（网格中心 + ltrb 距离分布，reg_max=16） | ❌ **彻底 anchor-free**（延续 v8：网格中心 + ltrb 距离分布，reg_max=16） | ❌ **彻底 anchor-free**（延续 v8；one2one 分支是 one2many 头的完整 deepcopy） | ❌ **彻底 anchor-free**（沿用 v8；reg_max=16）|
-| 坐标损失 | SSE（√w√h 加权） | SSE + logistic 偏移 + σ′ 因子 | SSE，权重 `2−w·h` | **CIoU**（IoU 直接可导） | **CIoU**（autograd 自动求导） | **GIoU/SIoU** 权重 2.5 + DFL（蒸馏场景） | **CIoU**（autograd 自动求导） | **CIoU + DFL**（按 TAL 软标签 target_scores 加权） | **CIoU + DFL**（主分支输出 ×1.0 全量 / 辅助分支输出 ×0.25） | **CIoU + DFL**（fork 8.1.34 零改动；one2many 与 one2one 两分支权重均 1.0 直接相加） | **CIoU + DFL**（沿用 v8；显式 topk=10 / α=0.5 / β=6.0）|
-| 类别头 | 裸线性 + L2（softmax=0） | softmax | logistic 多标签 | logistic 多标签 | logistic 多标签 | logistic（**VFL 软标签**，无 objectness） | logistic 多标签（BCE，obj 目标 `(1-gr)+gr·iou`） | logistic（**BCE + TAL 软标签**，无 objectness，分类分数即框置信度） | logistic（**BCE + 双 TAL 软标签**，无 objectness） | logistic（**BCE + 双 TAL 软标签**，无 objectness；同 assigner 同 α=0.5/β=6.0） | logistic（**BCE + TAL 软标签**，无 objectness；v8DetectionLoss）|
-| 激活 | leaky | leaky | leaky | Mish（骨干）+ leaky（neck） | **SiLU**（全网络） | Rep 块 **ReLU** + SiLU 混用 | **SiLU**（全网络） | **SiLU**（全网络） | **SiLU**（全网络） | **SiLU**（全网络） | **SiLU**（全网络）|
-| 浅层融合 | ❌ | passthrough（reorg） | FPN 上采样回连 | FPN + **PANet** 双向 | FPN + **PANet** 双向 | FPN + PAN 双向 + **fuse_P2 四尺度 + BiFusion** | FPN + PANet 双向（ELAN 聚合，骨干 P3/P4 直连） | FPN + PAN 双向（拓扑最朴素，复杂度封装进 C2f） | FPN + PAN 双向 + **训练期辅助分支**（CBLinear 抽头 / CBFuse 相加回注，推理拆除） | FPN + PAN 双向（拓扑与 v8 一致；回程 P4→P5 下采样换 SCDown） | FPN + PAN 双向（拓扑与 v8 一致；**下采样回归普通 Conv**，非 SCDown）|
-| 感受野扩大 | — | — | — | **SPP**（5/9/13 并联池化） | **SPP**（5/9/13 并联池化） | **CSPSPPF** | **SPPCSPC** | **SPPF**（同一 MaxPool 串 3 次 ≈ 5/9/13） | SPPELAN（与 SPPF 同构，骨干尾部聚合） | **SPPF + PSA**（部分自注意力，全网仅 SPPF 后一处） | **SPPF + C2PSA**（骨干尾一体化：C3k2 残差支路 + Attention + FFN）|
-| 数据增强 | jitter + flip | + 多尺度训练 | + hue/sat/exp 色彩增强 | + **Mosaic** 四图拼接 | + **Mosaic** + **HSV** + **random_perspective** | Mosaic + HSV + 仿射（mixup 默认关） | Mosaic + HSV + 仿射（hyp.scratch.p5） | Mosaic + HSV + 仿射 + **close_mosaic** 末期关闭 | Mosaic + HSV + 仿射 + **close_mosaic**（README 命令 `--close-mosaic 15`） | Mosaic + HSV + 仿射 + **close_mosaic**（训练配方与 v8.1.34 完全一致，无新增 trick） | Mosaic + HSV + 仿射 + **close_mosaic**（训练配方与 v8 完全一致，无新增 trick）|
-| 特色 trick | dropout .5 | bias_match warmup | truth_thresh（死代码） | scale_x_y / multi-positive / SAT | autoanchor / EMA / AMP / OneCycle LR | **RepVGG 重参数化 / TAL / VFL / 自蒸馏 / RepOptimizer 量化** | **trainable bag-of-freebies**：E-ELAN / compound scaling / planned re-param / coarse-to-fine 双头标签分配 / partial aux head | **TAL topk=10 / DFL 内建默认 / scales 复合缩放查表 / 单库多任务**（detect/segment/pose/classify） | **PGI 辅助可逆分支 / GELAN 拓扑规划 / RepConvN 重参数化 / 双 assigner 独立 TAL topk=10 / 主辅 0.25-1.0 加权** | **一致性双分配**（one2many topk=10 + one2one topk=1）/ **NMS-free**（v10postprocess 纯 topk）/ 轻量分类头 / SCDown / CIB 大核 / PSA | **C3k2**（v8 C2f 轻量替代）/ **C2PSA**（骨干尾注意力）/ **TAL topk=13 α=1.0**（类默认，实际训练仍传 10/0.5）/ 单 yolo11.yaml 五档 scales / **回归 NMS 单头**|
-| 指标 | VOC07 mAP 63.4 | VOC07 mAP 78.6 | COCO AP50 57.9 · AP 33.0 | COCO AP50 65.7 · AP 43.5 | COCO AP50 56.8 · AP 37.4（yolov5s） | COCO AP 43.5 @ 495 FPS（S，T4 报告口径） | COCO AP **51.4** @ 161 FPS（V100 test-dev，36.9M/104.7G） | COCO AP 37.3~53.9（n~x，val2017，README 口径单模型单尺度） | COCO val AP **53.0**（C）/ **55.6**（E），README 口径 | COCO AP **38.5~54.4**（n~x，val2017，README 口径，T4 TRT FP16 batch1 延迟 1.84-10.70ms） | COCO AP **39.5~54.7**（n~x，val2017，博客+README 口径；快照内不可复核）|
+| 维度 | [v1](/versions/v1/index) | [v2](/versions/v2/index) | [v3](/versions/v3/index) | [v4](/versions/v4/index) | [v5](/versions/v5/index) | [v6](/versions/v6/index) | [v7](/versions/v7/index) | [v8](/versions/v8/index) | [v9](/versions/v9/index) | [v10](/versions/v10/index) | [v11](/versions/v11/index) | [v12](/versions/v12/index) | [v13](/versions/v13/index) |
+|------|------|------|------|------|------|------|------|------|------|------|------|------|------|
+| 发布 | 2015 arXiv / ECCV 2016 | 2016 arXiv / CVPR 2017 | 2018 arXiv | 2020 arXiv / CVPR 2020 | 2021 GitHub（无论文） | 2022 GitHub / 2022-09 arXiv 报告 | 2022-07 arXiv（2207.02696） | 2023-01 GitHub 首发（**无论文**） | 2024-02 arXiv（**2402.13616**，WongKinYiu——v4/v7 团队） | 2024-05 arXiv（**2405.14447**，清华 THU-MIG） | 2024-09 ultralytics 官方博客（**无论文**）+ tag `v8.3.0` | 2025-02 arXiv（**2502.12524**）+ tag `v1.0` | 2025-06 arXiv（**2506.17733v2**）+ commit `73289949` |
+| 代码快照 | pjreddie · `8322a58` | pjreddie · `c6afc7f` | pjreddie · `e84933b` | AlexeyAB · `4131ae1` | ultralytics · `f5b8f7d` | meituan · main 分支 | WongKinYiu · main @ `a207844` | ultralytics/ultralytics · `v8.0.100` @ `dce4efc` | WongKinYiu · main @ `7d639b1` | THU-MIG · main @ `8d9f45a` | ultralytics/ultralytics · `v8.3.0` @ `6e43d1e1` | **sunsmarterjie/yolov12 · `v1.0` @ `b1035f8f`**（fork `8.3.63`） | **iMoonLab/yolov13 · `73289949`**（fork `8.3.63`） |
+| 归属 | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | Ultralytics | 第三方（UB SUNY + UCAS） | 第三方（UCAS + 中科院自动化所） |
+| 许可证 | GPL | GPL | GPL | GPL | AGPL-3.0 | Apache-2.0 | GPL-3.0 | AGPL-3.0 | 无 LICENSE | AGPL-3.0 | AGPL-3.0 | AGPL-3.0 | **Apache-2.0** |
+| cfg 目录 | cfg/ | cfg/ | cfg/ | cfg/cfg.yaml | models/ | Python dict | cfg/training/ | cfg/models/v8/ | cfg/models/detect/ | cfg/models/v10/ | **cfg/models/11/**（首次去 v） | cfg/models/v12/（回归带 v） | cfg/models/v13/（带 v） |
+| 档位 | 单档 | 单档 | 单档 | 单档 | n/s/m/l/x | n/s/m/l/x | n/s/m/l/x | n/s/m/l/x | n/s/m/l/x | n/s/m/l/x + B | n/s/m/l/x | n/s/m/l/x | **n/s/l/x（无 m）** |
+| 骨干 | 24 conv 自研 | Darknet-19 | Darknet-53 | CSPDarknet53 | CSPDarknet53 | **EfficientRep** | **ELAN** | **C2f** | **GELAN** | C2f + SCDown + C2fCIB | **C3k2** | C3k2 ×3 + **A2C2f** ×6 | **DSC3k2 ×7 + A2C2f ×2** |
+| 检测头 | 单头 7×7 | 单头 13×13，5 anchor | 三头 13/26/52，9 anchor | 三头 76/38/19，18 anchor | 三头 80/40/20，9 anchor | **anchor-free 解耦** | 三头 anchor-based | **anchor-free 解耦** | anchor-free + DualDDetect | anchor-free + **v10Detect 双头** | anchor-free **Detect 单头** | anchor-free Detect + `legacy=False` | anchor-free Detect（沿用） |
+| NMS | 有 | 有 | 有 | 有 | 有 | 有 | 有 | 有 | 有 | **无（NMS-free）** | 有 | 有 | 有 |
+| 特色 trick | 无 | bias_match warmup | FPN 多尺度 | Mosaic/CIoU/DPN/Mish | autoanchor / EMA / AMP | RepVGG 重参数化 / TAL | trainable BoF / E-ELAN | TAL topk=10 / DFL | PGI / GELAN / DualDDetect | **NMS-free / 一致性双分配** | **C3k2 / C2PSA** | **A2C2f(R-ELAN) / AAttn** | **HyperACE / FullPAD / DS 体系** |
 
 ## v12 增补对照（相对 v11）
 
@@ -95,7 +95,7 @@ v12 不是 ultralytics 官方发布，而是第三方 fork（`sunsmarterjie/yolo
 
 | 维度 | [v11](/versions/v11/index) | [v12](/versions/v12/index) |
 |------|------|------|
-| 发布 | ultralytics 官方博客（无论文）+ README + tag `v8.3.0` | **arXiv:2502.12524**（2025-02-18）+ README + tag `v1.0` |
+| 发布 | ultralytics 官方博客（无论文）+ tag `v8.3.0` | **arXiv:2502.12524**（2025-02-18）+ tag `v1.0` |
 | 代码快照 | ultralytics/ultralytics · `v8.3.0` @ `6e43d1e1` | **sunsmarterjie/yolov12 · `v1.0` @ `b1035f8f`**，fork 自 `8.3.63` |
 | 归属 | Ultralytics 官方主线 | **第三方（UB SUNY + UCAS）** |
 | 配置 | 单 `yolo11.yaml`（`cfg/models/11/`，**不带 v**） | 单 `yolov12.yaml`（`cfg/models/v12/`，**带 v**） |
@@ -106,7 +106,7 @@ v12 不是 ultralytics 官方发布，而是第三方 fork（`sunsmarterjie/yolo
 | 训练配方 | 与 v8 完全一致 | **600 epoch / batch 256 + 分档 mixup/copy_paste** |
 | 参数量 | 2.62M（n）~56.97M（x） | **2.60M（n）~59.22M（x）** |
 | 特色 trick | C3k2 / C2PSA / TAL topk=13 | **A2C2f(R-ELAN) / AAttn / 分档增强 / layer-scale 仅 L/X 档** |
-| 指标 | COCO AP 39.5~54.7 | **COCO AP 40.6~55.2**（README 声明，快照内不可复核） |
+| 指标 | COCO AP 39.5~54.7 | **COCO AP 40.6~55.2** |
 
 ## v13 增补对照（相对 v12）
 
@@ -114,25 +114,18 @@ v13 也不是 ultralytics 官方发布，而是第三方 fork（`iMoonLab/yolov1
 
 | 维度 | [v12](/versions/v12/index) | [v13](/versions/v13/index) |
 |------|------|------|
-| 发布 | arXiv:2502.12524（2025-02-18）+ README + tag `v1.0` | **arXiv:2506.17733v2**（2025-06-21）+ README + commit `73289949` |
+| 发布 | arXiv:2502.12524（2025-02-18）+ tag `v1.0` | **arXiv:2506.17733v2**（2025-06-21）+ commit `73289949` |
 | 代码快照 | sunsmarterjie/yolov12 · `v1.0` @ `b1035f8f` | **iMoonLab/yolov13 · `73289949`**（2025-11-18），fork 自 `8.3.63` |
 | 归属 | 第三方（UB SUNY + UCAS） | **第三方（UCAS & 中科院自动化所）** |
 | 许可证 | AGPL-3.0 | **Apache-2.0** |
-| 配置 | 单 `yolov12.yaml`（`cfg/models/v12/`，带 v） | 单 `yolov13.yaml`（`cfg/models/v13/`，**带 v**，与 v12 一致） |
+| 配置 | 单 `yolov12.yaml`（`cfg/models/v12/`，带 v） | 单 `yolov13.yaml`（`cfg/models/v13/`，**带 v**） |
 | 档位 | 五档 n/s/m/l/x | **四档 n/s/l/x（无 m）** |
-| yaml 层数 | 22 顶层条目 | **32 顶层条目**（+10 主要在 FullPAD 与下采样） |
 | 骨干 | C3k2 ×3 + A2C2f ×6 + 无 SPPF | **DSC3k2 ×7 + A2C2f ×2 + DSConv 下采样 ×2 + 无 SPPF** |
-| 骨干下采样 | Conv 3×3 s2 | **DSConv 3×3 s2**（深度可分离） |
 | Head 首层 | Concat → C2f | **HyperACE（超图融合 P3/P4/P5）** |
 | Head 门控 | 无 | **7×FullPAD_Tunnel**（gate 从 0 学起） |
-| 检测头 | Detect 单头，DW-separable cv3 | **Detect 单头，DW-separable cv3（沿用）** |
-| 损失 | v8DetectionLoss（显式 topk=10 α=0.5 β=6.0） | **v8DetectionLoss（沿用）** |
-| 训练配方 | 600 epoch / batch 256 + 分档 mixup/copy_paste | **600 epoch / batch 256（沿用），T4 + TRT FP16 报告延迟** |
-| 参数量 | 2.60M（n）~59.22M（x） | **v13-N/S/L/X**（论文口径），A2C2f `mlp_ratio` 从 1.2 提到 **1.5**（L/X 档） |
-| 特色 trick | A2C2f(R-ELAN) / AAttn / 分档增强 / layer-scale 仅 L/X 档 | **HyperACE 超图 / FullPAD 门控 / DS 深度可分离（DSConv + DSC3k2）/ A2C2f 沿用** |
-| 指标 | COCO AP 40.6~55.2（README） | **COCO AP 41.6/48.0/53.4/54.8（TABLE I，N/S/L/X）** |
+| 指标 | COCO AP 40.6~55.2 | **COCO AP 41.6/48.0/53.4/54.8（TABLE I，N/S/L/X）** |
 
-## v1→v12 继承谱系
+## v1→v13 继承谱系
 
 ```mermaid
 flowchart LR
@@ -190,27 +183,39 @@ flowchart LR
   end
   subgraph V10["v10 继承 + NMS-free 收口"]
     J1[继承 v8 yaml 驱动 + CIoU + SiLU]
-    J2["+ 一致性双分配 one2many topk=10 + one2one topk=1"]
-    J3["+ v10postprocess 纯 topk 推理去 NMS"]
-    J4["+ SCDown / CIB 大核 / PSA / 轻量分类头"]
+    J2[+ 一致性双分配 one2many topk=10 + one2one topk=1]
+    J3[+ v10postprocess 纯 topk 推理去 NMS]
+    J4[+ SCDown / CIB 大核 / PSA / 轻量分类头]
   end
   subgraph V11["v11 继承 + 结构性减法"]
     K1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
-    K2["+ C3k2 骨干内瓶取代 C2f（8 处）"]
-    K3["+ C2PSA 收骨干尾（一体化 PSABlock）"]
-    K4["+ TAL topk=13 α=1.0（类默认）/ 单 yolo11.yaml 五档"]
+    K2[+ C3k2 骨干内瓶取代 C2f（8 处）]
+    K3[+ C2PSA 收骨干尾（一体化 PSABlock）]
+    K4[+ TAL topk=13 α=1.0（类默认）/ 单 yolo11.yaml 五档]
   end
   subgraph V12["v12 继承 + 注意力进骨干"]
     L1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
-    L2["+ A2C2f（R-ELAN）取代 P4/P5 主通路"]
-    L3["+ AAttn（Area Attention）/ FlashAttention 硬依赖"]
-    L4["+ 去 SPPF / DW-separable cv3 / 分档配方"]
+    L2[+ A2C2f（R-ELAN）取代 P4/P5 主通路]
+    L3[+ AAttn（Area Attention）/ FlashAttention 硬依赖]
+    L4[+ 去 SPPF / DW-separable cv3 / 分档配方]
   end
   subgraph V13["v13 继承 + 超图融合 + 深度可分离"]
     M1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
-    M2["+ HyperACE（超图）骨干后首层做 P3/P4/P5 融合"]
-    M3["+ 7×FullPAD_Tunnel 门控连接（gate 从 0 学起）"]
-    M4["+ DS 深度可分离体系（DSConv + DSC3k2）/ 缩到四档无 m"]
+    M2[+ HyperACE（超图）骨干后首层做 P3/P4/P5 融合]
+    M3[+ 7×FullPAD_Tunnel 门控连接（gate 从 0 学起）]
+    M4[+ DS 深度可分离体系（DSConv + DSC3k2）/ 缩到四档无 m]
+  end
+  subgraph V14["v14 · 学术线 · YOLO-Omni"]
+    N1[fork 自 iMoonLab/yolov13 · 8.3.63 基线 · AGPL-3.0]
+    N2[骨干 CircularConv + ViewEmbedding + DAL 多视角感知]
+    N3[DeformableA2C2f 变形注意力进骨干]
+    N4[Detect + v14DetectionLoss · GRL 域对抗 · 4 条 schedule]
+  end
+  subgraph V26["v26 · 官方线 · End2End 双分支"]
+    O1[Ultralytics 官方 @ 2e241d0 · AGPL-3.0 + Enterprise 双许可]
+    O2[骨干 Conv-C3k2×4-SPPF-C2PSA · 回归 v8/v10/v11 家族]
+    O3[Detect end2end=True · reg_max=1 · copy.deepcopy 双分支]
+    O4[Depth/Semantic/OBB/CLS/YOLOE 六任务同 backbone]
   end
   V1 --> V2 --> V3 --> V4 --> V5 --> V6
   V4 -.BoF 路线延续.-> V7
@@ -225,8 +230,31 @@ flowchart LR
   V11 --> V12
   V8 -.->|"8.3.63 fork · 注意力进骨干"| V12
   V12 -.->|"8.3.63 fork · 超图融合 + DS 体系"| V13
+  V13 -.->|"学术线：多相机感知"| V14
+  V13 -.->|"官方线：六任务统一 backbone + End2End"| V26
 ```
 
-每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)（v1 哪些病被治好）、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)、[v5 痛点追踪](/versions/v5/painpoints)、[v6 痛点追踪](/versions/v6/painpoints)、[v7 痛点追踪](/versions/v7/painpoints)、[v8 痛点追踪](/versions/v8/painpoints)、[v9 痛点追踪](/versions/v9/painpoints)、[v10 痛点追踪](/versions/v10/painpoints)（NMS 外挂这条全系列最持久的痛点在此收口）、[v11 痛点追踪](/versions/v11/painpoints)（把 v10 的双头、SCDown/CIB/PSA 三件套全部撤掉，回退到 v8 检测头 + NMS）、[v12 痛点追踪](/versions/v12/painpoints)（FlashAttention 硬依赖、num_heads 硬编码、第三方 fork 的归属问题）、[v13 痛点追踪](/versions/v13/painpoints)（HyperACE `n=1` 静默覆盖、DownsampleConv 在 l/x 走 Identity、7 处 FullPAD gate 训练末期不可解释、论文与代码 6 处偏差）。
+每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)、[v5 痛点追踪](/versions/v5/painpoints)、[v6 痛点追踪](/versions/v6/painpoints)、[v7 痛点追踪](/versions/v7/painpoints)、[v8 痛点追踪](/versions/v8/painpoints)、[v9 痛点追踪](/versions/v9/painpoints)、[v10 痛点追踪](/versions/v10/painpoints)（NMS 外挂这条全系列最持久的痛点在此收口）、[v11 痛点追踪](/versions/v11/painpoints)、[v12 痛点追踪](/versions/v12/painpoints)、[v13 痛点追踪](/versions/v13/painpoints)、[v14 痛点追踪](/versions/v14/painpoints)、[v26 痛点追踪](/versions/v26/painpoints)。
 
-详见 [演化事件](/global/evolutions) 与 [时间线](/global/timeline)。
+## 双线路对照（v14 学术线 vs v26 官方线）
+
+v14 与 v26 是 YOLO 家族**第一次出现「同一起点、两条独立路线」**——都从 v13 fork 出发，但作者、目标、结构、损失都完全不同。下表并排对照：
+
+| 维度 | [v14](/versions/v14/index) · 学术线 | [v26](/versions/v26/index) · 官方线 |
+|------|-------------------------------------|-------------------------------------|
+| 发布 | 2026-08（arXiv 2608.04720v3，YOLO-Omni） | 2026-06（arXiv 2606.03748，Ultralytics 官方） |
+| 代码快照 | zhangcbb/yolov14 @ `0b8610d`（AGPL-3.0 fork） | Ultralytics/ultralytics @ `2e241d0`（AGPL-3.0 + Enterprise 双许可） |
+| 归属 | 学术 fork（YOLO-Omni 团队） | **Ultralytics 官方主线** |
+| cfg 目录 | `cfg_models_v14/`（**顶层独立目录**） | `cfg_models_26/`（**顶层独立目录**） |
+| 档位 | 五档 n/s/m/l/x | 五档 n/s/m/l/x（回归 v11/v12/v13 前的五档） |
+| 骨干 | **CircularConv + ViewEmbedding + DomainAdaptiveLayer + DeformableA2C2f** | **Conv-C3k2×4-SPPF-C2PSA**（回归 v8/v10/v11 家族） |
+| Head 首层 | DeformableA2C2f（P4/P5 内嵌变形注意力） | **C2PSA**（沿用 v11 一体化注意力） |
+| 检测头 | Detect + **v14DetectionLoss（三分量 + GRL 域对抗 + 4 条 schedule）** | **Detect(end2end=True, reg_max=1)** — 双分支 `copy.deepcopy(cv2/cv3)` |
+| 损失 | v14DetectionLoss（三分量 + GRL 域对抗） | **E2ELoss**（one2many + one2one + decay 退火：`0.8→0.1`） |
+| reg_max | 16（沿用 v8/v11 默认） | **1**（DFL 退化为 Identity） |
+| NMS | 保留 | **无 NMS**（`end2end=True` 下直接 topk） |
+| 任务数 | 4（Detect + Segment + Pose + OBB） | **9 种模式**（Detect / Segment / Pose / OBB / Depth / SemanticSeg / CLS / RTDETR / YOLOE / World） |
+| 特色模块 | CircularConv / ViewEmbedding / DomainAdaptiveLayer / DeformableA2C2f / GRL | **SAVPE / Proto26 / RealNVP / BNContrastiveHead / _grouped_topk** |
+| 定位 | 多相机/多视角感知（自动驾驶场景） | **端到端极简头 + 多任务统一**（生产部署导向） |
+
+详见 [v14 首页](/versions/v14/index)、[v26 首页](/versions/v26/index)、[演化事件](/global/evolutions) 与 [时间线](/global/timeline)。

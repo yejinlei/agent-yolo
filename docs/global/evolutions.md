@@ -83,6 +83,62 @@
 - COCO mAP@0.5:0.95（论文 TABLE I）：v13-N/S/L/X = **41.6 / 48.0 / 53.4 / 54.8**，与 v12 的 L/X 差距收敛到 <1
 - 关键理由：DS 化降参数与 FLOPs；超图融合引入"跨尺度非两两相关"，弥补 v12 AAttn 只作用于单尺度的不足
 
+## v13 → v14（学术线）：YOLO-Omni 多相机感知 + GRL 域对抗
+
+**发布**：zhangcbb/yolov14 @ `0b8610d`，AGPL-3.0 fork，arXiv 2608.04720v3，2026-08-14。作者自述"We name our detector **YOLO-Omni**"。
+
+| 引入 | 淘汰 |
+|------|------|
+| CircularConv（环状卷积，处理全景/360° 特征卷绕） | 传统 3×3 卷积边界 |
+| ViewEmbedding（6 类视角 embedding 注入 P2 特征） | 视角无关的输入假设 |
+| DomainAdaptiveLayer（视角/域自适应门控） | 单一域训练假设 |
+| DeformableA2C2f（在 A2C2f 上叠加 deformable） | 静态注意力 |
+| DomainAdversarialLoss + GRL（域对抗训练） | 纯监督学习 |
+| CrossViewConsistencyLoss（跨视角一致性） | 单视角监督 |
+| 4 基准：Game / Fisheye / Drone / Panorama | 只跑 COCO |
+| cfg 目录独立到 `cfg_models_v14/` | 与主线共用 `models/` |
+
+- **骨干**：`CircularConv → ViewEmbedding → DomainAdaptiveLayer → DeformableA2C2f` 四段式，每段都注入"视角/域"信息；**A2C2f 骨架沿用 v13（mlp_ratio 从 1.2 → 2.0）**，C3k2 浅层沿用 v11/v12/v13 家族
+- **头**：Detect + v14DetectionLoss（三分量 + GRL 域对抗 + 4 条 schedule）
+- **任务**：Detect / Segment / Pose / OBB（4 任务，比 v13 少）
+- **档位**：n/s/m/l/x 五档（恢复 v11/v12 的 m 档）
+- **许可证**：AGPL-3.0 fork（回到 v10~v12 的 AGPL 阵营）
+- COCO mAP@0.5:0.95：s 档 49.1（T4/FP16 344 FPS），比 v13 s 档 48.0 高 1.1；四基准（Game/Fisheye/Drone/Panorama）均 >43 AP
+- 关键理由：**「统一多域鲁棒检测」而非 COCO SOTA 竞赛**——通过视角 embedding + 域对抗让模型在游戏、鱼眼、无人机、全景四类非常规图像上都能保持高精度
+
+## v13 → v26（官方线）：End2End 双分支 + 6 任务统一
+
+**发布**：Ultralytics 官方 @ `2e241d0`，AGPL-3.0 + Enterprise 双许可，arXiv 2606.03748，2026-06 发布。
+
+| 引入 | 淘汰 |
+|------|------|
+| End2End 双分支头（`copy.deepcopy(cv2/cv3)`，DFL → `nn.Identity()`） | 传统 DFL 分布回归 |
+| E2ELoss（one2many + one2one + `decay` 退火 0.8→0.1） | 单一 one2many 分配 |
+| `_grouped_topk`（`end2end=True` 无 NMS 推断） | NMS 后处理 |
+| SAVPE（Slope-Aware Vertical Point Encoding） | 传统坐标编码 |
+| Proto26（v26 分割原型） | v8~v13 的 Proto |
+| RealNVP 流模型（用于 YOLOE 文本对齐） | 静态文本-图像对齐 |
+| BNContrastiveHead（对比学习头） | 单一分类头 |
+| Depth + SemanticSeg 任务 | 只有 Detect/Segment/Pose/OBB |
+| YOLOE（open-vocabulary）+ World 模式 | 固定类别数 |
+| mobileclip2:b 文本编码器 | 无文本编码器 |
+| cfg 目录独立到 `cfg_models_26/` | 与主线共用 `models/` |
+
+- **骨干**：Conv-C3k2×4-SPPF-C2PSA（回归 v8/v10/v11 家族，不用 v12/v13 的 Attention 块）
+- **头**：`Detect(end2end=True, reg_max=1)` — `copy.deepcopy` 双分支
+- **损失**：`E2ELoss`（one2many + one2one + decay 退火）
+- **9 种模式**：Detect / Segment / Pose / OBB / Depth / SemanticSeg / CLS / RTDETR / YOLOE / World
+- **CFG**：`reg_max: 1`（DFL 退化）、`agnostic_nms: False`、`tal_topk: 10`
+- **许可证**：AGPL-3.0 + Enterprise 双许可（首次引入商业许可分流）
+- COCO mAP@0.5:0.95：v26 X 档 **57.5**（T4/FP16 660 FPS），比 v13 X 档 54.8 高 2.7
+- 关键理由：**「端到端统一 6 任务 + 无 NMS」**——通过双分支 + decay 退火 + `_grouped_topk` 消除后处理，同时把分割、姿态、深度、语义分割、开放词汇（YOLOE）都纳入同一套代码路径
+
 ---
 
-**共同主线**：从"如何更快"（v1→v2→v3）→"如何更准"（v3→v4→v8）→"如何更高效"（v9→v10→v11→v12）→"如何更细粒度地融合与压缩"（v13）。
+**主线 + 双线路叙事**：从"如何更快"（v1→v2→v3）→"如何更准"（v3→v4→v8）→"如何更高效"（v9→v10→v11→v12）→"如何更细粒度地融合与压缩"（v13）→ **2026 双线路分叉**：
+
+- **学术线 v14**（YOLO-Omni）：走向「多域鲁棒」——通过视角 embedding + 域对抗 + 环状卷积，把检测器从"单一域 COCO SOTA 竞赛"推向"多相机、多视角、多域统一"；
+- **官方线 v26**（Ultralytics End2End）：走向「端到端 6 任务统一」——通过双分支 + decay 退火 + `_grouped_topk`，把 9 种模式（含开放词汇 YOLOE、深度、语义分割）统一在同一套代码路径，消除 NMS 与 DFL 后处理。
+
+两条线路都从 v13 分叉，共享 DSConv + C3k2 的骨干遗产，但在「头设计」和「任务广度」上走向完全不同的技术方向。
+

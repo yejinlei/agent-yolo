@@ -34,7 +34,8 @@ timeline
   2024 : YOLOv11 EMA + C3k2
   2025 : YOLOv12 Global Attention
   2025 : YOLOv13 HyperACE 超图 + DS 深度可分离
-  2026 : 下一代 (预留)
+  2026-06 : YOLOv26 (Ultralytics 官方线)<br/>End2End 双分支 + 6 任务统一
+  2026-08 : YOLOv14 (YOLO-Omni 学术线)<br/>多相机感知 + GRL 域对抗
 ```
 
 ## 关键年份速览
@@ -54,5 +55,7 @@ timeline
 | 2024 | v11 | EMA | 53.4 (COCO) | — |
 | 2025 | v12 | Global Attn | 53.6 (COCO) | — |
 | 2025 | v13 | HyperACE 超图 + DS | 54.8 (COCO, X 档) | — |
+| 2026-06 | v26 | Ultralytics End2End 官方线：双分支 + 6 任务 | 57.5 (COCO mAP50-95, X 档) | 660 (T4/FP16) |
+| 2026-08 | v14 | YOLO-Omni 学术线：多相机 + GRL 域对抗 | 49.1 (COCO mAP50-95, s 档) | 344 (T4/FP16) |
 
-*注：COCO 数字为 mAP@0.5:0.95，VOC 为 mAP@0.5。数字来自各版本官方论文。v13 采用 iMoonLab/yolov13 快照（commit 73289949，2025-11-18）；mAP 口径取论文 TABLE I 的 X 档峰值，与 v12 博客口径不完全一致。*
+*注：COCO 数字为 mAP@0.5:0.95，VOC 为 mAP@0.5。数字来自各版本官方论文。v13 采用 iMoonLab/yolov13 快照（commit 73289949，2025-11-18）；mAP 口径取论文 TABLE I 的 X 档峰值，与 v12 博客口径不完全一致。**v26 与 v14 是 2026 年双线路分叉的两条主线**：v26 = Ultralytics 官方发布（`2e241d0`，arXiv 2606.03748），主打 End2End 双分支与 6 任务统一；v14 = 学术线 YOLO-Omni（`zhangcbb/yolov14` @ `0b8610d`，arXiv 2608.04720v3），主打多相机感知与 GRL 域对抗训练。*

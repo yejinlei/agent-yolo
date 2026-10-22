@@ -370,3 +370,39 @@ flowchart TB
 - [v12 痛点追踪](/versions/v12/painpoints) — 上代「FlashAttention 硬依赖」的对照
 - [v11 痛点追踪](/versions/v11/painpoints) — 「TAL topk 类默认与 loss.py 显式不一致」的对照
 - [术语表](/glossary) — Hypergraph、AdaHyperedgeGen、AdaHGConv、FullPAD、DSConv、C3AH 等术语索引
+
+## v14 / v26 路标（后续版本的路标）
+
+v13 之后 YOLO 系列进入**双线路分叉**时代（2026 年）——两条主线都从 v13 分叉，共享 DSConv + C3k2 的骨干遗产，但走完全不同的技术方向：
+
+### 学术线 v14（YOLO-Omni）：多相机感知 + GRL 域对抗
+
+- 发布：zhangcbb/yolov14 @ `0b8610d`，AGPL-3.0 fork，arXiv 2608.04720v3，2026-08-14
+- 方向：**统一多域鲁棒检测**——不再是 COCO SOTA 竞赛，而是「多相机、多视角、多域统一」
+- 引入：CircularConv / ViewEmbedding / DomainAdaptiveLayer / DeformableA2C2f / DomainAdversarialLoss (GRL) / CrossViewConsistencyLoss
+- 4 基准：Game / Fisheye / Drone / Panorama（v13 之前版本没有这些基准）
+- 主要痛点：**权重与基准数据未开源**（README roadmap 标 IN PROGRESS），多域损失权重手调，纯 COCO 单域训练建议关 adv/cross
+- 详见 [v14 概览](/versions/v14/index) / [v14 痛点追踪](/versions/v14/painpoints)
+
+### 官方线 v26（Ultralytics End2End）：双分支 + 6 任务统一
+
+- 发布：Ultralytics 官方 @ `2e241d0`，AGPL-3.0 + Enterprise 双许可，arXiv 2606.03748，2026-06
+- 方向：**端到端统一 6 任务 + 无 NMS**——一个模型同时做 Detect/Segment/Pose/OBB/Depth/SemanticSeg
+- 引入：End2End 双分支头（`copy.deepcopy` + DFL→`nn.Identity()`） / E2ELoss（decay 退火）/ `_grouped_topk` / SAVPE / Proto26 / RealNVP / BNContrastiveHead / YOLOE
+- 9 种模式（含开放词汇 YOLOE、World、RTDETR、Depth、SemanticSeg）
+- 主要痛点：**AGPL-3.0 与 Enterprise 双许可并存**（商业使用需 Enterprise），双分支结构对显存翻倍，`reg_max: 1` 使 DFL 失效导致部分老任务迁移需重写
+- 详见 [v26 概览](/versions/v26/index) / [v26 痛点追踪](/versions/v26/painpoints)
+
+### 与 v13 痛点的对比
+
+| v13 痛点 | v14 学术线 | v26 官方线 |
+|----------|-----------|-----------|
+| HyperACE n 被 tasks.py 覆盖 | 无 HyperACE 困扰（v14 不引入 HyperACE，A2C2f 沿用 v13 骨架 + mlp_ratio 加倍） | ❌ 回归 v8/v10/v11 C3k2 家族，无 HyperACE |
+| DownsampleConv l/x Identity | 沿用 v13 DownsampleConv（l/x Identity） | 不用 DownsampleConv，用 Conv 3×3 s2 |
+| FullPAD 死门 | 未沿用 FullPAD | 未沿用 FullPAD |
+| tasks.py 特例脱耦 | 仍有（cfg 目录独立到 `cfg_models_v14/`） | 仍有（cfg 目录独立到 `cfg_models_26/`） |
+| 许可证 AGPL 顾虑 | ✅ 已解决（AGPL-3.0 fork，明确） | ⚠️ 双许可（AGPL-3.0 + Enterprise） |
+| 训练精度瓶颈 | ✅ 四基准均 >43 AP，COCO +1.1 AP（v13 s 档 48.0 → v14 s 档 49.1） | ✅ COCO X 档 57.5（比 v13 X 档 +2.7） |
+
+**双线路的核心分歧**：v14 走「骨干多视角化 + 域对抗」路线，v26 走「头端到端化 + 任务统一」路线——一个动骨干、一个动头，几乎完全正交。想深入理解两条线路的完整对比，见 [家族树 · 双线路对照](/global/family#双线路对照-v14-学术线-vs-v26-官方线)。
+

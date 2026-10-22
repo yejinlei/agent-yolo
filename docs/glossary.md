@@ -213,6 +213,39 @@ v13 的 DS 化骨干三件套：**DSBottleneck** = `Conv1×1 → DSConv3×3 → 
 ### DownsampleConv
 v13 的下采样模块：`AvgPool2d(2) + Conv(1×1, c→2c)` 取代 v10 SCDown / v9 ADown 的复杂拆分。**l/x 档在 tasks.py 里被强制走 `nn.Identity`**——等价退化成"直接 concat"，与 v8 C2f 的下采样方式一致。详解：[v13 painpoints §5](/versions/v13/painpoints)。
 
+### CircularConv
+v14（YOLO-Omni 学术线）引入的**环状卷积**：在特征图边界处"环形连接"（左邻接右、上邻接下），专用于处理 360° 全景图与球形投影图像的特征卷绕问题。传统 3×3 卷积在 wrap-around 边界处会丢失上下文，CircularConv 通过 `F.pad(mode='circular')` 让卷积核跨边界采样。详解：[v14 layers](/versions/v14/layers)。
+
+### ViewEmbedding
+v14 的**视角 embedding 注入**模块：在骨干 P2 特征上拼接一段可学习的视角 embedding——6 类视角（pinhole / drone / fisheye / panorama / game / mixed）各对应一个可学习向量，让网络在训练初期就"知道"当前图像来自哪种相机/场景。是 YOLO 系列首次把"视角"作为**显式输入条件**引入骨干的版本。详解：[v14 concepts](/versions/v14/concepts)。
+
+### DomainAdaptiveLayer
+v14 的**域自适应门控**：一段可学习的逐通道缩放向量 `scale = sigmoid(Conv_gate(x))`，让每个通道可以按视角/域动态放大或抑制。通常和 ViewEmbedding 组合使用——ViewEmbedding 提供视角 embedding，DomainAdaptiveLayer 用它做条件化门控。详解：[v14 architecture](/versions/v14/architecture)。
+
+### DeformableA2C2f
+v14 的**可变形注意力 CSP 块**：把 v12 的 A2C2f 骨架里的 ABlock 换成带可变形卷积（Deformable Conv）的变体——注意力算子 qkv 由 1×1 **DeformableConv** 生成，注意力权重按偏移采样，可以"看见"传统注意力看不见的位置。用于 Game / Fisheye / Drone 三类非常规图像。详解：[v14 layers](/versions/v14/layers)。
+
+### End2End 双分支头（E2E head）
+v26（Ultralytics 官方线）的核心头结构：`Detect(end2end=True, reg_max=1)` 通过 `copy.deepcopy(cv2/cv3)` 生成两套并行分支——**分支 1 走标准 Detect 逻辑（DFL 保留）**，**分支 2 把 DFL 替换成 `nn.Identity()`**（因为 `reg_max=1` 时 DFL 退化为无操作），让两个分支的回归头可以直接输出 `ltrb` 而不做分布解码。配合 `_grouped_topk` 消除 NMS。详解：[v26 concepts](/versions/v26/concepts)。
+
+### SAVPE
+Slope-Aware Vertical Point Encoding，v26 的**斜率感知纵坐标编码**：在 v10 NWD 的 W2D 编码基础上，对纵坐标额外引入一个斜率项，让细长物体的定位更稳。用于 v26 的 Detect 头。详解：[v26 layers](/versions/v26/layers)。
+
+### Proto26
+v26 的**分割原型模块**：替代 v8~v13 的 `Proto`，用 C3k2 + DWConv 组合出更紧凑的 mask 原型生成器。输出形状 `[B, nc_masks, H/4, W/4]`，配合 Segment26 头解码出 mask。详解：[v26 layers](/versions/v26/layers)。
+
+### RealNVP
+**可逆流模型（Real-valued Non-volume-preserving Flow）**：v26 用它做 YOLOE 的文本-图像对齐——把文本 embedding 通过一个 RealNVP 流网络映射到与图像特征匹配的空间，实现开放词汇检测的"文本-视觉对齐"。是 YOLO 系列首次引入可逆流模型。详解：[v26 concepts](/versions/v26/concepts)。
+
+### BNContrastiveHead
+v26 的**批量归一化对比学习头**：用 BN 层的 `running_mean` 作为特征中心，通过对比学习损失拉近同类样本、推远异类样本。用于 YOLOE 的对比学习训练。详解：[v26 layers](/versions/v26/layers)。
+
+### _grouped_topk
+v26 的**分组 top-k 推断算子**：当 `end2end=True` 时，推理阶段不走 NMS，而是按尺度分组做 top-k 选择——每个尺度只保留分数最高的 N 个框，避免同类物体重叠框的冗余。是 v26 "无 NMS" 推断的核心。详解：[v26 tricks](/versions/v26/tricks)。
+
+### mobileclip2:b
+v26 YOLOE 使用的**轻量文本编码器**：从 OpenCLIP 家族挑的 mobile 版，参数量极小但语义表达足够，专门服务 YOLOE 的文本 embedding 生成。配合 `text_model:` 字段在 yaml 里声明。详解：[v26 concepts](/versions/v26/concepts)。
+
 ## 训练与损失
 
 ### 损失函数（loss）
@@ -312,6 +345,36 @@ v7 的标签分配器：先用 dynamic-k（cost = 分类 + 3·(−log IoU)）给
 
 ### close_mosaic
 v8 的训练超参：训练收尾的最后 N 个 epoch **关闭 Mosaic**，让模型在真实分布上定型（配置默认 0，实践中常用 10）——"先猛增广、后真分布"的两段式训练。详解：[v8 close_mosaic 概念](/versions/v8/concepts#_10-close-mosaic-末期关闭增广-concept-close-mosaic)。
+
+### GRL（Gradient Reversal Layer）
+**梯度反转层**：前向传播时恒等映射，反向传播时把梯度乘 `-1`——让判别器在训练时被"误导"以为输入分布是假的，从而实现**域对抗训练**（adversarial domain adaptation）。v14（YOLO-Omni）用它让骨干学习跨视角/跨域的不变特征：`DomainAdversarialLoss` 通过 GRL 反向传递，使骨干特征对视角判别器不可区分。详解：[v14 losses](/versions/v14/losses)。
+
+### DomainAdversarialLoss
+v14 的**域对抗损失**：`L_adv = -log(1 - p_domain_correct)`——通过一个视角判别器（View Classifier）预测当前特征来自哪个视角/域，GRL 反转骨干梯度让判别器**猜不中**视角——迫使骨干学到视角不变的通用特征。权重默认 `λ_adv = 0.05`，在纯 COCO 单域训练时建议关掉。详解：[v14 losses](/versions/v14/losses)。
+
+### CrossViewConsistencyLoss
+v14 的**跨视角一致性损失**：对同一 GT 在不同视角/域下的预测施加一致性约束——相同物体的框、mask、关键点在不同视角下应保持一致。权重默认 `λ_cross = 0.05`。详解：[v14 losses](/versions/v14/losses)。
+
+### SILog（Scale-Invariant Log loss）
+**尺度不变对数损失**：`L = sqrt(mean((log(y_pred / y_true))^2) - (mean(log(y_pred / y_true)))^2)`——把深度值取对数并去掉尺度偏移项，让深度估计对整体尺度缩放不变。v26 的 Depth 任务默认损失。详解：[v26 losses](/versions/v26/losses)。
+
+### RLE（Run-Length Encoding）
+**游程编码**：把连续的 0/1 mask 序列压缩成"长度-值"对——`1,0,0,0,1,1,1` → `(1,1), (3,0), (3,1)`。v26 分割任务的 mask 存储格式（从 v8 COCO 数据集沿用），显著降低 mask 存储开销。详解：[v26 concepts](/versions/v26/concepts)。
+
+### E2EDetectLoss
+v26 的**端到端检测损失**：`loss = loss_one2many + loss_one2one`——同时用 one2many（topk=10）和 one2one（topk=1）两条分配路径计算损失并相加，配合 `decay` 退火函数控制两条路径的权重比。详解：[v26 losses](/versions/v26/losses)。
+
+### E2ELoss
+v26 的**端到端总损失**：`E2ELoss(E2EDetectLoss, PoseLoss26, SegmentLoss26, OBB26Loss)`——把检测、姿态、分割、OBB 四种任务的损失组合在一起，通过 `decay` 函数在训练过程中逐步退火权重。核心思想是让**一个模型同时学到四种任务的表示**。详解：[v26 losses](/versions/v26/losses)。
+
+### decay（decay 退火）
+v26 E2E 损失的**权重退火函数**：`decay(t) = 0.8 - 0.7 * sigmoid(k * (t - t0))`，让 one2many 权重从 `0.8` 逐步衰减到 `0.1`——训练初期 one2many 主导（给足监督），训练末期 one2one 主导（让模型学会每个 GT 只出一个框）。详解：[v26 losses](/versions/v26/losses)。
+
+### DepthLoss26
+v26 的**深度估计损失**：组合 `SILog + MAE + Grad` 三项——SILog 保证尺度不变，MAE（Mean Absolute Error）做主监督，Grad 损失保持深度图的梯度结构一致。详解：[v26 losses](/versions/v26/losses)。
+
+### SemanticSegmentationLoss
+v26 的**语义分割损失**：`CrossEntropyLoss(ignore_index=255) + DiceLoss + FocalLoss`——三项组合解决语义分割的类别不平衡问题（忽略背景 255，用 Dice 处理小目标，用 Focal 处理难易样本）。详解：[v26 losses](/versions/v26/losses)。
 
 ## darknet 源码黑话
 
