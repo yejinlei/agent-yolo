@@ -132,6 +132,17 @@ flowchart TB
 | Mosaic 训练初期不稳定 | Low | v5 加 warmup 关闭 Mosaic |
 | 代码复杂度高（trick 堆叠） | Medium | v5 工程化重构（PyTorch 化） |
 
+## 后续演进速览
+
+- **v5（2020）**：三尺度 anchor + 官方仓库，训练 pipeline 工程化
+- **v6（2020）**：E-ELAN 轻量 + SimOTA，主打边缘效率
+- **v7（2022）**：P2 小目标 + 双头训练，学术线回归
+- **v8（2023）**：Ultralytics 官方化重构（anchor-free + TAL + DFL）
+- **v9（2024）**：GELAN + 双头可编程梯度
+- **v10-v13（2024-2025）**：NMS-free / 官方线 AGPL / 学术线 HyperACE
+
+> **v10-v13 已上线本站**：NMS-free / AGPL / HyperACE 等新一轮演进，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读](/versions/v4/paper)

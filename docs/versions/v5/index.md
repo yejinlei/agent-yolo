@@ -139,6 +139,16 @@ flowchart TB
 | CIoU 的长宽比项梯度仍缺 1/(1+ar²) 因子 | Low | 沿用 v4，未修复 |
 | 模型 yaml 硬编码三头结构，难改 P2 | Medium | v8 解耦 head |
 
+## 后续演进速览
+
+- **v6（2020）**：E-ELAN 轻量 + SimOTA，主打边缘效率
+- **v7（2022）**：三尺度 anchor + P2 小目标 + 双头训练
+- **v8（2023）**：Ultralytics 官方化重构（anchor-free + C2f + TAL + DFL）
+- **v9（2024）**：学术重构双头（GELAN + 可编程梯度）
+- **v10-v13（2024-2025）**：学术线与官方线分叉——NMS-free / AGPL / HyperACE
+
+> **v10-v13 已上线本站**：NMS-free / AGPL / HyperACE 等新一轮演进，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读（无正式论文，读 README + 代码）](/versions/v5/paper)

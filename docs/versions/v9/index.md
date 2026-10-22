@@ -176,6 +176,15 @@ flowchart TB
 | 指标口径 | README COCO val2017 + 双延迟列 | README **COCO val 640**：S 46.8 / M 51.4 / C 53.0 / E 55.6 AP，无延迟列 |
 | 许可证 | AGPL-3.0 开源 + 商业双轨 | 快照根**无 LICENSE 文件**（引用时以仓库当前口径为准） |
 
+## 后续演进速览
+
+- **v10（2024）**：Ultralytics NMS-free 端到端（fork 自 8.1.34）
+- **v11（2024）**：官方线 v1 版本——C3k2 + C2PSA 迭代
+- **v12（2025）**：官方线 A2C2f + A2CBB 等新块
+- **v13（2025）**：论文回归 + HyperACE（Apache-2.0）
+
+> **v10-v13 读者路标**：v9 之后 YOLO 分叉为「Ultralytics 官方线」与「学术重构线」，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读（PGI 与 GELAN 的动机、方法与实验叙事）](/versions/v9/paper)

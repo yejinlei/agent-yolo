@@ -120,6 +120,17 @@ flowchart LR
 >
 > **v4 路标**：BN 泛化、anchor 依赖在 v4 继续被攻——骨干换 CSPDarknet53（梯度分流）、neck 加 SPP+PANet、训练上 Mosaic + CmBN（见 [v4 概览](/versions/v4/index)）。
 
+## 后续演进速览
+
+- **v3（2018）**：三头 FPN + 9 anchors + Darknet-53，小目标召回显著改善
+- **v4（2020）**：CIoU + Mosaic + anchor-free，COCO AP 首破 50
+- **v5-v6（2020）**：官方仓库化 + E-ELAN 轻量效率
+- **v7（2022）**：三尺度 anchor + P2 小目标
+- **v8-v9（2023-2024）**：Ultralytics 官方化 + 学术双头重构
+- **v10-v13（2024-2025）**：NMS-free / 学术线并驾 / HyperACE
+
+> **v10-v13 已上线本站**：NMS-free / AGPL / HyperACE 等新一轮演进，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读](/versions/v2/paper)

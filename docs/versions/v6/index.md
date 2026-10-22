@@ -140,6 +140,16 @@ flowchart TB
 
 详见[痛点追踪](/versions/v6/painpoints)。
 
+## 后续演进速览
+
+- **v7（2022）**：三尺度 anchor 回归 + P2 小目标 + 双头训练
+- **v8（2023）**：Ultralytics 官方重构（anchor-free + C2f + TAL + DFL）
+- **v9（2024）**：学术重构（GELAN + 双头可编程梯度）
+- **v10（2024）**：NMS-free 端到端推理（Ultralytics 8.1.34 fork）
+- **v11-v13（2024-2025）**：官方线（AGPL）与学术线（HyperACE）并驾
+
+> **v10-v13 已上线本站**：NMS-free / AGPL / HyperACE 等新一轮演进，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读（arXiv:2209.02976，含论文 vs 快照对照）](/versions/v6/paper)

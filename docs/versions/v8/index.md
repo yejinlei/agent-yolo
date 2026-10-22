@@ -154,6 +154,16 @@ flowchart TB
 
 详见[痛点追踪](/versions/v8/painpoints)。
 
+## 后续演进速览
+
+- **v9（2024）**：学术双头重构——GELAN + 双头可编程梯度（PGI）
+- **v10（2024）**：NMS-free 端到端推理（Ultralytics 8.1.34 fork，AGPL-3.0）
+- **v11（2024）**：官方线 C3k2 + C2PSA 等模块迭代
+- **v12（2025）**：官方线 A2C2f + A2CBB 等新块
+- **v13（2025）**：论文回归 + HyperACE（Apache-2.0）
+
+> **v10-v13 读者路标**：v8 是官方线的分水岭，后续 5 代沿「官方线 / 学术线」分叉：v10 NMS-free（Ultralytics 8.1.34 fork）→ v11-v12 官方线（AGPL-3.0）→ v13 学术线回归（Apache-2.0），详见 [v10 概览](/versions/v10/index)、[v13 概览](/versions/v13/index)。
+
 ## 深入阅读
 
 - [论文精读（以代码为论文：时间线、学术血脉、引用口径）](/versions/v8/paper)

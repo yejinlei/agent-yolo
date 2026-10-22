@@ -129,6 +129,17 @@ flowchart TB
 
 > **v4 路标**：表里前三行在 v4 被正面解决——CIoU loss 补 AP75、CSPDarknet53 + SPP + PANet 强骨干、multi-positive 打破单 GT 单头独占（见 [v4 概览](/versions/v4/index)）。
 
+## 后续演进速览
+
+- **v4（2020）**：三头 FPN 被强化 → CSPDarknet53 + SPP+PANet，CIoU + Mosaic
+- **v5-v6（2020）**：官方仓库化 + E-ELAN，主打效率
+- **v7（2022）**：三尺度 anchor 回归 + P2 小目标 + 双头训练
+- **v8（2023）**：Ultralytics 官方化重构（anchor-free + C2f + TAL + DFL）
+- **v9（2024）**：学术重构双头（GELAN + 可编程梯度）
+- **v10-v13（2024-2025）**：NMS-free / 官方线 AGPL / 学术线 HyperACE
+
+> **v10-v13 已上线本站**：NMS-free / AGPL / HyperACE 等新一轮演进，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读](/versions/v3/paper)

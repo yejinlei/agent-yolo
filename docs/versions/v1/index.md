@@ -94,6 +94,15 @@ flowchart LR
 >
 > **v4 路标**：表里的 CIoU 解法在 v4 落地——坐标损失从 SSE 换成 CIoU（IoU 直接可导），再加 Mosaic 增强 + 多正样本分配，COCO AP 冲到 43.5（见 [v4 概览](/versions/v4/index)）。
 
+## 后续演进速览
+
+- **v2（2017）**：换 DenseNet + BN + 5 anchors + YOLO9000，把 objectness 与类别合并
+- **v3（2018）**：Darknet-53 + FPN 三头 9 anchors，小目标召回显著改善
+- **v4（2020）**：anchor-free + CIoU + Mosaic，COCO AP 首破 50
+- **v5-v9（2020-2024）**：anchor-free 主流化 → 大核 + 三尺度 anchor → 学术重构 → Ultralytics 官方化 → 双头可编程梯度
+
+> **v10-v13 已上线本站**：NMS-free / AGPL / HyperACE 等新一轮演进，详见 [v10 概览](/versions/v10/index) 起。
+
 ## 深入阅读
 
 - [论文精读](/versions/v1/paper)
