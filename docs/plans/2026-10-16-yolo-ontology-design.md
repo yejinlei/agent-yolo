@@ -8,7 +8,7 @@
 
 ## 1. 设计目标
 
-构建一个覆盖 YOLO v1-v12 全系列的**结构化知识图谱**，实现四层闭环：
+构建一个覆盖 YOLO v1-v13 全系列的**结构化知识图谱**，实现四层闭环：
 
 ```
 L1 论文 (Paper)  →  L2 理论 (Concept)  →  L3 实现 (Model/Layer/Loss/Trick)  →  L4 实战 (CaseStudy)
