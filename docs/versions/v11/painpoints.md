@@ -253,4 +253,18 @@ flowchart TB
 - [v9 痛点追踪](/versions/v9/painpoints) — 上上代的对照（上文）
 - [v10 痛点追踪](/versions/v10/painpoints) — 上代"去 NMS 端到端"的代价（上文）
 - [v12 痛点追踪](/versions/v12/painpoints) — 下代「注意力进骨干」的代价（FlashAttention 硬依赖、num_heads 硬编码、第三方 fork）
+- [v13 痛点追踪](/versions/v13/painpoints) — 下下代：命名坑修复（回到 `models/v13/`），但换来 HyperACE `n=1` 强制、DownsampleConv l/x 走 Identity、7 处 gate 不可解释、论文与代码 6 处偏差
 - [术语表](/glossary) — TAL、DFL、NMS、CSP、C3k2、C2PSA、Mosaic 等术语索引
+
+---
+
+## v13 如何回应 v11 的痛点
+
+| v11 痛点 | v13 状态 |
+|---------|---------|
+| 1. 命名坑（`models/11/` 无 v） | **修复**：v13 cfg 目录回到 `models/v13/`（带 v 前缀） |
+| 2. 无 arXiv 论文 | **修复**：v13 有 arXiv:2506.17733v2，但论文与代码有 6 处偏差（见 [v13 痛点 §6](/versions/v13/painpoints#6-论文与代码-6-处偏差pain-paper-code-gap)） |
+| 3. 回归 NMS 单头 | **沿用**：v13 继续使用 v8Detect + NMS，无端到端改动 |
+| 4. C3k2 简化版 | **替换**：v13 骨干换 DSC3k2（DS 化），C3k2 完全弃用 |
+| 5. 官方 mAP 不可复核 | **改善**：v13 论文 TABLE I 提供 N/S/L/X 四档 mAP（41.6/48.0/53.4/54.8），但训练配置仍未完全披露 |
+| 6. 5 档 scales 集中 | **收敛到 4 档**：v13 砍掉 m 档，只保留 n/s/l/x；仍为单 yaml + scales 集中定义 |

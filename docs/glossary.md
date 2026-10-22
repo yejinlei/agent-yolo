@@ -189,6 +189,30 @@ v12 论文提出的「残差高效层聚合」：在 ELAN 的多级 concat 结�
 ### DW 可分离卷积（depthwise separable conv）
 把一个 3×3 卷积拆成「逐通道 3×3（DW）+ 1×1 跨通道（PW）」两步，参数量与 FLOPs 大幅下降。v12 的 Detect 分类分支 `cv3` 在 `legacy=False` 时走这条路径（`DWConv + Conv` 交替 5 段），由 `parse_model` 隐式赋值，yaml 里看不出来。详解：[v12 tricks §6](/versions/v12/tricks)、[v12 painpoints §8](/versions/v12/painpoints)。
 
+### HyperACE（Hypergraph-based Adaptive Correlation Enhancement）
+v13 引入的骨干尾超图融合模块：把骨干出口的 P3/P4/P5 用一次 1×1 卷积 fuse 后再 `chunk(3)` 拆回三尺度，各自过 C3AH（带超图消息传递的 CSP）+ DSC3k 后 concat 过 cv2——用**超图**（顶点-边-邻接）替代两两相关的 concat，把跨尺度关系建成"高阶超边"。**`n` 在 tasks.py 里被强制为 1**，论文里 L 是 32 的 3 倍、X 是 32 的 4 倍，但代码全部坍缩到 1 段；`he`（超边数）按档位缩放（N/S = 64, L = 128, X = 192）。详解：[v13 concepts §3](/versions/v13/concepts)、[v13 源码走读 §3](/versions/v13/code-walkthrough)。
+
+### AdaHyperedgeGen
+v13 HyperACE 的第一段——**自适应超边生成**：把固定形状的初始邻接矩阵 `P_0` 通过一个 `Linear(P_0.shape[1], P_0.shape[1])` 生成增量 ΔP，输出 `P = P_0 + ΔP`；配 8 头（`num_heads=8` 由 yaml 传入）+ `dropout=0.1` 硬编码。详解：[v13 源码走读 §3.1](/versions/v13/code-walkthrough)。
+
+### AdaHGConv
+v13 HyperACE 的第二段——**自适应超图卷积**：先 vertex→edge（`He = A^T · X`）过 `edge_proj`，再 edge→vertex 过 `node_proj`，最后 `out = node_proj(He) + X` 残差。**edge/vertex 都带可学习投影**，且**顶点→边的方向用 A^T**（与超图文献方向一致）。详解：[v13 源码走读 §3.2](/versions/v13/code-walkthrough)。
+
+### C3AH
+v13 的超图版 CSP Bottleneck：骨架同 C3，但内瓶换成带 `AdaHGConv` 的变体；`__init__` 里 **`assert c_ % 16 == 0`**（比 v12 A2C2f 的 `%32==0` 稍宽）；`e` 默认 0.5。在 HyperACE 里出现两次（骨干出口 fuse 后到 concat 前）。详解：[v13 concepts §4](/versions/v13/concepts)。
+
+### FullPAD_Tunnel
+v13 的门控拼接隧道：两个输入 `x[0]`（原路径）+ `x[1]`（融合路径），一个可学习标量 `gate = nn.Parameter(torch.tensor(0.0))` 做混合——`out = x[0] + gate * x[1]`。**训练初期 gate=0 等价直通**，让梯度不被融合路径干扰；后期 gate 学到非零后融合生效。yaml 里出现 7 次，遍布每个上采样拼接点。**7 个 gate 都是独立的可学习参数**，无共享、无可解释性分析。详解：[v13 concepts §5](/versions/v13/concepts)、[v13 painpoints §3](/versions/v13/painpoints)。
+
+### DSConv
+v13 深度可分离卷积的落地单元：`DWConv(3×3, groups=c) + Conv(1×1)` 的组合，等价替代 3×3 标准卷积，参数从 `9·c·c` 降到 `9·c + c·c`。yaml 里显式出现 2 次，另外隐式包裹在 DSC3k2 内。详解：[v13 concepts §6](/versions/v13/concepts)。
+
+### DSC3k / DSC3k2 / DSBottleneck
+v13 的 DS 化骨干三件套：**DSBottleneck** = `Conv1×1 → DSConv3×3 → Conv1×1`（残差式）；**DSC3k** 是 DSBottleneck 的 C3 变体（`c3k=True/False` 二选一）；**DSC3k2** 是 DSC3k 的 C3k2 变体（继承 C2f、内瓶换 DSC3k）。yaml 里 DSC3k2 出现 7 次（骨干 5 + 头 2）。详解：[v13 concepts §6](/versions/v13/concepts)。
+
+### DownsampleConv
+v13 的下采样模块：`AvgPool2d(2) + Conv(1×1, c→2c)` 取代 v10 SCDown / v9 ADown 的复杂拆分。**l/x 档在 tasks.py 里被强制走 `nn.Identity`**——等价退化成"直接 concat"，与 v8 C2f 的下采样方式一致。详解：[v13 painpoints §5](/versions/v13/painpoints)。
+
 ## 训练与损失
 
 ### 损失函数（loss）

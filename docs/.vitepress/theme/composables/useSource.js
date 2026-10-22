@@ -70,6 +70,11 @@ const modules = {
   v12: import.meta.glob(
     '../../../../source/yolov12/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // v13 是 iMoonLab/yolov13（学术论文 2506.17733 官方实现），目录同 v11/v12 布局；cfg 目录带 v 前缀 v13/
+  v13: import.meta.glob(
+    '../../../../source/yolov13/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -136,7 +141,14 @@ export const SOURCE_PAGES = {
   'v12:ultralytics/nn/modules/head.py':         '/versions/v12/source/head-py',
   'v12:ultralytics/utils/loss.py':              '/versions/v12/source/loss-py',
   'v12:ultralytics/utils/tal.py':               '/versions/v12/source/tal-py',
-  'v12:ultralytics/cfg/models/v12/yolov12.yaml': '/versions/v12/source/yolov12-yaml'
+  'v12:ultralytics/cfg/models/v12/yolov12.yaml': '/versions/v12/source/yolov12-yaml',
+  // YOLOv13（iMoonLab/yolov13 @ 73289949；目录同 v11/v12 布局；注意 cfg 目录是 v13/ 带 v 前缀）
+  'v13:ultralytics/nn/modules/block.py':        '/versions/v13/source/block-py',
+  'v13:ultralytics/nn/modules/conv.py':         '/versions/v13/source/conv-py',
+  'v13:ultralytics/nn/modules/head.py':         '/versions/v13/source/head-py',
+  'v13:ultralytics/utils/loss.py':              '/versions/v13/source/loss-py',
+  'v13:ultralytics/utils/tal.py':               '/versions/v13/source/tal-py',
+  'v13:ultralytics/cfg/models/v13/yolov13.yaml': '/versions/v13/source/yolov13-yaml'
 }
 
 const GH_BASES = {
@@ -151,7 +163,8 @@ const GH_BASES = {
   v9: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov9/snapshot/',
   v10: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov10/snapshot/',
   v11: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov11/snapshot/',
-  v12: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov12/snapshot/'
+  v12: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov12/snapshot/',
+  v13: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov13/snapshot/'
 }
 
 function resolveKey(v, f) {

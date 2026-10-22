@@ -25,13 +25,14 @@ flowchart TB
   V8 -.->|"Ultralytics 8.1.34 fork"| V10
   V8 --> V11[YOLOv11 · 2024<br/>C3k2 + C2PSA]
   V11 --> V12[YOLOv12 · 2025<br/>A2C2f 骨干注意力<br/>第三方 fork]
+  V12 -.->|"iMoonLab fork · 8.3.63 基线"| V13[YOLOv13 · 2025-11<br/>HyperACE 超图 + FullPAD 门控<br/>DS 深度可分离体系]
 ```
 
 ## 四条主线
 
 | 分支 | 代表版本 | 目标 | 主导 |
 |------|---------|------|------|
-| 主线 | v1→v2→v3→v4→v8→v9→v10→v11→v12 | 精度优先 | 学术界 + Ultralytics |
+| 主线 | v1→v2→v3→v4→v8→v9→v10→v11→v12→v13 | 精度优先 | 学术界 + Ultralytics |
 | Tiny 线 | v2-tiny→v3-tiny→v4-tiny→v5n→v8n→v11n | 参数量最小 | Ultralytics |
 | Enterprise 线 | v9, v10 | 推理延迟优化 | CWI / THU-MIG |
 | 分叉实验 | v6 (Megvii), v7 (WongKinYiu) | 特定改进 | 独立团队 |
@@ -43,9 +44,10 @@ flowchart TB
 - **多尺度 Neck**：v3 首次 FPN，v4 PAFPN，v8 BiFPN
 - **CSP 结构**：v5 起 CSPNet，v8 起 C2f
 - **Decoupled Head**：v7 实验，v8 正式
-- **Attention 引入**：v7 EVA、v10 部分自注意力（PSA，全网仅一处）、v11 C2PSA（骨干尾一体化 PSABlock）、v12 **A2C2f 骨干 P4/P5 内嵌 AAttn（Area Attention）**
-- **NMS-free**：v10 端到端消 NMS；v11 又回归 NMS；v12 继续 NMS
-- **cfg 命名**：v8/v9/v10 用 `models/v8|v9|v10/`；**v11 首次去掉 v 前缀**，落 `models/11/`；**v12 回归 `models/v12/`**（带 v）
+- **Attention 引入**：v7 EVA、v10 部分自注意力（PSA，全网仅一处）、v11 C2PSA（骨干尾一体化 PSABlock）、v12 **A2C2f 骨干 P4/P5 内嵌 AAttn（Area Attention）**、v13 **A2C2f 沿用 + HyperACE 超图融合**（骨干后首层做 P3/P4/P5 高阶融合）
+- **NMS-free**：v10 端到端消 NMS；v11 又回归 NMS；v12 继续 NMS；v13 继续 NMS
+- **cfg 命名**：v8/v9/v10 用 `models/v8|v9|v10/`；**v11 首次去掉 v 前缀**，落 `models/11/`；**v12 回归 `models/v12/`**（带 v）；**v13 沿用 `models/v13/`**（带 v，与 v12 一致）
+- **档位收敛**：v8/v9/v10/v11/v12 都有五档（n/s/m/l/x），**v13 缩到四档（n/s/l/x，无 m）**
 
 ## 与外部检测家族的收敛
 
@@ -105,6 +107,30 @@ v12 不是 ultralytics 官方发布，而是第三方 fork（`sunsmarterjie/yolo
 | 参数量 | 2.62M（n）~56.97M（x） | **2.60M（n）~59.22M（x）** |
 | 特色 trick | C3k2 / C2PSA / TAL topk=13 | **A2C2f(R-ELAN) / AAttn / 分档增强 / layer-scale 仅 L/X 档** |
 | 指标 | COCO AP 39.5~54.7 | **COCO AP 40.6~55.2**（README 声明，快照内不可复核） |
+
+## v13 增补对照（相对 v12）
+
+v13 也不是 ultralytics 官方发布，而是第三方 fork（`iMoonLab/yolov13` @ `73289949`，2025-11-18，基线 `8.3.63`，Apache-2.0，[arXiv:2506.17733v2](https://arxiv.org/abs/2506.17733)）。下表只列**与 v12 不同**的项，其余全部沿用：
+
+| 维度 | [v12](/versions/v12/index) | [v13](/versions/v13/index) |
+|------|------|------|
+| 发布 | arXiv:2502.12524（2025-02-18）+ README + tag `v1.0` | **arXiv:2506.17733v2**（2025-06-21）+ README + commit `73289949` |
+| 代码快照 | sunsmarterjie/yolov12 · `v1.0` @ `b1035f8f` | **iMoonLab/yolov13 · `73289949`**（2025-11-18），fork 自 `8.3.63` |
+| 归属 | 第三方（UB SUNY + UCAS） | **第三方（UCAS & 中科院自动化所）** |
+| 许可证 | AGPL-3.0 | **Apache-2.0** |
+| 配置 | 单 `yolov12.yaml`（`cfg/models/v12/`，带 v） | 单 `yolov13.yaml`（`cfg/models/v13/`，**带 v**，与 v12 一致） |
+| 档位 | 五档 n/s/m/l/x | **四档 n/s/l/x（无 m）** |
+| yaml 层数 | 22 顶层条目 | **32 顶层条目**（+10 主要在 FullPAD 与下采样） |
+| 骨干 | C3k2 ×3 + A2C2f ×6 + 无 SPPF | **DSC3k2 ×7 + A2C2f ×2 + DSConv 下采样 ×2 + 无 SPPF** |
+| 骨干下采样 | Conv 3×3 s2 | **DSConv 3×3 s2**（深度可分离） |
+| Head 首层 | Concat → C2f | **HyperACE（超图融合 P3/P4/P5）** |
+| Head 门控 | 无 | **7×FullPAD_Tunnel**（gate 从 0 学起） |
+| 检测头 | Detect 单头，DW-separable cv3 | **Detect 单头，DW-separable cv3（沿用）** |
+| 损失 | v8DetectionLoss（显式 topk=10 α=0.5 β=6.0） | **v8DetectionLoss（沿用）** |
+| 训练配方 | 600 epoch / batch 256 + 分档 mixup/copy_paste | **600 epoch / batch 256（沿用），T4 + TRT FP16 报告延迟** |
+| 参数量 | 2.60M（n）~59.22M（x） | **v13-N/S/L/X**（论文口径），A2C2f `mlp_ratio` 从 1.2 提到 **1.5**（L/X 档） |
+| 特色 trick | A2C2f(R-ELAN) / AAttn / 分档增强 / layer-scale 仅 L/X 档 | **HyperACE 超图 / FullPAD 门控 / DS 深度可分离（DSConv + DSC3k2）/ A2C2f 沿用** |
+| 指标 | COCO AP 40.6~55.2（README） | **COCO AP 41.6/48.0/53.4/54.8（TABLE I，N/S/L/X）** |
 
 ## v1→v12 继承谱系
 
@@ -180,20 +206,27 @@ flowchart LR
     L3["+ AAttn（Area Attention）/ FlashAttention 硬依赖"]
     L4["+ 去 SPPF / DW-separable cv3 / 分档配方"]
   end
+  subgraph V13["v13 继承 + 超图融合 + 深度可分离"]
+    M1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
+    M2["+ HyperACE（超图）骨干后首层做 P3/P4/P5 融合"]
+    M3["+ 7×FullPAD_Tunnel 门控连接（gate 从 0 学起）"]
+    M4["+ DS 深度可分离体系（DSConv + DSC3k2）/ 缩到四档无 m"]
+  end
   V1 --> V2 --> V3 --> V4 --> V5 --> V6
   V4 -.BoF 路线延续.-> V7
   V5 -.Ultralytics 产品线延续.-> V8
   V6 -.anchor-free 与 TAL 收敛.-> V8
   V7 -.ELAN 思想轻量化.-> V8
   V8 --> V9
-  V7 -.v9 回归 v7 代码库 + ELAN 拓扑化.-> V9
+  V7 -.v9 回归 v7 代码库 + Elan 拓扑化.-> V9
   V8 -.->|"Ultralytics 8.1.34 fork"| V10
   V9 --> V10
   V8 -.->|"8.3.0 官方回归 + C3k2/C2PSA 增补"| V11
   V11 --> V12
   V8 -.->|"8.3.63 fork · 注意力进骨干"| V12
+  V12 -.->|"8.3.63 fork · 超图融合 + DS 体系"| V13
 ```
 
-每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)（v1 哪些病被治好）、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)、[v5 痛点追踪](/versions/v5/painpoints)、[v6 痛点追踪](/versions/v6/painpoints)、[v7 痛点追踪](/versions/v7/painpoints)、[v8 痛点追踪](/versions/v8/painpoints)、[v9 痛点追踪](/versions/v9/painpoints)、[v10 痛点追踪](/versions/v10/painpoints)（NMS 外挂这条全系列最持久的痛点在此收口）、[v11 痛点追踪](/versions/v11/painpoints)（把 v10 的双头、SCDown/CIB/PSA 三件套全部撤掉，回退到 v8 检测头 + NMS）、[v12 痛点追踪](/versions/v12/painpoints)（FlashAttention 硬依赖、num_heads 硬编码、第三方 fork 的归属问题）。
+每条继承线的细节：[v2 痛点追踪](/versions/v2/painpoints)（v1 哪些病被治好）、[v3 痛点追踪](/versions/v3/painpoints)、[v4 痛点追踪](/versions/v4/painpoints)、[v5 痛点追踪](/versions/v5/painpoints)、[v6 痛点追踪](/versions/v6/painpoints)、[v7 痛点追踪](/versions/v7/painpoints)、[v8 痛点追踪](/versions/v8/painpoints)、[v9 痛点追踪](/versions/v9/painpoints)、[v10 痛点追踪](/versions/v10/painpoints)（NMS 外挂这条全系列最持久的痛点在此收口）、[v11 痛点追踪](/versions/v11/painpoints)（把 v10 的双头、SCDown/CIB/PSA 三件套全部撤掉，回退到 v8 检测头 + NMS）、[v12 痛点追踪](/versions/v12/painpoints)（FlashAttention 硬依赖、num_heads 硬编码、第三方 fork 的归属问题）、[v13 痛点追踪](/versions/v13/painpoints)（HyperACE `n=1` 静默覆盖、DownsampleConv 在 l/x 走 Identity、7 处 FullPAD gate 训练末期不可解释、论文与代码 6 处偏差）。
 
 详见 [演化事件](/global/evolutions) 与 [时间线](/global/timeline)。

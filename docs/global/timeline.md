@@ -33,6 +33,7 @@ timeline
   2024 : YOLOv10 NMS-free 端到端
   2024 : YOLOv11 EMA + C3k2
   2025 : YOLOv12 Global Attention
+  2025 : YOLOv13 HyperACE 超图 + DS 深度可分离
   2026 : 下一代 (预留)
 ```
 
@@ -52,5 +53,6 @@ timeline
 | 2024 | v10 | NMS-free | 53.8 (COCO) | — |
 | 2024 | v11 | EMA | 53.4 (COCO) | — |
 | 2025 | v12 | Global Attn | 53.6 (COCO) | — |
+| 2025 | v13 | HyperACE 超图 + DS | 54.8 (COCO, X 档) | — |
 
-*注：COCO 数字为 mAP@0.5:0.95，VOC 为 mAP@0.5。数字来自各版本官方论文。*
+*注：COCO 数字为 mAP@0.5:0.95，VOC 为 mAP@0.5。数字来自各版本官方论文。v13 采用 iMoonLab/yolov13 快照（commit 73289949，2025-11-18）；mAP 口径取论文 TABLE I 的 X 档峰值，与 v12 博客口径不完全一致。*

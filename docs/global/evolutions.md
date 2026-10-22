@@ -72,6 +72,17 @@
 - 参数量减少、精度提升
 - COCO mAP@0.5:0.95: **53.6** (v12) vs **53.4** (v11)
 
+## v12 → v13：HyperACE 超图融合 + DS 深度可分离
+
+- **骨干/颈全 DS 化**：所有 3×3 Conv 换成 DSConv（DWConv + PWConv），骨干主块由 C3k2 换成 DSC3k2（yaml 里 7 次）；A2C2f 沿用 v12 但 `mlp_ratio` 从 1.2 提到 1.5
+- **Head 首层加 HyperACE**：在骨干出口处对 P3/P4/P5 做**超图融合**——`AdaHyperedgeGen` 把初始邻接矩阵 P_0 通过可学习增量 ΔP 更新（`num_heads=8`），`AdaHGConv` 做 vertex→edge→vertex 的两段映射
+- **FullPAD_Tunnel 门控 ×7**：每个上采样拼接点前后各插一个 `FullPAD_Tunnel`，用 `nn.Parameter(0.0)` 门控"直通 vs 融合"，训练初期等价直通、后期学出融合
+- **DownsampleConv（AvgPool 2×2 + Conv 1×1）** 取代 3×3 s2 卷积；**l/x 档被 tasks.py 强制走 Identity**（等价退化成 v8 的 C2f 下采样）
+- **档位收敛到 4 档**（n/s/l/x，砍掉 m）；cfg 目录回到 `models/v13/`（带 v 前缀，与 v12 一致，纠正 v11 的"去 v"破例）
+- **许可证回 Apache-2.0**：iMoonLab 仓库改用 Apache-2.0，摆脱 v12 的 AGPL-3.0 传染顾虑
+- COCO mAP@0.5:0.95（论文 TABLE I）：v13-N/S/L/X = **41.6 / 48.0 / 53.4 / 54.8**，与 v12 的 L/X 差距收敛到 <1
+- 关键理由：DS 化降参数与 FLOPs；超图融合引入"跨尺度非两两相关"，弥补 v12 AAttn 只作用于单尺度的不足
+
 ---
 
-**共同主线**：从"如何更快"（v1→v2→v3）→"如何更准"（v3→v4→v8）→"如何更高效"（v9→v10→v11→v12）。
+**共同主线**：从"如何更快"（v1→v2→v3）→"如何更准"（v3→v4→v8）→"如何更高效"（v9→v10→v11→v12）→"如何更细粒度地融合与压缩"（v13）。

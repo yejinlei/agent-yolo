@@ -363,4 +363,21 @@ flowchart TB
 - [v11 痛点追踪](/versions/v11/painpoints) — 上代「结构回退」的代价（命名坑在 v12 已修复）
 - [v10 痛点追踪](/versions/v10/painpoints) — 双头去 NMS 的代价
 - [v8 痛点追踪](/versions/v8/painpoints) — v12 检测头与损失的共同前像
-- [术语表](/glossary) — FlashAttention、LayerNorm、layer-scale、TAL、DWConv、NMS 等术语索引
+- [v13 痛点追踪](/versions/v13/painpoints) — 下代：FlashAttention 硬依赖仍在（A2C2f 沿用），num_heads 硬编码仍在，但归属回到 Apache-2.0；新增 HyperACE `n=1` 强制、7 处 gate 不可解释
+- [术语表](/glossary) — FlashAttention、LayerNorm、layer-scale、TAL、DWConv、NMS、HyperACE、FullPAD_Tunnel、DSConv 等术语索引
+
+---
+
+## v13 如何回应 v12 的痛点
+
+| v12 痛点 | v13 状态 |
+|---------|---------|
+| 1. FlashAttention 硬依赖 | **未修**：v13 沿用 A2C2f（`mlp_ratio` 1.2→1.5），仍 `assert False` 兜底 |
+| 2. num_heads 硬编码 + `c_ % 32 == 0` | **未修**：A2C2f 沿用；HyperACE 的 C3AH 放宽到 `c_ % 16 == 0` |
+| 3. 第三方 fork 归属 | **改善**：iMoonLab/yolov13 用 Apache-2.0，摆脱 AGPL-3.0；仍非 ultralytics 官方 |
+| 4. 训练配方只给 n 档 | **仍不完整**：v13 论文给四档配方但 s/l/x 部分参数仍为注释 |
+| 5. `tal_topk` 参数化但 α/β 显式覆盖 | **未修**：v13 `v8DetectionLoss` 仍是 `topk=10, α=0.5, β=6.0` 显式覆盖 tal.py 默认 |
+| 6. 无 LayerNorm | **未修**：v13 A2C2f 沿用，仍无 LN；HyperACE 内亦无 LN |
+| 7. gamma 只在 L/X 档静默开启 | **部分延续**：v13 `mlp_ratio=1.5` 只在 L/X 档；gamma 机制未变 |
+| 8. Detect `legacy` 建网器赋值 | **未修**：v13 Detect 仍由建网器隐式赋值 `legacy=False` |
+| —（v13 新增痛点） | HyperACE `n=1` 强制、DownsampleConv l/x 走 Identity、7 处 gate 不可解释、论文与代码 6 处偏差，详见 [v13 痛点页](/versions/v13/painpoints) |
