@@ -3,7 +3,7 @@ layout: home
 hero:
   name: agent-yolo
   text: YOLO 本体论研究
-  tagline: 论文 → 理论 → 实现 → 实战 · 从 v1 到 v12 的知识图谱
+  tagline: 论文 → 理论 → 实现 → 实战 · 从 v1 到 v13 的知识图谱
   actions:
     - theme: brand
       text: 系列演化
@@ -15,7 +15,7 @@ hero:
 features:
   - icon: 🌳
     title: 全局谱系
-    details: 家族树 + 演化事件 + 时间线，纵览 YOLO 从 2015 到 2026 的完整演进。
+    details: 家族树 + 演化事件 + 时间线，纵览 YOLO 从 2015 到 2025 的完整演进（13 代）。
   - icon: 📄
     title: 论文精读
     details: 从 ECCV 2016 原文出发，逐节拆解 motivation / innovation / tradeoff。

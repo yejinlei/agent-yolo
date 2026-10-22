@@ -245,7 +245,7 @@ flowchart LR
 
 ### 演进
 
-这是整个 YOLO 系列乃至整个 CV 界的标准做法。v1-v12 全部沿用。
+这是整个 YOLO 系列乃至整个 CV 界的标准做法。v1-v13 全部沿用。
 
 ---
 
@@ -270,7 +270,7 @@ flowchart TB
     RJ -.v4 Mosaic 替代.-> V4[v4]
     DP -.v2 去 FC 消失.-> V2
     NMS -.v10 NMS-free.-> V10[v10]
-    IM -.v1-v12 全部沿用.-> ALL[v1-v12]
+    IM -.v1-v13 全部沿用.-> ALL[v1-v13]
     RB -.v2 anchor 后删除.-> V2
 ```
 

@@ -203,7 +203,7 @@ flowchart TB
     - "(+) FPS 35+，为实时检测打开大门"
     - "(-) 位置精度下降"
     - "(-) 小目标召回差"
-  practicalImplication: "这个范式选择贯穿整个 YOLO 系列，是 v1-v12 从未变的核心承诺。"
+  practicalImplication: "这个范式选择贯穿整个 YOLO 系列，是 v1-v13 从未变的核心承诺。"
 ```
 
 ---

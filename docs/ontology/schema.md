@@ -74,7 +74,7 @@ flowchart TB
 
 | # | Type | 层级 | 用途 |
 |---|------|------|------|
-| 1 | **Model** | L3 | YOLO 具体版本（v1-v12） |
+| 1 | **Model** | L3 | YOLO 具体版本（v1-v13） |
 | 2 | **Layer** | L3 | 网络层类型（conv/fc/yolo_head 等） |
 | 3 | **Loss** | L3 | 损失函数 |
 | 4 | **Trick** | L3 | 训练/推理技巧 |
