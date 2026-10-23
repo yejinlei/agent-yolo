@@ -10,32 +10,8 @@
 
 ```mermaid
 flowchart LR
-    IMG["640×640×3"] --> F["Focus<br/>4切片 → 12ch → Conv → 64ch @320"]
-    F --> B1["Conv 3×3 s2 → 128ch @160"]
-    B1 --> C31["C3 ×1 → 128ch @160"]
-    C31 --> B2["Conv 3×3 s2 → 256ch @80"]
-    B2 --> C32["C3 ×3 → 256ch @80"]
-    C32 --> B3["Conv 3×3 s2 → 512ch @40"]
-    B3 --> C33["C3 ×3 → 512ch @40"]
-    C33 --> B4["Conv 3×3 s2 → 1024ch @20"]
-    B4 --> SPP["SPP<br/>MaxPool 5/9/13 concat"]
-    SPP --> C34["C3 ×1 → 1024ch @20"]
-
-    C34 --> N1["Conv 1×1 → 512ch + Upsample ×2"]
-    N1 --> CC1["Concat [C33] → 1024ch @40"]
-    CC1 --> N2["C3 ×1 → 512ch @40"]
-    N2 --> N3["Conv 1×1 → 256ch + Upsample ×2"]
-    N3 --> CC2["Concat [C32] → 512ch @80"]
-    CC2 --> N4["C3 ×1 → 256ch @80"]
-    N4 --> D1["Detect P3/8<br/>3 anchors"]
-    N4 --> N5["Conv 3×3 s2 → 256ch @40"]
-    N5 --> CC3["Concat [N2] → 512ch @40"]
-    CC3 --> N6["C3 ×1 → 512ch @40"]
-    N6 --> D2["Detect P4/16<br/>3 anchors"]
-    N6 --> N7["Conv 3×3 s2 → 512ch @20"]
-    N7 --> CC4["Concat [C34] → 1024ch @20"]
-    CC4 --> N8["C3 ×1 → 1024ch @20"]
-    N8 --> D3["Detect P5/32<br/>3 anchors"]
+IMG["640×640×3"] --> F["Focus<br/>4切片 → 12ch → Conv → 64ch @320"]
+F --> B1["Conv 3×3 s2 → 128ch @160"] ; B1 --> C31["C3 ×1 → 128ch @160"] ; C31 --> B2["Conv 3×3 s2 → 256ch @80"] ; B2 --> C32["C3 ×3 → 256ch @80"] ; C32 --> B3["Conv 3×3 s2 → 512ch @40"] ; B3 --> C33["C3 ×3 → 512ch @40"] ; C33 --> B4["Conv 3×3 s2 → 1024ch @20"] ; B4 --> SPP["SPP<br/>MaxPool 5/9/13 concat"] ; SPP --> C34["C3 ×1 → 1024ch @20"] ; C34 --> N1["Conv 1×1 → 512ch + Upsample ×2"] ; N1 --> CC1["Concat [C33] → 1024ch @40"] ; CC1 --> N2["C3 ×1 → 512ch @40"] ; N2 --> N3["Conv 1×1 → 256ch + Upsample ×2"] ; N3 --> CC2["Concat [C32] → 512ch @80"] ; CC2 --> N4["C3 ×1 → 256ch @80"] ; N4 --> D1["Detect P3/8<br/>3 anchors"] ; N4 --> N5["Conv 3×3 s2 → 256ch @40"] ; N5 --> CC3["Concat [N2] → 512ch @40"] ; CC3 --> N6["C3 ×1 → 512ch @40"] ; N6 --> D2["Detect P4/16<br/>3 anchors"] ; N6 --> N7["Conv 3×3 s2 → 512ch @20"] ; N7 --> CC4["Concat [C34] → 1024ch @20"] ; CC4 --> N8["C3 ×1 → 1024ch @20"] ; N8 --> D3["Detect P5/32<br/>3 anchors"]
 ```
 
 ## 2. 逐层明细表（yaml 驱动，共 24 层）

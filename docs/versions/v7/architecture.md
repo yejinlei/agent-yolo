@@ -12,32 +12,8 @@
 
 ```mermaid
 flowchart LR
-    IMG["640×640×3"] --> C0["Conv 3×3 s1<br/>32ch @640"]
-    C0 --> C1["Conv 3×3 s2 → 3×3<br/>64ch @320 · P1/2"]
-    C1 --> E1["ELAN #4-11<br/>4 路 Concat → 256ch @160 · P2/4"]
-    E1 --> MP1["MP 块 #12-16<br/>MaxPool + 双路 Concat"]
-    MP1 --> E2["ELAN #17-24<br/>→ 512ch @80 · P3/8"]
-    E2 --> MP2["MP 块 #25-29"]
-    MP2 --> E3["ELAN #30-37<br/>→ 1024ch @40 · P4/16"]
-    E3 --> MP3["MP 块 #38-42"]
-    MP3 --> E4["ELAN #43-50<br/>→ 1024ch @20 · P5/32"]
-
-    E4 --> S["SPPCSPC #51<br/>→ 512ch @20"]
-    S --> U1["上行 #52-55<br/>Upsample + cat(#37)"]
-    U1 --> H1["6 路 ELAN #56-63<br/>→ 256ch @40"]
-    H1 --> U2["上行 #64-67<br/>Upsample + cat(#24)"]
-    U2 --> H2["6 路 ELAN #68-75<br/>→ 128ch @80"]
-    H2 --> D1["下行 #76-80<br/>MP + cat(#63)"]
-    D1 --> H3["6 路 ELAN #81-88<br/>→ 256ch @40"]
-    H3 --> D2["下行 #89-93<br/>MP + cat(#51)"]
-    D2 --> H4["6 路 ELAN #94-101<br/>→ 512ch @20"]
-
-    H2 --> R1["RepConv #102<br/>128→256 @80"]
-    H3 --> R2["RepConv #103<br/>256→512 @40"]
-    H4 --> R3["RepConv #104<br/>512→1024 @20"]
-    R1 --> DET["IDetect #105<br/>P3/P4/P5 · 3 组 anchors"]
-    R2 --> DET
-    R3 --> DET
+IMG["640×640×3"] --> C0["Conv 3×3 s1<br/>32ch @640"]
+C0 --> C1["Conv 3×3 s2 → 3×3<br/>64ch @320 · P1/2"] ; C1 --> E1["ELAN #4-11<br/>4 路 Concat → 256ch @160 · P2/4"] ; E1 --> MP1["MP 块 #12-16<br/>MaxPool + 双路 Concat"] ; MP1 --> E2["ELAN #17-24<br/>→ 512ch @80 · P3/8"] ; E2 --> MP2["MP 块 #25-29"] ; MP2 --> E3["ELAN #30-37<br/>→ 1024ch @40 · P4/16"] ; E3 --> MP3["MP 块 #38-42"] ; MP3 --> E4["ELAN #43-50<br/>→ 1024ch @20 · P5/32"] ; E4 --> S["SPPCSPC #51<br/>→ 512ch @20"] ; S --> U1["上行 #52-55<br/>Upsample + cat(#37)"] ; U1 --> H1["6 路 ELAN #56-63<br/>→ 256ch @40"] ; H1 --> U2["上行 #64-67<br/>Upsample + cat(#24)"] ; U2 --> H2["6 路 ELAN #68-75<br/>→ 128ch @80"] ; H2 --> D1["下行 #76-80<br/>MP + cat(#63)"] ; D1 --> H3["6 路 ELAN #81-88<br/>→ 256ch @40"] ; H3 --> D2["下行 #89-93<br/>MP + cat(#51)"] ; D2 --> H4["6 路 ELAN #94-101<br/>→ 512ch @20"] ; H2 --> R1["RepConv #102<br/>128→256 @80"] ; H3 --> R2["RepConv #103<br/>256→512 @40"] ; H4 --> R3["RepConv #104<br/>512→1024 @20"] ; R1 --> DET["IDetect #105<br/>P3/P4/P5 · 3 组 anchors"] ; R2 --> DET ; R3 --> DET
 ```
 
 ## 2. 逐模块明细表（yolov7.yaml 层表组装，640×640 真实值）

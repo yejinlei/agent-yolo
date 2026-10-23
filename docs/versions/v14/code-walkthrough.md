@@ -32,36 +32,22 @@
 
 ```mermaid
 flowchart LR
-    subgraph NET["建网"]
-        A["from ultralytics import YOLO"] --> B["DetectionModel"]
-        B --> C["yaml_model_load<br/>6 份 yaml 变体"]
-        C --> C1["yolov14.yaml<br/>62 层 · CircularConv<br/>+ VE + DAL×2 + D-A2C2f×6"]
-        C --> C2["yolov14-game2real.yaml<br/>DAL×2 精简版"]
-        C --> C3["yolov14-deformable.yaml<br/>D-A2C2f×6 无 VE/DAL"]
-        C1 --> D["DetectionModel"]
-    end
-    subgraph FWD["前向：骨干"]
-        D --> E["#0 CircularConv<br/>wrap-aware P1"]
-        E --> F["#1 Conv 128·s2"]
-        F --> G["#2 ViewEmbedding<br/>if not is_fast_mode<br/>view_ids → 6-类码字"]
-        G --> H["#3 DomainAdaptiveLayer<br/>if not is_fast_mode<br/>AdaIN 对齐"]
-        H --> I["#4 C3k2 → #5 Conv → #6 C3k2"]
-        I --> J["#7 DomainAdaptiveLayer<br/>第二次域对齐"]
-        J --> K["#8 Conv → #9 D-A2C2f → #10 Conv → #11 D-A2C2f"]
-    end
-    subgraph HEAD["前向：颈部 + 头"]
-        K --> L["Upsample → Concat → D-A2C2f ×4<br/>#13 #17 #20 #23"]
-        L --> M["Detect P3/P4/P5<br/>legacy=False<br/>DW-separable cv3"]
-    end
-    subgraph TRAIN["训练：v14DetectionLoss"]
-        M -.-> T1["DetectionModel.init_criterion<br/>→ v14DetectionLoss L871"]
-        T1 --> T2["set_epoch(epoch, num_epochs)<br/>⚠ try: except: pass<br/>4 条 schedule"]
-        T2 --> T3["λ_reg 50ep 线性<br/>GRL λ 100ep sigmoid<br/>τ per-iter 指数<br/>tal_topk=10"]
-    end
-    subgraph INFER["推理：Fast Mode"]
-        M --> I1["YOLOV14_FAST=1<br/>跳过 VE / DAL / SceneAnalysis"]
-        I1 --> I2["NMS conf=0.25 iou=0.7 max_det=300"]
-    end
+subgraph NET["建网"]
+A["from ultralytics import YOLO"] --> B["DetectionModel"]
+B --> C["yaml_model_load<br/>6 份 yaml 变体"] ; C --> C1["yolov14.yaml<br/>62 层 · CircularConv<br/>+ VE + DAL×2 + D-A2C2f×6"] ; C --> C2["yolov14-game2real.yaml<br/>DAL×2 精简版"] ; C --> C3["yolov14-deformable.yaml<br/>D-A2C2f×6 无 VE/DAL"] ; C1 --> D["DetectionModel"]
+end
+subgraph FWD["前向：骨干"]
+D --> E["#0 CircularConv<br/>wrap-aware P1"] ; E --> F["#1 Conv 128·s2"] ; F --> G["#2 ViewEmbedding<br/>if not is_fast_mode<br/>view_ids → 6-类码字"] ; G --> H["#3 DomainAdaptiveLayer<br/>if not is_fast_mode<br/>AdaIN 对齐"] ; H --> I["#4 C3k2 → #5 Conv → #6 C3k2"] ; I --> J["#7 DomainAdaptiveLayer<br/>第二次域对齐"] ; J --> K["#8 Conv → #9 D-A2C2f → #10 Conv → #11 D-A2C2f"]
+end
+subgraph HEAD["前向：颈部 + 头"]
+K --> L["Upsample → Concat → D-A2C2f ×4<br/>#13 #17 #20 #23"] ; L --> M["Detect P3/P4/P5<br/>legacy=False<br/>DW-separable cv3"]
+end
+subgraph TRAIN["训练：v14DetectionLoss"]
+M -.-> T1["DetectionModel.init_criterion<br/>→ v14DetectionLoss L871"] ; T1 --> T2["set_epoch(epoch, num_epochs)<br/>⚠ try: except: pass<br/>4 条 schedule"] ; T2 --> T3["λ_reg 50ep 线性<br/>GRL λ 100ep sigmoid<br/>τ per-iter 指数<br/>tal_topk=10"]
+end
+subgraph INFER["推理：Fast Mode"]
+M --> I1["YOLOV14_FAST=1<br/>跳过 VE / DAL / SceneAnalysis"] ; I1 --> I2["NMS conf=0.25 iou=0.7 max_det=300"]
+end
 ```
 
 ## 1. 入口：`YOLO` 通用类，无 YOLOv14 类

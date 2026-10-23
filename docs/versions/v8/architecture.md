@@ -14,32 +14,8 @@
 
 ```mermaid
 flowchart TB
-    IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"]
-    L1 --> L2["C2f 128 ×3 #2 · shortcut"]
-    L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"]
-    L3 --> L4["C2f 256 ×6 #4 · shortcut"]
-    L4 --> L5["Conv 3×3 s2 #5<br/>512ch @40 · P4/16"]
-    L5 --> L6["C2f 512 ×6 #6 · shortcut"]
-    L6 --> L7["Conv 3×3 s2 #7<br/>1024ch @20 · P5/32"]
-    L7 --> L8["C2f 1024 ×3 #8 · shortcut"]
-    L8 --> L9["SPPF 1024 k=5 #9<br/>@20 · 骨干出口"]
-    L9 --> L10["Upsample ×2 #10<br/>1024ch @40"]
-    L10 --> L11["Concat #11<br/>cat 骨干 #6 → 1536ch"]
-    L11 --> L12["C2f 512 ×3 #12<br/>@40"]
-    L12 --> L13["Upsample ×2 #13<br/>512ch @80"]
-    L13 --> L14["Concat #14<br/>cat 骨干 #4 → 768ch"]
-    L14 --> L15["C2f 256 ×3 #15<br/>@80 · P3 out · stride 8"]
-    L15 --> L16["Conv 3×3 s2 #16<br/>256ch @40"]
-    L16 --> L17["Concat #17<br/>cat #12 → 768ch"]
-    L17 --> L18["C2f 512 ×3 #18<br/>@40 · P4 out · stride 16"]
-    L18 --> L19["Conv 3×3 s2 #19<br/>512ch @20"]
-    L19 --> L20["Concat #20<br/>cat #9 → 1536ch"]
-    L20 --> L21["C2f 1024 ×3 #21<br/>@20 · P5 out · stride 32"]
-
-    L15 --> DET["Detect #22<br/>P3/P4/P5 · stride 8/16/32<br/>anchor-free · 8400 预测"]
-    L18 --> DET
-    L21 --> DET
+IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"] ; L1 --> L2["C2f 128 ×3 #2 · shortcut"] ; L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"] ; L3 --> L4["C2f 256 ×6 #4 · shortcut"] ; L4 --> L5["Conv 3×3 s2 #5<br/>512ch @40 · P4/16"] ; L5 --> L6["C2f 512 ×6 #6 · shortcut"] ; L6 --> L7["Conv 3×3 s2 #7<br/>1024ch @20 · P5/32"] ; L7 --> L8["C2f 1024 ×3 #8 · shortcut"] ; L8 --> L9["SPPF 1024 k=5 #9<br/>@20 · 骨干出口"] ; L9 --> L10["Upsample ×2 #10<br/>1024ch @40"] ; L10 --> L11["Concat #11<br/>cat 骨干 #6 → 1536ch"] ; L11 --> L12["C2f 512 ×3 #12<br/>@40"] ; L12 --> L13["Upsample ×2 #13<br/>512ch @80"] ; L13 --> L14["Concat #14<br/>cat 骨干 #4 → 768ch"] ; L14 --> L15["C2f 256 ×3 #15<br/>@80 · P3 out · stride 8"] ; L15 --> L16["Conv 3×3 s2 #16<br/>256ch @40"] ; L16 --> L17["Concat #17<br/>cat #12 → 768ch"] ; L17 --> L18["C2f 512 ×3 #18<br/>@40 · P4 out · stride 16"] ; L18 --> L19["Conv 3×3 s2 #19<br/>512ch @20"] ; L19 --> L20["Concat #20<br/>cat #9 → 1536ch"] ; L20 --> L21["C2f 1024 ×3 #21<br/>@20 · P5 out · stride 32"] ; L15 --> DET["Detect #22<br/>P3/P4/P5 · stride 8/16/32<br/>anchor-free · 8400 预测"] ; L18 --> DET ; L21 --> DET
 ```
 
 - 图中通道数为 yaml 声明的**基准宽度**；n/s/m/l/x 缩放规则见 §5，各档实际值见[逐层图解 §4](/versions/v8/layers)

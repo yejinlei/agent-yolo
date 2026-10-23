@@ -37,41 +37,25 @@
 
 ```mermaid
 flowchart LR
-    subgraph NET["建网"]
-        A["from ultralytics import YOLO"] --> B["DetectionModel / SegmentationModel<br/>/ OBBModel / PoseModel<br/>/ SemanticSegmentationModel<br/>/ DepthModel / ClassificationModel"]
-        B --> C["yaml_model_load<br/>11 份 yaml 变体"]
-        C --> C1["yolo26.yaml<br/>Detect 骨干 11 层<br/>+ Head 14 层"]
-        C --> C2["yolo26-{seg/obb/pose/sem/depth}.yaml<br/>换 head"]
-        C --> C3["yoloe-26.yaml<br/>+ text_model: mobileclip2:b"]
-        C1 --> D["parse_model(d, ch)<br/>L2071"]
-    end
-    subgraph FWD["前向：骨干"]
-        D --> E["#0 Conv 3×3 s2 → 64ch P1/2"]
-        E --> F["#1 Conv 3×3 s2 → 128ch P2/4"]
-        F --> G["#2 C3k2 256×2 e=0.25 no BN<br/>#4 C3k2 512×2 e=0.25 no BN<br/>#6 C3k2 512×2 with Bottleneck<br/>#8 C3k2 1024×2 with Bottleneck"]
-        G --> H["#9 SPPF 1024×5×3"]
-        H --> I["#10 C2PSA 1024×2<br/>★ v26 唯一注意力"]
-    end
-    subgraph HEAD["前向：颈部 + 头"]
-        I --> J["FPN 上行 #11-16<br/>Upsample+Concat+C3k2 ×2"]
-        J --> K["PAN 下行 #17-22<br/>Conv s2+Concat+C3k2 ×2<br/>#22 C3k2 cross_attn=True e=0.5"]
-        K --> L["#23 Detect(P3,P4,P5)<br/>end2end=True<br/>reg_max=1 DFL→Identity"]
-    end
-    subgraph E2E["E2E 双分支"]
-        L -.-> L1["one2many_cv2/cv3<br/>原始 cv2/cv3"]
-        L -.-> L2["one2one_cv2/cv3<br/>copy.deepcopy<br/>L142-L143"]
-        L1 --> M["Detect.forward<br/>L194-L204<br/>训练时 dict 返回"]
-        L2 --> M
-    end
-    subgraph TRAIN["训练：E2ELoss"]
-        M -.-> T1["DetectionModel.init_criterion<br/>→ E2ELoss L1283"]
-        T1 --> T2["one2many: v8DetectionLoss topk=10<br/>one2one: v8DetectionLoss topk=7, topk2=1"]
-        T2 --> T3["w_o2m: 0.8→0.1<br/>w_o2o: 0.2→0.9<br/>decay 退火 L1313-L1315"]
-    end
-    subgraph INFER["推理：无 NMS"]
-        M --> I1["detect._inference<br/>仅用 one2one 分支"]
-        I1 --> I2["postprocess L249<br/>topk=300<br/>agnostic_nms=False"]
-    end
+subgraph NET["建网"]
+A["from ultralytics import YOLO"] --> B["DetectionModel / SegmentationModel<br/>/ OBBModel / PoseModel<br/>/ SemanticSegmentationModel<br/>/ DepthModel / ClassificationModel"]
+B --> C["yaml_model_load<br/>11 份 yaml 变体"] ; C --> C1["yolo26.yaml<br/>Detect 骨干 11 层<br/>+ Head 14 层"] ; C --> C2["yolo26-{seg/obb/pose/sem/depth}.yaml<br/>换 head"] ; C --> C3["yoloe-26.yaml<br/>+ text_model: mobileclip2:b"] ; C1 --> D["parse_model(d, ch)<br/>L2071"]
+end
+subgraph FWD["前向：骨干"]
+D --> E["#0 Conv 3×3 s2 → 64ch P1/2"] ; E --> F["#1 Conv 3×3 s2 → 128ch P2/4"] ; F --> G["#2 C3k2 256×2 e=0.25 no BN<br/>#4 C3k2 512×2 e=0.25 no BN<br/>#6 C3k2 512×2 with Bottleneck<br/>#8 C3k2 1024×2 with Bottleneck"] ; G --> H["#9 SPPF 1024×5×3"] ; H --> I["#10 C2PSA 1024×2<br/>★ v26 唯一注意力"]
+end
+subgraph HEAD["前向：颈部 + 头"]
+I --> J["FPN 上行 #11-16<br/>Upsample+Concat+C3k2 ×2"] ; J --> K["PAN 下行 #17-22<br/>Conv s2+Concat+C3k2 ×2<br/>#22 C3k2 cross_attn=True e=0.5"] ; K --> L["#23 Detect(P3,P4,P5)<br/>end2end=True<br/>reg_max=1 DFL→Identity"]
+end
+subgraph E2E["E2E 双分支"]
+L -.-> L1["one2many_cv2/cv3<br/>原始 cv2/cv3"] ; L -.-> L2["one2one_cv2/cv3<br/>copy.deepcopy<br/>L142-L143"] ; L1 --> M["Detect.forward<br/>L194-L204<br/>训练时 dict 返回"] ; L2 --> M
+end
+subgraph TRAIN["训练：E2ELoss"]
+M -.-> T1["DetectionModel.init_criterion<br/>→ E2ELoss L1283"] ; T1 --> T2["one2many: v8DetectionLoss topk=10<br/>one2one: v8DetectionLoss topk=7, topk2=1"] ; T2 --> T3["w_o2m: 0.8→0.1<br/>w_o2o: 0.2→0.9<br/>decay 退火 L1313-L1315"]
+end
+subgraph INFER["推理：无 NMS"]
+M --> I1["detect._inference<br/>仅用 one2one 分支"] ; I1 --> I2["postprocess L249<br/>topk=300<br/>agnostic_nms=False"]
+end
 ```
 
 ## 1. 入口：`YOLO` 通用类 + 6 个 Model 子类

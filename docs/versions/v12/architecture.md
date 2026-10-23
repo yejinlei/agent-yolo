@@ -16,36 +16,8 @@
 
 ```mermaid
 flowchart TB
-    %% Backbone #0-#8
-    IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"]
-    L1 --> L2["C3k2 256 ×2 #2<br/>c3k=False, e=0.25"]
-    L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"]
-    L3 --> L4["C3k2 512 ×4 #4<br/>c3k=False, e=0.25"]
-    L4 --> L5["Conv 3×3 s2 #5<br/>512ch @40 · P4/16"]
-    L5 --> L6["A2C2f 512 ×4 #6<br/>a2=True, area=4<br/>★ 骨干注意力块 1"]
-    L6 --> L7["Conv 3×3 s2 #7<br/>1024ch @20 · P5/32"]
-    L7 --> L8["A2C2f 1024 ×4 #8<br/>a2=True, area=1<br/>★ 骨干注意力块 2"]
-
-    %% Head #9-#21
-    L8 --> L9["Upsample ×2 #9<br/>1024ch @40"]
-    L9 --> L10["Concat #10<br/>cat 骨干 #6 → 1536ch"]
-    L10 --> L11["A2C2f 512 ×2 #11<br/>a2=False = C3k 骨架"]
-    L11 --> L12["Upsample ×2 #12<br/>512ch @80"]
-    L12 --> L13["Concat #13<br/>cat 骨干 #4 → 768ch"]
-    L13 --> L14["A2C2f 256 ×2 #14<br/>a2=False = C3k 骨架<br/>P3 out · stride 8"]
-
-    L14 --> L15["Conv 3×3 s2 #15<br/>256ch @40"]
-    L15 --> L16["Concat #16<br/>cat #11 → 768ch"]
-    L16 --> L17["A2C2f 512 ×2 #17<br/>a2=False = C3k 骨架<br/>P4 out · stride 16"]
-
-    L17 --> L18["Conv 3×3 s2 #18<br/>512ch @20"]
-    L18 --> L19["Concat #19<br/>cat 骨干 #8 → 1536ch"]
-    L19 --> L20["C3k2 1024 ×2 #20<br/>c3k=True<br/>P5 out · stride 32"]
-
-    L14 --> DET["Detect #21<br/>P3/P4/P5 单头 · stride 8/16/32<br/>cv2 box · cv3 DW-separable cls · dfl"]
-    L17 --> DET
-    L20 --> DET
+IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"] ; L1 --> L2["C3k2 256 ×2 #2<br/>c3k=False, e=0.25"] ; L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"] ; L3 --> L4["C3k2 512 ×4 #4<br/>c3k=False, e=0.25"] ; L4 --> L5["Conv 3×3 s2 #5<br/>512ch @40 · P4/16"] ; L5 --> L6["A2C2f 512 ×4 #6<br/>a2=True, area=4<br/>★ 骨干注意力块 1"] ; L6 --> L7["Conv 3×3 s2 #7<br/>1024ch @20 · P5/32"] ; L7 --> L8["A2C2f 1024 ×4 #8<br/>a2=True, area=1<br/>★ 骨干注意力块 2"] ; L8 --> L9["Upsample ×2 #9<br/>1024ch @40"] ; L9 --> L10["Concat #10<br/>cat 骨干 #6 → 1536ch"] ; L10 --> L11["A2C2f 512 ×2 #11<br/>a2=False = C3k 骨架"] ; L11 --> L12["Upsample ×2 #12<br/>512ch @80"] ; L12 --> L13["Concat #13<br/>cat 骨干 #4 → 768ch"] ; L13 --> L14["A2C2f 256 ×2 #14<br/>a2=False = C3k 骨架<br/>P3 out · stride 8"] ; L14 --> L15["Conv 3×3 s2 #15<br/>256ch @40"] ; L15 --> L16["Concat #16<br/>cat #11 → 768ch"] ; L16 --> L17["A2C2f 512 ×2 #17<br/>a2=False = C3k 骨架<br/>P4 out · stride 16"] ; L17 --> L18["Conv 3×3 s2 #18<br/>512ch @20"] ; L18 --> L19["Concat #19<br/>cat 骨干 #8 → 1536ch"] ; L19 --> L20["C3k2 1024 ×2 #20<br/>c3k=True<br/>P5 out · stride 32"] ; L14 --> DET["Detect #21<br/>P3/P4/P5 单头 · stride 8/16/32<br/>cv2 box · cv3 DW-separable cls · dfl"] ; L17 --> DET ; L20 --> DET
 ```
 
 - 图中通道数为 yaml 声明的**基准宽度**；n 档 depth=0.50 / width=0.25 把 A2C2f 与 C3k2 重复数 ×4→2、×2→1、通道 ÷4（末级 1024→256），五档 scales 见 §6
@@ -95,27 +67,15 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    %% Head only
-    subgraph FPN["FPN 自上而下 #9-#14"]
-        L8["A2C2f #8<br/>1024 @20"] --> L9["Upsample ×2 #9"]
-        L9 --> L10["Concat #10<br/>cat 骨干 #6 → 1536ch"]
-        L10 --> L11["A2C2f 512 ×2 #11<br/>a2=False = C3k 骨架<br/>@40"]
-        L11 --> L12["Upsample ×2 #12"]
-        L12 --> L13["Concat #13<br/>cat 骨干 #4 → 768ch"]
-        L13 --> L14["A2C2f 256 ×2 #14<br/>a2=False = C3k 骨架<br/>@80 · P3 out · stride 8"]
-    end
-    subgraph PAN["PAN 自下而上 #15-#20"]
-        L15["Conv 3×3 s2 #15<br/>256 @40"] --> L16["Concat #16<br/>cat #11 → 768ch"]
-        L16 --> L17["A2C2f 512 ×2 #17<br/>a2=False = C3k 骨架<br/>@40 · P4 out · stride 16"]
-        L17 --> L18["Conv 3×3 s2 #18<br/>512 @20"]
-        L18 --> L19["Concat #19<br/>cat 骨干 #8 → 1536ch"]
-        L19 --> L20["C3k2 1024 ×2 #20<br/>c3k=True<br/>@20 · P5 out · stride 32"]
-    end
-    L8 --> L19
-    L14 --> L15
-    L14 --> DET["Detect #21<br/>cv2 box + cv3 DW-separable + dfl"]
-    L17 --> DET
-    L20 --> DET
+subgraph FPN["FPN 自上而下 #9-#14"]
+L8["A2C2f #8<br/>1024 @20"] --> L9["Upsample ×2 #9"]
+L9 --> L10["Concat #10<br/>cat 骨干 #6 → 1536ch"] ; L10 --> L11["A2C2f 512 ×2 #11<br/>a2=False = C3k 骨架<br/>@40"] ; L11 --> L12["Upsample ×2 #12"] ; L12 --> L13["Concat #13<br/>cat 骨干 #4 → 768ch"] ; L13 --> L14["A2C2f 256 ×2 #14<br/>a2=False = C3k 骨架<br/>@80 · P3 out · stride 8"]
+end
+subgraph PAN["PAN 自下而上 #15-#20"]
+L15["Conv 3×3 s2 #15<br/>256 @40"] --> L16["Concat #16<br/>cat #11 → 768ch"]
+L16 --> L17["A2C2f 512 ×2 #17<br/>a2=False = C3k 骨架<br/>@40 · P4 out · stride 16"] ; L17 --> L18["Conv 3×3 s2 #18<br/>512 @20"] ; L18 --> L19["Concat #19<br/>cat 骨干 #8 → 1536ch"] ; L19 --> L20["C3k2 1024 ×2 #20<br/>c3k=True<br/>@20 · P5 out · stride 32"]
+end
+L8 --> L19 ; L14 --> L15 ; L14 --> DET["Detect #21<br/>cv2 box + cv3 DW-separable + dfl"] ; L17 --> DET ; L20 --> DET
 ```
 
 - **FPN 上行 #9-#14**：Upsample×2 + Concat（骨干 #6、#4）+ A2C2f 融合，与 v11 结构完全同款；出口 #14（基准 256 通道 @80×80）是 P3 检测输入，stride 8

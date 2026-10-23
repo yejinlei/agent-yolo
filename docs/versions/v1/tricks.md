@@ -253,25 +253,16 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    ROOT[YOLOv1 训练/推理技巧]
-    LOSS[损失设计] & AUG[数据增强] & REG[正则化] & INF[推理后处理] & PRE[预训练] & STABLE[训练稳定]
-    ROOT --> LOSS & AUG & REG & INF & PRE & STABLE
-
-    LOSS --> SQ[sqrt=1]
-    LOSS --> WL[权重 5/1/1/0.5]
-    AUG --> RJ[Region Jitter]
-    REG --> DP[Dropout]
-    INF --> NMS[NMS IoU 0.5]
-    PRE --> IM[ImageNet 预训练]
-    STABLE --> RB[随机 best_index]
-
-    SQ -.v2 废弃.-> V2[v2]
-    WL -.v2 保留.-> V2
-    RJ -.v4 Mosaic 替代.-> V4[v4]
-    DP -.v2 去 FC 消失.-> V2
-    NMS -.v10 NMS-free.-> V10[v10]
-    IM -.v1-v13 全部沿用.-> ALL[v1-v13]
-    RB -.v2 anchor 后删除.-> V2
+ROOT[YOLOv1 训练/推理技巧]
+LOSS[损失设计] & AUG[数据增强] & REG[正则化] & INF[推理后处理] & PRE[预训练] & STABLE[训练稳定]
+ROOT --> LOSS & AUG & REG & INF & PRE & STABLE ; LOSS --> SQ[sqrt=1] ; LOSS --> WL[权重 5/1/1/0.5] ; AUG --> RJ[Region Jitter] ; REG --> DP[Dropout] ; INF --> NMS[NMS IoU 0.5] ; PRE --> IM[ImageNet 预训练] ; STABLE --> RB[随机 best_index]
+SQ -.v2 废弃.-> V2[v2]
+WL -.v2 保留.-> V2
+RJ -.v4 Mosaic 替代.-> V4[v4]
+DP -.v2 去 FC 消失.-> V2
+NMS -.v10 NMS-free.-> V10[v10]
+IM -.v1-v13 全部沿用.-> ALL[v1-v13]
+RB -.v2 anchor 后删除.-> V2
 ```
 
 ---

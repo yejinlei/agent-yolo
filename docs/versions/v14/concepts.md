@@ -326,30 +326,25 @@ class SphereAAttn(nn.Module):
 
 ```mermaid
 flowchart TB
-    subgraph 骨干浅层 P2/P3
-        DAL1[DomainAdaptiveLayer<br/>#3 AdaIN 域对齐]
-        VE1[ViewEmbedding<br/>#2 6 类视角码字]
-    end
-    subgraph 骨干深层 P4/P5
-        DA1[DeformableA2C2f ×4<br/>#9 D-AAttn]
-        DA2[DeformableA2C2f ×4<br/>#11 D-AAttn]
-    end
-    subgraph Head
-        DA3[DeformableA2C2f ×3<br/>#17/#20/#22]
-        DET[Detect P3/P4/P5]
-    end
-    IMG["640×640 输入"] --> DAL1
-    DAL1 --> VE1
-    VE1 --> DA1
-    DA1 --> DA2
-    DA2 --> DA3
-    DA3 --> DET
-
-    style DAL1 fill:#e3f2fd
-    style VE1 fill:#e8f5e9
-    style DA1 fill:#fff3e0
-    style DA2 fill:#fff3e0
-    style DA3 fill:#fff3e0
+subgraph 骨干浅层 P2/P3
+DAL1[DomainAdaptiveLayer<br/>#3 AdaIN 域对齐]
+VE1[ViewEmbedding<br/>#2 6 类视角码字]
+end
+subgraph 骨干深层 P4/P5
+DA1[DeformableA2C2f ×4<br/>#9 D-AAttn]
+DA2[DeformableA2C2f ×4<br/>#11 D-AAttn]
+end
+subgraph Head
+DA3[DeformableA2C2f ×3<br/>#17/#20/#22]
+DET[Detect P3/P4/P5]
+end
+IMG["640×640 输入"] --> DAL1
+DAL1 --> VE1 ; VE1 --> DA1 ; DA1 --> DA2 ; DA2 --> DA3 ; DA3 --> DET
+style DAL1 fill:#e3f2fd
+style VE1 fill:#e8f5e9
+style DA1 fill:#fff3e0
+style DA2 fill:#fff3e0
+style DA3 fill:#fff3e0
 ```
 
 **正交性检验**：

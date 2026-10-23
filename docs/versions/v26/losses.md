@@ -14,33 +14,9 @@
 
 ```mermaid
 flowchart TB
-    %% v26 六任务损失全景
-    BATCH["batch 字典<br/>img, targets, masks,<br/>depth, keypoints,<br/>text_prompts, semantic"]
-    
-    BATCH --> DETECT_TASK{"任务类型？"}
-    
-    DETECT_TASK -->|detection| DETECT_LOSS["v8DetectionLoss 三分量<br/>box 7.5 + cls 0.5 + dfl 1.5"]
-    DETECT_TASK -->|e2e detect| E2E_CHOICE{"E2E 模式？"}
-    
-    E2E_CHOICE -->|等权| E2E_SIMPLE["E2EDetectLoss<br/>loss = loss_o2m + loss_o2o"]
-    E2E_CHOICE -->|退火| E2E_ANNEAL["E2ELoss<br/>loss = decay(x)·loss_o2m + (1-decay(x))·loss_o2o<br/>decay: 0.8→0.1, 0.2→0.9"]
-    
-    DETECT_TASK -->|segmentation| SEG["v8SegmentationLoss<br/>+ CE(mask)"]
-    DETECT_TASK -->|pose| POSE["PoseLoss26<br/>v8PoseLoss + RLELoss"]
-    DETECT_TASK -->|depth| DEPTH["DepthLoss26<br/>SILog + 4-尺度梯度 L1"]
-    DETECT_TASK -->|semantic| SEM["SemanticSegmentationLoss<br/>CE(ignore=255) + Cityscapes 权重<br/>或 BCE(nc=1)"]
-    DETECT_TASK -->|tvp| TVP["TVPDetectLoss<br/>动态调整 vp_criterion.nc"]
-    
-    E2E_SIMPLE --> TOTAL["total loss"]
-    E2E_ANNEAL --> TOTAL
-    DETECT_LOSS --> TOTAL
-    SEG --> TOTAL
-    POSE --> TOTAL
-    DEPTH --> TOTAL
-    SEM --> TOTAL
-    TVP --> TOTAL
-    
-    RLE["RLELoss<br/>log_sigma - log_phi + residual·L1<br/>· target_weight（可选）"] -.->|供 Pose26 调用| POSE
+BATCH["batch 字典<br/>img, targets, masks,<br/>depth, keypoints,<br/>text_prompts, semantic"]
+BATCH --> DETECT_TASK{"任务类型？"} ; DETECT_TASK -->|detection| DETECT_LOSS["v8DetectionLoss 三分量<br/>box 7.5 + cls 0.5 + dfl 1.5"] ; DETECT_TASK -->|e2e detect| E2E_CHOICE{"E2E 模式？"} ; E2E_CHOICE -->|等权| E2E_SIMPLE["E2EDetectLoss<br/>loss = loss_o2m + loss_o2o"] ; E2E_CHOICE -->|退火| E2E_ANNEAL["E2ELoss<br/>loss = decay(x)·loss_o2m + (1-decay(x))·loss_o2o<br/>decay: 0.8→0.1, 0.2→0.9"] ; DETECT_TASK -->|segmentation| SEG["v8SegmentationLoss<br/>+ CE(mask)"] ; DETECT_TASK -->|pose| POSE["PoseLoss26<br/>v8PoseLoss + RLELoss"] ; DETECT_TASK -->|depth| DEPTH["DepthLoss26<br/>SILog + 4-尺度梯度 L1"] ; DETECT_TASK -->|semantic| SEM["SemanticSegmentationLoss<br/>CE(ignore=255) + Cityscapes 权重<br/>或 BCE(nc=1)"] ; DETECT_TASK -->|tvp| TVP["TVPDetectLoss<br/>动态调整 vp_criterion.nc"] ; E2E_SIMPLE --> TOTAL["total loss"] ; E2E_ANNEAL --> TOTAL ; DETECT_LOSS --> TOTAL ; SEG --> TOTAL ; POSE --> TOTAL ; DEPTH --> TOTAL ; SEM --> TOTAL ; TVP --> TOTAL
+RLE["RLELoss<br/>log_sigma - log_phi + residual·L1<br/>· target_weight（可选）"] -.->|供 Pose26 调用| POSE
 ```
 
 - **6 任务损失共享 v8 三分量内核**：`v8DetectionLoss.__call__` 是 5 个任务损失的 `super()` 基类；

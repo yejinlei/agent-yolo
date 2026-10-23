@@ -16,59 +16,8 @@
 
 ```mermaid
 flowchart TB
-    %% Backbone #0-#8
-    IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"]
-    L1 --> L2["DSC3k2 256 ×2 #2<br/>dsc3k=False, e=0.25"]
-    L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"]
-    L3 --> L4["DSC3k2 512 ×2 #4<br/>dsc3k=False, e=0.25"]
-    L4 --> L5["DSConv 3×3 s2 #5<br/>512ch @40 · P4/16"]
-    L5 --> L6["A2C2f 512 ×4 #6<br/>a2=True, area=4<br/>★ 骨干注意力块 1"]
-    L6 --> L7["DSConv 3×3 s2 #7<br/>1024ch @20 · P5/32"]
-    L7 --> L8["A2C2f 1024 ×4 #8<br/>a2=True, area=1<br/>★ 骨干注意力块 2"]
-
-    %% Head #9-#31
-    L4 --> L9["HyperACE 512 ×2 #9<br/>fuse+chunk(3)<br/>2×C3AH + DSC3k 并行<br/>★ 高阶超图融合"]
-    L6 --> L9
-    L8 --> L9
-
-    L9 --> L10["Upsample ×2 #10<br/>512 @40"]
-    L9 --> L11["DownsampleConv #11<br/>AvgPool 2 + 1×1 2×ch<br/>512→1024 @40"]
-    L11 --> L12["FullPAD_Tunnel #12<br/>gate * L6<br/>P4 骨干↔颈部"]
-    L6 --> L12
-    L11 --> L13["FullPAD_Tunnel #13<br/>gate * L4"]
-    L4 --> L13
-    L11 --> L14["FullPAD_Tunnel #14<br/>gate * L8"]
-    L8 --> L14
-
-    L10 --> L15["Upsample ×2 #15<br/>512 @80"]
-    L15 --> L16["Concat #16<br/>cat #12 → 1024"]
-    L16 --> L17["DSC3k2 512 ×2 #17<br/>dsc3k=True"]
-    L17 --> L18["FullPAD_Tunnel #18<br/>gate * L9<br/>颈部内部"]
-    L9 --> L18
-
-    L17 --> L19["Upsample ×2 #19<br/>512 @80"]
-    L19 --> L20["Concat #20<br/>cat #13 → 1024"]
-    L20 --> L21["DSC3k2 256 ×2 #21<br/>dsc3k=True<br/>P3 out · stride 8"]
-    L21 --> L22["Conv 1×1 #22<br/>256 @80"]
-    L22 --> L23["FullPAD_Tunnel #23<br/>gate * L21"]
-    L21 --> L23
-
-    L23 --> L24["Conv 3×3 s2 #24<br/>256 @40"]
-    L24 --> L25["Concat #25<br/>cat #18 → 768"]
-    L25 --> L26["DSC3k2 512 ×2 #26<br/>dsc3k=True<br/>P4 out · stride 16"]
-    L26 --> L27["FullPAD_Tunnel #27<br/>gate * L9"]
-    L9 --> L27
-
-    L26 --> L28["Conv 3×3 s2 #28<br/>512 @20"]
-    L28 --> L29["Concat #29<br/>cat #14 → 1536"]
-    L29 --> L30["DSC3k2 1024 ×2 #30<br/>dsc3k=True<br/>P5 out · stride 32"]
-    L30 --> L31["FullPAD_Tunnel #31<br/>gate * L11"]
-    L11 --> L31
-
-    L23 --> DET["Detect #32<br/>P3/P4/P5 单头 · stride 8/16/32<br/>cv2 box · cv3 DW-separable cls · dfl"]
-    L27 --> DET
-    L31 --> DET
+IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"] ; L1 --> L2["DSC3k2 256 ×2 #2<br/>dsc3k=False, e=0.25"] ; L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"] ; L3 --> L4["DSC3k2 512 ×2 #4<br/>dsc3k=False, e=0.25"] ; L4 --> L5["DSConv 3×3 s2 #5<br/>512ch @40 · P4/16"] ; L5 --> L6["A2C2f 512 ×4 #6<br/>a2=True, area=4<br/>★ 骨干注意力块 1"] ; L6 --> L7["DSConv 3×3 s2 #7<br/>1024ch @20 · P5/32"] ; L7 --> L8["A2C2f 1024 ×4 #8<br/>a2=True, area=1<br/>★ 骨干注意力块 2"] ; L4 --> L9["HyperACE 512 ×2 #9<br/>fuse+chunk(3)<br/>2×C3AH + DSC3k 并行<br/>★ 高阶超图融合"] ; L6 --> L9 ; L8 --> L9 ; L9 --> L10["Upsample ×2 #10<br/>512 @40"] ; L9 --> L11["DownsampleConv #11<br/>AvgPool 2 + 1×1 2×ch<br/>512→1024 @40"] ; L11 --> L12["FullPAD_Tunnel #12<br/>gate * L6<br/>P4 骨干↔颈部"] ; L6 --> L12 ; L11 --> L13["FullPAD_Tunnel #13<br/>gate * L4"] ; L4 --> L13 ; L11 --> L14["FullPAD_Tunnel #14<br/>gate * L8"] ; L8 --> L14 ; L10 --> L15["Upsample ×2 #15<br/>512 @80"] ; L15 --> L16["Concat #16<br/>cat #12 → 1024"] ; L16 --> L17["DSC3k2 512 ×2 #17<br/>dsc3k=True"] ; L17 --> L18["FullPAD_Tunnel #18<br/>gate * L9<br/>颈部内部"] ; L9 --> L18 ; L17 --> L19["Upsample ×2 #19<br/>512 @80"] ; L19 --> L20["Concat #20<br/>cat #13 → 1024"] ; L20 --> L21["DSC3k2 256 ×2 #21<br/>dsc3k=True<br/>P3 out · stride 8"] ; L21 --> L22["Conv 1×1 #22<br/>256 @80"] ; L22 --> L23["FullPAD_Tunnel #23<br/>gate * L21"] ; L21 --> L23 ; L23 --> L24["Conv 3×3 s2 #24<br/>256 @40"] ; L24 --> L25["Concat #25<br/>cat #18 → 768"] ; L25 --> L26["DSC3k2 512 ×2 #26<br/>dsc3k=True<br/>P4 out · stride 16"] ; L26 --> L27["FullPAD_Tunnel #27<br/>gate * L9"] ; L9 --> L27 ; L26 --> L28["Conv 3×3 s2 #28<br/>512 @20"] ; L28 --> L29["Concat #29<br/>cat #14 → 1536"] ; L29 --> L30["DSC3k2 1024 ×2 #30<br/>dsc3k=True<br/>P5 out · stride 32"] ; L30 --> L31["FullPAD_Tunnel #31<br/>gate * L11"] ; L11 --> L31 ; L23 --> DET["Detect #32<br/>P3/P4/P5 单头 · stride 8/16/32<br/>cv2 box · cv3 DW-separable cls · dfl"] ; L27 --> DET ; L31 --> DET
 ```
 
 - 图中通道数为 yaml 声明的**基准宽度**；n 档 depth=0.50 / width=0.25 把 DSC3k2 与 A2C2f 重复数 ×4→2、×2→1，通道 ÷4（末级 1024→256），四档 scales 见 §6
@@ -110,25 +59,17 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph HYP["HyperACE #9"]
-        FUSE["FuseModule<br/>down 2× + mid + up 2×<br/>concat → 1×1"]
-        CV1["cv1 1×1<br/>3c=1536"]
-        CHUNK["chunk(3)<br/>y[0], y[1], y[2]"]
-        B1["C3AH branch1<br/>AdaHGComputation"]
-        B2["C3AH branch2<br/>AdaHGComputation"]
-        DSC["DSC3k × n<br/>DSConv k1=3, k2=7"]
-        CV2["cv2 1×1"]
-        FUSE --> CV1 --> CHUNK
-        CHUNK --> B1
-        CHUNK --> B2
-        CHUNK --> DSC
-        B1 --> CV2
-        B2 --> CV2
-        DSC --> CV2
-    end
-    L4 --> FUSE
-    L6 --> FUSE
-    L8 --> FUSE
+subgraph HYP["HyperACE #9"]
+FUSE["FuseModule<br/>down 2× + mid + up 2×<br/>concat → 1×1"]
+CV1["cv1 1×1<br/>3c=1536"]
+CHUNK["chunk(3)<br/>y[0], y[1], y[2]"]
+B1["C3AH branch1<br/>AdaHGComputation"]
+B2["C3AH branch2<br/>AdaHGComputation"]
+DSC["DSC3k × n<br/>DSConv k1=3, k2=7"]
+CV2["cv2 1×1"]
+FUSE --> CV1 --> CHUNK ; CHUNK --> B1 ; CHUNK --> B2 ; CHUNK --> DSC ; B1 --> CV2 ; B2 --> CV2 ; DSC --> CV2
+end
+L4 --> FUSE ; L6 --> FUSE ; L8 --> FUSE
 ```
 
 - **yaml 参数**：`[512, 8, True, True, 0.5, 1, "both"]`——c2=512, num_hyperedges=8, dsc3k=True, shortcut=True, e1=0.5, e2=1, context="both"

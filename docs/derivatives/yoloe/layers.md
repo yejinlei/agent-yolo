@@ -564,33 +564,24 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph BACKBONE["Backbone（v8 或 26）"]
-        B0["#0 Conv"] --> B1["#1 Conv"] --> B2["#2 C2f/C3k2"]
-        B2 --> B3["#3 Conv"] --> B4["#4 C2f/C3k2"]
-        B4 --> B5["#5 Conv"] --> B6["#6 C2f/C3k2"]
-        B6 --> B7["#7 Conv"] --> B8["#8 C2f/C3k2"]
-        B8 --> B9["#9 SPPF"]
-    end
-    subgraph HEAD["Head（颈部 + Detect）"]
-        N1["#10-12 上采样+Cat"] --> N2["#13-15 P3"]
-        N2 --> N3["#16-18 P4"]
-        N3 --> N4["#19-22 P5"]
-    end
-    B9 --> N1
-    B6 --> N1
-    B4 --> N2
-    B9 --> N4
-    subgraph DETECT["YOLOEDetect (#22 or #23)"]
-        D1["cv2 × 3"]
-        D2["cv3 × 3 → 512"]
-        D3["cv4 × 3: BNContrastiveHead"]
-        D4["reprta (Residual SwiGLUFFN)"]
-        D5["savpe"]
-        D6["lrpc × 3 (prompt-free only)"]
-    end
-    N2 --> DETECT
-    N3 --> DETECT
-    N4 --> DETECT
+subgraph BACKBONE["Backbone（v8 或 26）"]
+B0["#0 Conv"] --> B1["#1 Conv"] --> B2["#2 C2f/C3k2"]
+B2 --> B3["#3 Conv"] --> B4["#4 C2f/C3k2"] ; B4 --> B5["#5 Conv"] --> B6["#6 C2f/C3k2"] ; B6 --> B7["#7 Conv"] --> B8["#8 C2f/C3k2"] ; B8 --> B9["#9 SPPF"]
+end
+subgraph HEAD["Head（颈部 + Detect）"]
+N1["#10-12 上采样+Cat"] --> N2["#13-15 P3"]
+N2 --> N3["#16-18 P4"] ; N3 --> N4["#19-22 P5"]
+end
+B9 --> N1 ; B6 --> N1 ; B4 --> N2 ; B9 --> N4
+subgraph DETECT["YOLOEDetect (#22 or #23)"]
+D1["cv2 × 3"]
+D2["cv3 × 3 → 512"]
+D3["cv4 × 3: BNContrastiveHead"]
+D4["reprta (Residual SwiGLUFFN)"]
+D5["savpe"]
+D6["lrpc × 3 (prompt-free only)"]
+end
+N2 --> DETECT ; N3 --> DETECT ; N4 --> DETECT
 ```
 
 ### 10.2 YOLOESegment 额外组件

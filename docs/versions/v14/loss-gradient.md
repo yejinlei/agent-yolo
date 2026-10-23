@@ -14,32 +14,14 @@
 
 ```mermaid
 flowchart TB
-    IMG["640×640 输入"] --> CIRC["CircularConv #0<br/>θ_circ"]
-    CIRC --> VEMB["ViewEmbedding #2<br/>θ_ve · 视角码字"]
-    VEMB --> DAL1["DomainAdaptiveLayer #3<br/>θ_adain + θ_grl + θ_disc<br/>暴露 domain_logits"]
-    DAL1 --> A1["A2C2f #4<br/>θ_attn"]
-    A1 --> DS1["DSConv s2 #5"]
-    DS1 --> DA1["DeformableA2C2f #9<br/>θ_daa · offset_conv<br/>暴露 offset / Δ_init"]
-    DA1 --> DS2["DSConv s2 #11"]
-    DS2 --> DAL2["DomainAdaptiveLayer #7<br/>θ_adain + θ_disc<br/>暴露 domain_logits"]
-    DAL2 --> DA2["DeformableA2C2f #11<br/>θ_daa · offset_conv"]
-    DA2 --> FPN["P4/P5 FPN<br/>DeformableA2C2f #14/#17"]
-    FPN --> P3["P3 Neck<br/>DeformableA2C2f #20"]
-    P3 --> DETECT["Detect #24 单头<br/>cv2 box · cv3 cls · dfl"]
-
-    DETECT --> LDET["L_det = 7.5·box + 0.5·cls + 1.5·dfl<br/>TAL topk=10 α=0.5 β=6.0"]
-    DA1 -. "batch.offset" .-> LOFF["L_offset = λ_reg · ‖Δ-Δ_init‖²<br/>λ_reg: 0.01→0.001"]
-    DA2 -. "batch.offset" .-> LOFF
-    DAL1 -. "batch.domain_logits" .-> LADV["L_adv = 0.05 · CE(GRL→cls, label)<br/>GRL λ: 0→1"]
-    DAL2 -. "batch.domain_logits" .-> LADV
-    VEMB -. "batch.features" .-> LCROSS["L_cross = 0.05 · NT-Xent(τ)<br/>τ: 0.05→0.5"]
-
-    LDET --> TOTAL["L_total = L_det + L_offset + L_adv + L_cross"]
-    LOFF --> TOTAL
-    LADV --> TOTAL
-    LCROSS --> TOTAL
-
-    TOTAL --> BW["backward"]
+IMG["640×640 输入"] --> CIRC["CircularConv #0<br/>θ_circ"]
+CIRC --> VEMB["ViewEmbedding #2<br/>θ_ve · 视角码字"] ; VEMB --> DAL1["DomainAdaptiveLayer #3<br/>θ_adain + θ_grl + θ_disc<br/>暴露 domain_logits"] ; DAL1 --> A1["A2C2f #4<br/>θ_attn"] ; A1 --> DS1["DSConv s2 #5"] ; DS1 --> DA1["DeformableA2C2f #9<br/>θ_daa · offset_conv<br/>暴露 offset / Δ_init"] ; DA1 --> DS2["DSConv s2 #11"] ; DS2 --> DAL2["DomainAdaptiveLayer #7<br/>θ_adain + θ_disc<br/>暴露 domain_logits"] ; DAL2 --> DA2["DeformableA2C2f #11<br/>θ_daa · offset_conv"] ; DA2 --> FPN["P4/P5 FPN<br/>DeformableA2C2f #14/#17"] ; FPN --> P3["P3 Neck<br/>DeformableA2C2f #20"] ; P3 --> DETECT["Detect #24 单头<br/>cv2 box · cv3 cls · dfl"] ; DETECT --> LDET["L_det = 7.5·box + 0.5·cls + 1.5·dfl<br/>TAL topk=10 α=0.5 β=6.0"]
+DA1 -. "batch.offset" .-> LOFF["L_offset = λ_reg · ‖Δ-Δ_init‖²<br/>λ_reg: 0.01→0.001"]
+DA2 -. "batch.offset" .-> LOFF
+DAL1 -. "batch.domain_logits" .-> LADV["L_adv = 0.05 · CE(GRL→cls, label)<br/>GRL λ: 0→1"]
+DAL2 -. "batch.domain_logits" .-> LADV
+VEMB -. "batch.features" .-> LCROSS["L_cross = 0.05 · NT-Xent(τ)<br/>τ: 0.05→0.5"]
+LDET --> TOTAL["L_total = L_det + L_offset + L_adv + L_cross"] ; LOFF --> TOTAL ; LADV --> TOTAL ; LCROSS --> TOTAL ; TOTAL --> BW["backward"]
 ```
 
 本页记号：

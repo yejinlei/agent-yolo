@@ -17,54 +17,8 @@
 ::: figure 图：yolov9-c.yaml 全景——实线为主分支（推理也走），虚线为训练专用的辅助分支路由；DualDDetect #38 六路入口双头收官
 ```mermaid
 flowchart TB
-    IMG["640×640×3"] --> S0["Silence #0 · 恒等锚点"]
-    S0 --> C1["Conv 64 s2 #1 · P1/2 @320"]
-    C1 --> C2["Conv 128 s2 #2 · P2/4 @160"]
-    C2 --> R3["RepNCSPELAN4 #3<br/>256ch @160"]
-    R3 --> D4["ADown #4 · P3/8 @80"]
-    D4 --> R5["RepNCSPELAN4 #5<br/>512ch @80"]
-    R5 --> D6["ADown #6 · P4/16 @40"]
-    D6 --> R7["RepNCSPELAN4 #7<br/>512ch @40"]
-    R7 --> D8["ADown #8 · P5/32 @20"]
-    D8 --> R9["RepNCSPELAN4 #9<br/>512ch @20"]
-    R9 --> S10["SPPELAN #10 · 512ch @20"]
-    S10 --> U11["Upsample #11 @40"]
-    U11 --> K12["Concat #12 · cat #7"]
-    K12 --> R13["RepNCSPELAN4 #13 · 512ch @40"]
-    R13 --> U14["Upsample #14 @80"]
-    U14 --> K15["Concat #15 · cat #5"]
-    K15 --> R16["RepNCSPELAN4 #16<br/>256ch @80 · P3 出口"]
-    R16 --> D17["ADown #17 @40"]
-    D17 --> K18["Concat #18 · cat #13"]
-    K18 --> R19["RepNCSPELAN4 #19<br/>512ch @40 · P4 出口"]
-    R19 --> D20["ADown #20 @20"]
-    D20 --> K21["Concat #21 · cat #10"]
-    K21 --> R22["RepNCSPELAN4 #22<br/>512ch @20 · P5 出口"]
-    R5 -.-> CB23["CBLinear #23 · 存 1 份 256"]
-    R7 -.-> CB24["CBLinear #24 · 存 256+512"]
-    R9 -.-> CB25["CBLinear #25 · 存 256+512+512"]
-    S0 --> A26["辅助主干 #26/#27 Conv<br/>+ RepNCSPELAN4 #28 @160"]
-    A26 --> A29["ADown #29 @80"]
-    CB23 -.-> F30["CBFuse #30 · 逐元素相加"]
-    CB24 -.-> F30
-    CB25 -.-> F30
-    A29 --> F30
-    F30 --> A31["RepNCSPELAN4 #31 · A3 512ch @80"]
-    A31 --> A32["ADown #32 @40"]
-    A32 --> F33["CBFuse #33"]
-    CB24 -.-> F33
-    CB25 -.-> F33
-    F33 --> A34["RepNCSPELAN4 #34 · A4 512ch @40"]
-    A34 --> A35["ADown #35 @20"]
-    A35 --> F36["CBFuse #36"]
-    CB25 -.-> F36
-    F36 --> A37["RepNCSPELAN4 #37 · A5 512ch @20"]
-    A31 --> DET["DualDDetect #38<br/>6 路输入 · 每位置 144 通道"]
-    A34 --> DET
-    A37 --> DET
-    R16 --> DET
-    R19 --> DET
-    R22 --> DET
+IMG["640×640×3"] --> S0["Silence #0 · 恒等锚点"]
+S0 --> C1["Conv 64 s2 #1 · P1/2 @320"] ; C1 --> C2["Conv 128 s2 #2 · P2/4 @160"] ; C2 --> R3["RepNCSPELAN4 #3<br/>256ch @160"] ; R3 --> D4["ADown #4 · P3/8 @80"] ; D4 --> R5["RepNCSPELAN4 #5<br/>512ch @80"] ; R5 --> D6["ADown #6 · P4/16 @40"] ; D6 --> R7["RepNCSPELAN4 #7<br/>512ch @40"] ; R7 --> D8["ADown #8 · P5/32 @20"] ; D8 --> R9["RepNCSPELAN4 #9<br/>512ch @20"] ; R9 --> S10["SPPELAN #10 · 512ch @20"] ; S10 --> U11["Upsample #11 @40"] ; U11 --> K12["Concat #12 · cat #7"] ; K12 --> R13["RepNCSPELAN4 #13 · 512ch @40"] ; R13 --> U14["Upsample #14 @80"] ; U14 --> K15["Concat #15 · cat #5"] ; K15 --> R16["RepNCSPELAN4 #16<br/>256ch @80 · P3 出口"] ; R16 --> D17["ADown #17 @40"] ; D17 --> K18["Concat #18 · cat #13"] ; K18 --> R19["RepNCSPELAN4 #19<br/>512ch @40 · P4 出口"] ; R19 --> D20["ADown #20 @20"] ; D20 --> K21["Concat #21 · cat #10"] ; K21 --> R22["RepNCSPELAN4 #22<br/>512ch @20 · P5 出口"] ; R5 -.-> CB23["CBLinear #23 · 存 1 份 256"] ; R7 -.-> CB24["CBLinear #24 · 存 256+512"] ; R9 -.-> CB25["CBLinear #25 · 存 256+512+512"] ; S0 --> A26["辅助主干 #26/#27 Conv<br/>+ RepNCSPELAN4 #28 @160"] ; A26 --> A29["ADown #29 @80"] ; CB23 -.-> F30["CBFuse #30 · 逐元素相加"] ; CB24 -.-> F30 ; CB25 -.-> F30 ; A29 --> F30 ; F30 --> A31["RepNCSPELAN4 #31 · A3 512ch @80"] ; A31 --> A32["ADown #32 @40"] ; A32 --> F33["CBFuse #33"] ; CB24 -.-> F33 ; CB25 -.-> F33 ; F33 --> A34["RepNCSPELAN4 #34 · A4 512ch @40"] ; A34 --> A35["ADown #35 @20"] ; A35 --> F36["CBFuse #36"] ; CB25 -.-> F36 ; F36 --> A37["RepNCSPELAN4 #37 · A5 512ch @20"] ; A31 --> DET["DualDDetect #38<br/>6 路输入 · 每位置 144 通道"] ; A34 --> DET ; A37 --> DET ; R16 --> DET ; R19 --> DET ; R22 --> DET
 ```
 :::
 
@@ -198,28 +152,11 @@ flowchart TB
 ::: figure 图：辅助分支数据流——CBLinear 从骨干三级抽头存档，辅助主干从原始输入重跑一遍，CBFuse 在同名尺度把存档逐元素加回来
 ```mermaid
 flowchart TB
-    R5["#5 · 512 @80"] -.-> CB23["CBLinear #23<br/>conv 512→256 · 拆 1 份"]
-    R7["#7 · 512 @40"] -.-> CB24["CBLinear #24<br/>conv 512→768 · 拆 256+512"]
-    R9["#9 · 512 @20"] -.-> CB25["CBLinear #25<br/>conv 512→1536 · 拆 256+512+512"]
-    S0["Silence #0 · 原始输入"] --> A26["Conv 64 s2 #26 · @320"]
-    A26 --> A27["Conv 128 s2 #27 · @160"]
-    A27 --> A28["RepNCSPELAN4 #28<br/>256 @160"]
-    A28 --> A29["ADown #29 · 256 @80"]
-    CB23 -.->|"第 1 份 256"| F30["CBFuse #30"]
-    CB24 -.->|"第 1 份 256 · 插值到 @80"| F30
-    CB25 -.->|"第 1 份 256 · 插值到 @80"| F30
-    A29 --> F30
-    F30 --> ADD1["逐元素相加 · 256 @80"]
-    ADD1 --> A31["RepNCSPELAN4 #31<br/>512 @80 · A3"]
-    A31 --> A32["ADown #32 · 512 @40"]
-    CB24 -.->|"第 2 份 512"| F33["CBFuse #33"]
-    CB25 -.->|"第 2 份 512 · 插值到 @40"| F33
-    A32 --> F33
-    F33 --> A34["RepNCSPELAN4 #34<br/>512 @40 · A4"]
-    A34 --> A35["ADown #35 · 512 @20"]
-    CB25 -.->|"第 3 份 512"| F36["CBFuse #36"]
-    A35 --> F36
-    F36 --> A37["RepNCSPELAN4 #37<br/>512 @20 · A5"]
+R5["#5 · 512 @80"] -.-> CB23["CBLinear #23<br/>conv 512→256 · 拆 1 份"]
+R7["#7 · 512 @40"] -.-> CB24["CBLinear #24<br/>conv 512→768 · 拆 256+512"]
+R9["#9 · 512 @20"] -.-> CB25["CBLinear #25<br/>conv 512→1536 · 拆 256+512+512"]
+S0["Silence #0 · 原始输入"] --> A26["Conv 64 s2 #26 · @320"]
+A26 --> A27["Conv 128 s2 #27 · @160"] ; A27 --> A28["RepNCSPELAN4 #28<br/>256 @160"] ; A28 --> A29["ADown #29 · 256 @80"] ; CB23 -.->|"第 1 份 256"| F30["CBFuse #30"] ; CB24 -.->|"第 1 份 256 · 插值到 @80"| F30 ; CB25 -.->|"第 1 份 256 · 插值到 @80"| F30 ; A29 --> F30 ; F30 --> ADD1["逐元素相加 · 256 @80"] ; ADD1 --> A31["RepNCSPELAN4 #31<br/>512 @80 · A3"] ; A31 --> A32["ADown #32 · 512 @40"] ; CB24 -.->|"第 2 份 512"| F33["CBFuse #33"] ; CB25 -.->|"第 2 份 512 · 插值到 @40"| F33 ; A32 --> F33 ; F33 --> A34["RepNCSPELAN4 #34<br/>512 @40 · A4"] ; A34 --> A35["ADown #35 · 512 @20"] ; CB25 -.->|"第 3 份 512"| F36["CBFuse #36"] ; A35 --> F36 ; F36 --> A37["RepNCSPELAN4 #37<br/>512 @20 · A5"]
 ```
 :::
 

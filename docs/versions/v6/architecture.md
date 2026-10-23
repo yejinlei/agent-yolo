@@ -12,33 +12,12 @@
 
 ```mermaid
 flowchart LR
-    IMG["640×640×3"] --> STEM["stem RepVGGBlock<br/>3×3 s2 → 32ch @320"]
-    STEM --> E2["ERBlock_2<br/>s2 → 64ch + RepBlock×2<br/>P2 @160"]
-    E2 --> E3["ERBlock_3<br/>s2 → 128ch + RepBlock×4<br/>P3 @80"]
-    E3 --> E4["ERBlock_4<br/>s2 → 256ch + RepBlock×6<br/>P4 @40"]
-    E4 --> E5["ERBlock_5<br/>s2 → 512ch + RepBlock×2 + CSPSPPF<br/>P5 @20"]
-
-    E5 --> R0["reduce_layer0 1×1<br/>512 → 128 @20"]
-    R0 --> BF0["Bifusion0<br/>上采样128 + cv1(256→128) + ↓cv2(128→128)<br/>concat 384 → 128 @40"]
-    E4 --> BF0
-    E3 --> BF0
-    BF0 --> P4R["Rep_p4 ×4 → 128 @40"]
-    P4R --> R1["reduce_layer1 1×1<br/>128 → 64 @40"]
-    R1 --> BF1["Bifusion1<br/>上采样64 + cv1(128→64) + ↓cv2(64→64)<br/>concat 192 → 64 @80"]
-    E3 --> BF1
-    E2 --> BF1
-    BF1 --> P3R["Rep_p3 ×4 → 64 @80 = P3"]
-
-    P3R --> DS2["downsample2 3×3 s2 → 64 @40"]
-    DS2 --> NC1["cat 64+64 → Rep_n3 ×4 → 128 @40 = P4"]
-    P4R -. concat .-> NC1
-    NC1 --> DS1["downsample1 3×3 s2 → 128 @20"]
-    DS1 --> NC2["cat 128+128 → Rep_n4 ×4 → 256 @20 = P5"]
-    R0 -. concat .-> NC2
-
-    P3R --> H3["EffiDeHead P3/8<br/>80×80 位置"]
-    NC1 --> H4["EffiDeHead P4/16<br/>40×40 位置"]
-    NC2 --> H5["EffiDeHead P5/32<br/>20×20 位置"]
+IMG["640×640×3"] --> STEM["stem RepVGGBlock<br/>3×3 s2 → 32ch @320"]
+STEM --> E2["ERBlock_2<br/>s2 → 64ch + RepBlock×2<br/>P2 @160"] ; E2 --> E3["ERBlock_3<br/>s2 → 128ch + RepBlock×4<br/>P3 @80"] ; E3 --> E4["ERBlock_4<br/>s2 → 256ch + RepBlock×6<br/>P4 @40"] ; E4 --> E5["ERBlock_5<br/>s2 → 512ch + RepBlock×2 + CSPSPPF<br/>P5 @20"] ; E5 --> R0["reduce_layer0 1×1<br/>512 → 128 @20"] ; R0 --> BF0["Bifusion0<br/>上采样128 + cv1(256→128) + ↓cv2(128→128)<br/>concat 384 → 128 @40"] ; E4 --> BF0 ; E3 --> BF0 ; BF0 --> P4R["Rep_p4 ×4 → 128 @40"] ; P4R --> R1["reduce_layer1 1×1<br/>128 → 64 @40"] ; R1 --> BF1["Bifusion1<br/>上采样64 + cv1(128→64) + ↓cv2(64→64)<br/>concat 192 → 64 @80"] ; E3 --> BF1 ; E2 --> BF1 ; BF1 --> P3R["Rep_p3 ×4 → 64 @80 = P3"] ; P3R --> DS2["downsample2 3×3 s2 → 64 @40"] ; DS2 --> NC1["cat 64+64 → Rep_n3 ×4 → 128 @40 = P4"]
+P4R -. concat .-> NC1
+NC1 --> DS1["downsample1 3×3 s2 → 128 @20"] ; DS1 --> NC2["cat 128+128 → Rep_n4 ×4 → 256 @20 = P5"]
+R0 -. concat .-> NC2
+P3R --> H3["EffiDeHead P3/8<br/>80×80 位置"] ; NC1 --> H4["EffiDeHead P4/16<br/>40×40 位置"] ; NC2 --> H5["EffiDeHead P5/32<br/>20×20 位置"]
 ```
 
 ## 2. 逐模块明细表（build_network 组装，缩放后真实值）

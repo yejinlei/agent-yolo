@@ -16,33 +16,8 @@
 
 ```mermaid
 flowchart TB
-    IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"]
-    L1 --> L2["C2f 128 ×3 #2 · shortcut"]
-    L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"]
-    L3 --> L4["C2f 256 ×6 #4 · shortcut"]
-    L4 --> L5["SCDown 3×3 s2 #5<br/>512ch @40 · P4/16"]
-    L5 --> L6["C2f 512 ×6 #6 · shortcut"]
-    L6 --> L7["SCDown 3×3 s2 #7<br/>1024ch @20 · P5/32"]
-    L7 --> L8["C2f 1024 ×3 #8 · shortcut"]
-    L8 --> L9["SPPF 1024 k=5 #9<br/>@20 · 骨干出口"]
-    L9 --> L10["PSA 1024 #10<br/>部分自注意力 · 全网唯一"]
-    L10 --> L11["Upsample ×2 #11<br/>1024ch @40"]
-    L11 --> L12["Concat #12<br/>cat 骨干 #6 → 1536ch"]
-    L12 --> L13["C2f 512 ×3 #13<br/>@40"]
-    L13 --> L14["Upsample ×2 #14<br/>512ch @80"]
-    L14 --> L15["Concat #15<br/>cat 骨干 #4 → 768ch"]
-    L15 --> L16["C2f 256 ×3 #16<br/>@80 · P3 out · stride 8"]
-    L16 --> L17["Conv 3×3 s2 #17<br/>256ch @40"]
-    L17 --> L18["Concat #18<br/>cat #13 → 768ch"]
-    L18 --> L19["C2f 512 ×3 #19<br/>@40 · P4 out · stride 16"]
-    L19 --> L20["SCDown 3×3 s2 #20<br/>512ch @20"]
-    L20 --> L21["Concat #21<br/>cat #10 → 1536ch"]
-    L21 --> L22["C2fCIB 1024 ×3 #22<br/>shortcut + 大核 @20 · P5 out · stride 32"]
-
-    L16 --> DET["v10Detect #23<br/>one2many + one2one 双头<br/>P3/P4/P5 · stride 8/16/32"]
-    L19 --> DET
-    L22 --> DET
+IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"] ; L1 --> L2["C2f 128 ×3 #2 · shortcut"] ; L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"] ; L3 --> L4["C2f 256 ×6 #4 · shortcut"] ; L4 --> L5["SCDown 3×3 s2 #5<br/>512ch @40 · P4/16"] ; L5 --> L6["C2f 512 ×6 #6 · shortcut"] ; L6 --> L7["SCDown 3×3 s2 #7<br/>1024ch @20 · P5/32"] ; L7 --> L8["C2f 1024 ×3 #8 · shortcut"] ; L8 --> L9["SPPF 1024 k=5 #9<br/>@20 · 骨干出口"] ; L9 --> L10["PSA 1024 #10<br/>部分自注意力 · 全网唯一"] ; L10 --> L11["Upsample ×2 #11<br/>1024ch @40"] ; L11 --> L12["Concat #12<br/>cat 骨干 #6 → 1536ch"] ; L12 --> L13["C2f 512 ×3 #13<br/>@40"] ; L13 --> L14["Upsample ×2 #14<br/>512ch @80"] ; L14 --> L15["Concat #15<br/>cat 骨干 #4 → 768ch"] ; L15 --> L16["C2f 256 ×3 #16<br/>@80 · P3 out · stride 8"] ; L16 --> L17["Conv 3×3 s2 #17<br/>256ch @40"] ; L17 --> L18["Concat #18<br/>cat #13 → 768ch"] ; L18 --> L19["C2f 512 ×3 #19<br/>@40 · P4 out · stride 16"] ; L19 --> L20["SCDown 3×3 s2 #20<br/>512ch @20"] ; L20 --> L21["Concat #21<br/>cat #10 → 1536ch"] ; L21 --> L22["C2fCIB 1024 ×3 #22<br/>shortcut + 大核 @20 · P5 out · stride 32"] ; L16 --> DET["v10Detect #23<br/>one2many + one2one 双头<br/>P3/P4/P5 · stride 8/16/32"] ; L19 --> DET ; L22 --> DET
 ```
 
 - 图中通道数为 yaml 声明的**基准宽度**；n 档 depth=0.33 / width=0.25 把 C2f/C2fCIB 重复数 ×3→1、×6→2、通道 ÷4（末级 1024→256），六档 scales 见 §5
@@ -83,26 +58,15 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph FPN["FPN 自上而下 #11~#16"]
-        L10["PSA #10<br/>1024 @20"] --> L11["Upsample ×2 #11"]
-        L11 --> L12["Concat #12<br/>cat 骨干 #6"]
-        L12 --> L13["C2f 512 ×3 #13"]
-        L13 --> L14["Upsample ×2 #14"]
-        L14 --> L15["Concat #15<br/>cat 骨干 #4"]
-        L15 --> L16["C2f 256 ×3 #16<br/>P3 · stride 8"]
-    end
-    subgraph PAN["PAN 自下而上 #17~#22"]
-        L17["Conv 3×3 s2 #17<br/>256 @40"] --> L18["Concat #18<br/>cat #13"]
-        L18 --> L19["C2f 512 ×3 #19<br/>P4 · stride 16"]
-        L19 --> L20["SCDown 3×3 s2 #20<br/>512 @20"]
-        L20 --> L21["Concat #21<br/>cat #10"]
-        L21 --> L22["C2fCIB 1024 ×3 #22<br/>P5 · stride 32"]
-    end
-    L10 --> L21
-    L16 --> L17
-    L16 --> DET["v10Detect #23"]
-    L19 --> DET
-    L22 --> DET
+subgraph FPN["FPN 自上而下 #11~#16"]
+L10["PSA #10<br/>1024 @20"] --> L11["Upsample ×2 #11"]
+L11 --> L12["Concat #12<br/>cat 骨干 #6"] ; L12 --> L13["C2f 512 ×3 #13"] ; L13 --> L14["Upsample ×2 #14"] ; L14 --> L15["Concat #15<br/>cat 骨干 #4"] ; L15 --> L16["C2f 256 ×3 #16<br/>P3 · stride 8"]
+end
+subgraph PAN["PAN 自下而上 #17~#22"]
+L17["Conv 3×3 s2 #17<br/>256 @40"] --> L18["Concat #18<br/>cat #13"]
+L18 --> L19["C2f 512 ×3 #19<br/>P4 · stride 16"] ; L19 --> L20["SCDown 3×3 s2 #20<br/>512 @20"] ; L20 --> L21["Concat #21<br/>cat #10"] ; L21 --> L22["C2fCIB 1024 ×3 #22<br/>P5 · stride 32"]
+end
+L10 --> L21 ; L16 --> L17 ; L16 --> DET["v10Detect #23"] ; L19 --> DET ; L22 --> DET
 ```
 
 - **FPN 上行 #11~#16**：Upsample×2 + Concat（骨干 #6、#4）+ C2f 融合，与 v8 完全同款；出口 #16（基准 256 通道 @80）是 P3 检测输入

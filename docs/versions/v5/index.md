@@ -68,31 +68,8 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    IN["640×640×3"] --> F["Focus<br/>4路切片 → 12ch → Conv 3×3 s1 → 64ch @320"]
-    F --> C1["Conv 3×3 s2 → 128ch @160"]
-    C1 --> C31["C3(3×Bottleneck) → 128ch @160"]
-    C31 --> C2["Conv 3×3 s2 → 256ch @80"]
-    C2 --> C32["C3(9×Bottleneck) → 256ch @80"]
-    C32 --> C3["Conv 3×3 s2 → 512ch @40"]
-    C3 --> C33["C3(9×Bottleneck) → 512ch @40"]
-    C33 --> C4["Conv 3×3 s2 → 1024ch @20"]
-    C4 --> SPP["SPP<br/>MaxPool 5/9/13 → concat → Conv 1×1"]
-    SPP --> C34["C3(3×Bottleneck, shortcut=False) → 1024ch @20"]
-    C34 --> N1["Conv 1×1 → 512ch + Upsample ×2"]
-    N1 --> CC1["Concat [C33 输出]"]
-    CC1 --> N2["C3 → 512ch @40"]
-    N2 --> N3["Conv 1×1 → 256ch + Upsample ×2"]
-    N3 --> CC2["Concat [C32 输出]"]
-    CC2 --> N4["C3 → 256ch @80"]
-    N4 --> D1["Detect P3/8<br/>3 anchors<br/>10,13 / 16,30 / 33,23"]
-    N4 --> N5["Conv 3×3 s2 → 256ch @40"]
-    N5 --> CC3["Concat [N2 输出]"]
-    CC3 --> N6["C3 → 512ch @40"]
-    N6 --> D2["Detect P4/16<br/>3 anchors<br/>30,61 / 62,45 / 59,119"]
-    N6 --> N7["Conv 3×3 s2 → 512ch @20"]
-    N7 --> CC4["Concat [C34 输出]"]
-    CC4 --> N8["C3 → 1024ch @20"]
-    N8 --> D3["Detect P5/32<br/>3 anchors<br/>116,90 / 156,198 / 373,326"]
+IN["640×640×3"] --> F["Focus<br/>4路切片 → 12ch → Conv 3×3 s1 → 64ch @320"]
+F --> C1["Conv 3×3 s2 → 128ch @160"] ; C1 --> C31["C3(3×Bottleneck) → 128ch @160"] ; C31 --> C2["Conv 3×3 s2 → 256ch @80"] ; C2 --> C32["C3(9×Bottleneck) → 256ch @80"] ; C32 --> C3["Conv 3×3 s2 → 512ch @40"] ; C3 --> C33["C3(9×Bottleneck) → 512ch @40"] ; C33 --> C4["Conv 3×3 s2 → 1024ch @20"] ; C4 --> SPP["SPP<br/>MaxPool 5/9/13 → concat → Conv 1×1"] ; SPP --> C34["C3(3×Bottleneck, shortcut=False) → 1024ch @20"] ; C34 --> N1["Conv 1×1 → 512ch + Upsample ×2"] ; N1 --> CC1["Concat [C33 输出]"] ; CC1 --> N2["C3 → 512ch @40"] ; N2 --> N3["Conv 1×1 → 256ch + Upsample ×2"] ; N3 --> CC2["Concat [C32 输出]"] ; CC2 --> N4["C3 → 256ch @80"] ; N4 --> D1["Detect P3/8<br/>3 anchors<br/>10,13 / 16,30 / 33,23"] ; N4 --> N5["Conv 3×3 s2 → 256ch @40"] ; N5 --> CC3["Concat [N2 输出]"] ; CC3 --> N6["C3 → 512ch @40"] ; N6 --> D2["Detect P4/16<br/>3 anchors<br/>30,61 / 62,45 / 59,119"] ; N6 --> N7["Conv 3×3 s2 → 512ch @20"] ; N7 --> CC4["Concat [C34 输出]"] ; CC4 --> N8["C3 → 1024ch @20"] ; N8 --> D3["Detect P5/32<br/>3 anchors<br/>116,90 / 156,198 / 373,326"]
 ```
 
 - 整体结构由 yaml 驱动：<SrcLink file="v5:models/yolov5s.yaml" :line="13" :end="48" />；`depth_multiple`/`width_multiple` 控规模

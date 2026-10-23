@@ -6,38 +6,14 @@ Schema v0.3.0 定义 **18 种实体类型**，按四层闭环分组。每种实�
 
 ```mermaid
 flowchart TB
-  L0[L0 全局]
-  EXT[外部参考]
-  L1[L1 论文]
-  L2[L2 理论]
-  L3[L3 实现]
-  L4[L4 实战]
-  AUX[附属]
-
-  L0 --> F1[Family]
-  L0 --> F2[Evolution]
-  L0 --> F3[Timeline]
-
-  EXT --> E1[ExternalTechnique]
-  EXT --> E2[PainPoint]
-
-  L1 --> P1[Paper]
-
-  L2 --> C1[Concept]
-
-  L3 --> M1[Model]
-  L3 --> M2[Layer]
-  L3 --> M3[Loss]
-  L3 --> M4[Trick]
-  L3 --> M5[Dataset]
-  L3 --> M6[Metric]
-  L3 --> M7[SourceFile]
-
-  L4 --> CS1[CaseStudy]
-
-  AUX --> A1[Author]
-  AUX --> A2[Task]
-  AUX --> A3[Benchmark]
+L0[L0 全局]
+EXT[外部参考]
+L1[L1 论文]
+L2[L2 理论]
+L3[L3 实现]
+L4[L4 实战]
+AUX[附属]
+L0 --> F1[Family] ; L0 --> F2[Evolution] ; L0 --> F3[Timeline] ; EXT --> E1[ExternalTechnique] ; EXT --> E2[PainPoint] ; L1 --> P1[Paper] ; L2 --> C1[Concept] ; L3 --> M1[Model] ; L3 --> M2[Layer] ; L3 --> M3[Loss] ; L3 --> M4[Trick] ; L3 --> M5[Dataset] ; L3 --> M6[Metric] ; L3 --> M7[SourceFile] ; L4 --> CS1[CaseStudy] ; AUX --> A1[Author] ; AUX --> A2[Task] ; AUX --> A3[Benchmark]
 ```
 
 ---

@@ -91,56 +91,23 @@ flowchart LR
 ::: figure 图：yolov9-c 主干与主分支——GELAN 骨干五次降采样出 P3/P4/P5，FPN 上行 + PAN 下行收在层 16/19/22
 ```mermaid
 flowchart TB
-    IN["640×640×3"] --> S0["#0 Silence 恒等层"]
-    S0 --> C1["#1 Conv s2 → 64 @320 · P1"]
-    C1 --> C2["#2 Conv s2 → 128 @160 · P2"]
-    C2 --> E1["#3 RepNCSPELAN4 → 256 @160"]
-    E1 --> D1["#4 ADown → 256 @80 · P3"]
-    D1 --> E2["#5 RepNCSPELAN4 → 512 @80"]
-    E2 --> D2["#6 ADown → 512 @40 · P4"]
-    D2 --> E3["#7 RepNCSPELAN4 → 512 @40"]
-    E3 --> D3["#8 ADown → 512 @20 · P5"]
-    D3 --> E4["#9 RepNCSPELAN4 → 512 @20"]
-    E4 --> SPP["#10 SPPELAN → 512 @20"]
-    SPP --> UP1["#11-12 Upsample + Concat ← #7"]
-    UP1 --> E13["#13 RepNCSPELAN4 → 512 @40"]
-    E13 --> UP2["#14-15 Upsample + Concat ← #5"]
-    UP2 --> P3["#16 RepNCSPELAN4 → 256 @80 · 主 P3"]
-    P3 --> DN1["#17-18 ADown + Concat ← #13"]
-    DN1 --> P4["#19 RepNCSPELAN4 → 512 @40 · 主 P4"]
-    P4 --> DN2["#20-21 ADown + Concat ← #10"]
-    DN2 --> P5["#22 RepNCSPELAN4 → 512 @20 · 主 P5"]
+IN["640×640×3"] --> S0["#0 Silence 恒等层"]
+S0 --> C1["#1 Conv s2 → 64 @320 · P1"] ; C1 --> C2["#2 Conv s2 → 128 @160 · P2"] ; C2 --> E1["#3 RepNCSPELAN4 → 256 @160"] ; E1 --> D1["#4 ADown → 256 @80 · P3"] ; D1 --> E2["#5 RepNCSPELAN4 → 512 @80"] ; E2 --> D2["#6 ADown → 512 @40 · P4"] ; D2 --> E3["#7 RepNCSPELAN4 → 512 @40"] ; E3 --> D3["#8 ADown → 512 @20 · P5"] ; D3 --> E4["#9 RepNCSPELAN4 → 512 @20"] ; E4 --> SPP["#10 SPPELAN → 512 @20"] ; SPP --> UP1["#11-12 Upsample + Concat ← #7"] ; UP1 --> E13["#13 RepNCSPELAN4 → 512 @40"] ; E13 --> UP2["#14-15 Upsample + Concat ← #5"] ; UP2 --> P3["#16 RepNCSPELAN4 → 256 @80 · 主 P3"] ; P3 --> DN1["#17-18 ADown + Concat ← #13"] ; DN1 --> P4["#19 RepNCSPELAN4 → 512 @40 · 主 P4"] ; P4 --> DN2["#20-21 ADown + Concat ← #10"] ; DN2 --> P5["#22 RepNCSPELAN4 → 512 @20 · 主 P5"]
 ```
 :::
 
 ::: figure 图：yolov9-c 多级可逆辅助分支（层 23-37）——骨干 5/7/9 层 CBLinear 抽头，辅助主干从 Silence 重新下采样，ADown 与 CBFuse 交替逐级融合出 A3/A4/A5
 ```mermaid
 flowchart TB
-    S0["#0 Silence"] --> A26["#26-28 Conv Conv RepNCSPELAN4 → 256 @160"]
-    A26 --> AD29["#29 ADown → 256 @80"]
-    E2["骨干 #5"] -.-> CB23["#23 CBLinear 256"]
-    E3["骨干 #7"] -.-> CB24["#24 CBLinear 256+512"]
-    E4["骨干 #9"] -.-> CB25["#25 CBLinear 256+512+512"]
-    CB23 --> FU30["#30 CBFuse"]
-    CB24 --> FU30
-    CB25 --> FU30
-    AD29 --> FU30
-    FU30 --> AE31["#31 RepNCSPELAN4 → 512 @80 · 辅 A3"]
-    AE31 --> AD32["#32 ADown → 512 @40"]
-    CB24 --> FU33["#33 CBFuse"]
-    CB25 --> FU33
-    AD32 --> FU33
-    FU33 --> AE34["#34 RepNCSPELAN4 → 512 @40 · 辅 A4"]
-    AE34 --> AD35["#35 ADown → 512 @20"]
-    CB25 --> FU36["#36 CBFuse"]
-    AD35 --> FU36
-    FU36 --> AE37["#37 RepNCSPELAN4 → 512 @20 · 辅 A5"]
-    AE31 --> HD["#38 DualDDetect<br/>输入 31 34 37 16 19 22<br/>前 3 辅 + 后 3 主"]
-    AE34 --> HD
-    AE37 --> HD
-    P3["主 P3 · #16"] --> HD
-    P4["主 P4 · #19"] --> HD
-    P5["主 P5 · #22"] --> HD
+S0["#0 Silence"] --> A26["#26-28 Conv Conv RepNCSPELAN4 → 256 @160"]
+A26 --> AD29["#29 ADown → 256 @80"]
+E2["骨干 #5"] -.-> CB23["#23 CBLinear 256"]
+E3["骨干 #7"] -.-> CB24["#24 CBLinear 256+512"]
+E4["骨干 #9"] -.-> CB25["#25 CBLinear 256+512+512"]
+CB23 --> FU30["#30 CBFuse"] ; CB24 --> FU30 ; CB25 --> FU30 ; AD29 --> FU30 ; FU30 --> AE31["#31 RepNCSPELAN4 → 512 @80 · 辅 A3"] ; AE31 --> AD32["#32 ADown → 512 @40"] ; CB24 --> FU33["#33 CBFuse"] ; CB25 --> FU33 ; AD32 --> FU33 ; FU33 --> AE34["#34 RepNCSPELAN4 → 512 @40 · 辅 A4"] ; AE34 --> AD35["#35 ADown → 512 @20"] ; CB25 --> FU36["#36 CBFuse"] ; AD35 --> FU36 ; FU36 --> AE37["#37 RepNCSPELAN4 → 512 @20 · 辅 A5"] ; AE31 --> HD["#38 DualDDetect<br/>输入 31 34 37 16 19 22<br/>前 3 辅 + 后 3 主"] ; AE34 --> HD ; AE37 --> HD
+P3["主 P3 · #16"] --> HD
+P4["主 P4 · #19"] --> HD
+P5["主 P5 · #22"] --> HD
 ```
 :::
 

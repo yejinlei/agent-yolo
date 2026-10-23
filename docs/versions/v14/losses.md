@@ -16,31 +16,8 @@
 
 ```mermaid
 flowchart TB
-    %% v14 损失全景
-    X["YOLOv14 骨干 + Head<br/>P3/P4/P5 三尺度"] --> DAL["DomainAdaptiveLayer #3/#7<br/>暴露 domain_logits<br/>（GRL 梯度反转）"]
-    X --> DEA["DeformableA2C2f ×6<br/>暴露 offset / offset_init<br/>（STN target）"]
-    X --> VE["ViewEmbedding #2<br/>注入视角 embedding<br/>暴露 features / view_ids"]
-    DAL --> BATCH["batch 字典<br/>offset, offset_init<br/>domain_logits, domains<br/>features, view_ids, cls"]
-    DEA --> BATCH
-    VE --> BATCH
-
-    BATCH --> H["Detect.forward<br/>cv2 box + cv3 cls<br/>dfl 期望积分"]
-    H --> P["pred_distri [B, 8400, 64]<br/>pred_scores [B, 8400, nc]"]
-
-    P --> V14["v14DetectionLoss.__call__<br/>（新增：4 分量总装）"]
-    V14 --> SUPER["super().__call__ = v8DetectionLoss<br/>三分量 + TAL topk=10 α=0.5 β=6.0"]
-    SUPER --> LDET["L_det = 7.5·box + 0.5·cls + 1.5·dfl<br/>（与 v8 完全一致）"]
-
-    V14 --> LOFF["if batch.offset is not None<br/>OffsetRegularizationLoss<br/>L_offset = λ_reg · ‖Δ−Δ_init‖²<br/>λ_reg: 0.01→0.001 (50ep)"]
-    V14 --> LADV["if batch.domain_logits is not None<br/>DomainAdversarialLoss<br/>L_adv = λ_1 · CE(GRL→cls, label)<br/>λ_1 = 0.05 · GRL λ: 0→1 (100ep)"]
-    V14 --> LCROSS["if batch.features is not None<br/>CrossViewConsistencyLoss<br/>L_cross = λ_2 · NT-Xent(τ)<br/>τ: 0.05→0.5 (β=0.01)"]
-
-    LDET --> TOTAL["L_total = L_det + L_offset + L_adv + L_cross"]
-    LOFF --> TOTAL
-    LADV --> TOTAL
-    LCROSS --> TOTAL
-
-    TOTAL --> INF["推理：conf 过滤 → class-wise NMS<br/>→ max_det 输出<br/>（Fast Mode 下 D-AAttn/DAL/VE 全关）"]
+X["YOLOv14 骨干 + Head<br/>P3/P4/P5 三尺度"] --> DAL["DomainAdaptiveLayer #3/#7<br/>暴露 domain_logits<br/>（GRL 梯度反转）"]
+X --> DEA["DeformableA2C2f ×6<br/>暴露 offset / offset_init<br/>（STN target）"] ; X --> VE["ViewEmbedding #2<br/>注入视角 embedding<br/>暴露 features / view_ids"] ; DAL --> BATCH["batch 字典<br/>offset, offset_init<br/>domain_logits, domains<br/>features, view_ids, cls"] ; DEA --> BATCH ; VE --> BATCH ; BATCH --> H["Detect.forward<br/>cv2 box + cv3 cls<br/>dfl 期望积分"] ; H --> P["pred_distri [B, 8400, 64]<br/>pred_scores [B, 8400, nc]"] ; P --> V14["v14DetectionLoss.__call__<br/>（新增：4 分量总装）"] ; V14 --> SUPER["super().__call__ = v8DetectionLoss<br/>三分量 + TAL topk=10 α=0.5 β=6.0"] ; SUPER --> LDET["L_det = 7.5·box + 0.5·cls + 1.5·dfl<br/>（与 v8 完全一致）"] ; V14 --> LOFF["if batch.offset is not None<br/>OffsetRegularizationLoss<br/>L_offset = λ_reg · ‖Δ−Δ_init‖²<br/>λ_reg: 0.01→0.001 (50ep)"] ; V14 --> LADV["if batch.domain_logits is not None<br/>DomainAdversarialLoss<br/>L_adv = λ_1 · CE(GRL→cls, label)<br/>λ_1 = 0.05 · GRL λ: 0→1 (100ep)"] ; V14 --> LCROSS["if batch.features is not None<br/>CrossViewConsistencyLoss<br/>L_cross = λ_2 · NT-Xent(τ)<br/>τ: 0.05→0.5 (β=0.01)"] ; LDET --> TOTAL["L_total = L_det + L_offset + L_adv + L_cross"] ; LOFF --> TOTAL ; LADV --> TOTAL ; LCROSS --> TOTAL ; TOTAL --> INF["推理：conf 过滤 → class-wise NMS<br/>→ max_det 输出<br/>（Fast Mode 下 D-AAttn/DAL/VE 全关）"]
 ```
 
 - **训练路径**：三分量检测 + 至多 3 项辅助（依 batch 字典动态开关）

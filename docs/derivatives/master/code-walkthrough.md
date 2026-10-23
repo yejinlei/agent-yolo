@@ -29,31 +29,22 @@
 
 ```mermaid
 flowchart LR
-    subgraph NET["建网"]
-        A["from ultralytics import YOLO"] --> B["tasks.py parse_model"]
-        B --> C1["ES_MOE 分支<br/>moe 独立 moe 分支"]
-        B --> C2["A2C2f 分支<br/>沿用 v12"]
-        B --> C3["C3k2 / Conv 分支<br/>沿用 v12"]
-        C1 --> D["yaml 26 层<br/>13 backbone + 13 head<br/>4×ES_MOE + 4×A2C2f"]
-    end
-    subgraph FWD["前向：骨干 + 颈部"]
-        D --> E["#0-#2 Conv+Conv+C3k2<br/>#3 ES_MOE<br/>#4-#5 Conv+C3k2"]
-        E --> F["#6 ES_MOE<br/>#7-#8 Conv+A2C2f"]
-        F --> G["#9 ES_MOE<br/>#10-#12 Conv+A2C2f+ES_MOE"]
-        G --> H["Head #13-#24<br/>Upsample+Concat+C3k2 × 3"]
-        H --> I["#25 Detect"]
-    end
-    subgraph TRAIN["训练路径"]
-        T1["DetectionModel.init_criterion"] --> T2["v8DetectionLoss<br/>7.5 box + 0.5 cls + 1.5 dfl"]
-        T2 --> T3["+ MoELoss<br/>balance + z-loss<br/>+ NaN Guard"]
-        T3 --> T4["+ MoT aux<br/>_mot_router_aux_loss"]
-    end
-    subgraph INFER["推理与评估"]
-        I1["Detect.forward<br/>cv3 走 DW-separable"] --> I2["make_anchors + dist2bbox"]
-        I2 --> I3["NMS<br/>conf 0.25 / iou 0.7 / max_det 300"]
-    end
-    H --> I1
-    T1 -->|"训练态三尺度"| FWD
+subgraph NET["建网"]
+A["from ultralytics import YOLO"] --> B["tasks.py parse_model"]
+B --> C1["ES_MOE 分支<br/>moe 独立 moe 分支"] ; B --> C2["A2C2f 分支<br/>沿用 v12"] ; B --> C3["C3k2 / Conv 分支<br/>沿用 v12"] ; C1 --> D["yaml 26 层<br/>13 backbone + 13 head<br/>4×ES_MOE + 4×A2C2f"]
+end
+subgraph FWD["前向：骨干 + 颈部"]
+D --> E["#0-#2 Conv+Conv+C3k2<br/>#3 ES_MOE<br/>#4-#5 Conv+C3k2"] ; E --> F["#6 ES_MOE<br/>#7-#8 Conv+A2C2f"] ; F --> G["#9 ES_MOE<br/>#10-#12 Conv+A2C2f+ES_MOE"] ; G --> H["Head #13-#24<br/>Upsample+Concat+C3k2 × 3"] ; H --> I["#25 Detect"]
+end
+subgraph TRAIN["训练路径"]
+T1["DetectionModel.init_criterion"] --> T2["v8DetectionLoss<br/>7.5 box + 0.5 cls + 1.5 dfl"]
+T2 --> T3["+ MoELoss<br/>balance + z-loss<br/>+ NaN Guard"] ; T3 --> T4["+ MoT aux<br/>_mot_router_aux_loss"]
+end
+subgraph INFER["推理与评估"]
+I1["Detect.forward<br/>cv3 走 DW-separable"] --> I2["make_anchors + dist2bbox"]
+I2 --> I3["NMS<br/>conf 0.25 / iou 0.7 / max_det 300"]
+end
+H --> I1 ; T1 -->|"训练态三尺度"| FWD
 ```
 
 ## 1. 入口：`YOLO` 通用类，无 YOLOMasterModel

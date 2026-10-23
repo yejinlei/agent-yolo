@@ -16,43 +16,8 @@
 
 ```mermaid
 flowchart TB
-    %% Backbone #0-#10
-    IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"]
-    L1 --> L2["C3k2 256 ×2 #2<br/>e=0.25 · no Bottleneck"]
-    L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"]
-    L3 --> L4["C3k2 512 ×2 #4<br/>e=0.25 · no Bottleneck"]
-    L4 --> L5["Conv 3×3 s2 #5<br/>512ch @40 · P4/16"]
-    L5 --> L6["C3k2 512 ×2 #6<br/>★ Bottleneck (with C3k)"]
-    L6 --> L7["Conv 3×3 s2 #7<br/>1024ch @20 · P5/32"]
-    L7 --> L8["C3k2 1024 ×2 #8<br/>★ Bottleneck (with C3k)"]
-    L8 --> L9["SPPF 1024 ×5 ×3 #9<br/>★ 4-branch maxpool 池化"]
-    L9 --> L10["C2PSA 1024 ×2 #10<br/>★ Spatial Attention"]
-
-    %% Head #11-#21
-    L10 --> L11["Upsample ×2 #11<br/>1024 @40"]
-    L11 --> L12["Concat #12<br/>cat #6 → 1536"]
-    L6 --> L12
-    L12 --> L13["C3k2 512 ×2 #13<br/>★ FPN P4 融合"]
-
-    L13 --> L14["Upsample ×2 #14<br/>512 @80"]
-    L14 --> L15["Concat #15<br/>cat #4 → 1024"]
-    L4 --> L15
-    L15 --> L16["C3k2 256 ×2 #16<br/>★ FPN P3 融合 · P3/8-small"]
-
-    L16 --> L17["Conv 3×3 s2 #17<br/>256 @40"]
-    L17 --> L18["Concat #18<br/>cat #13 → 768"]
-    L13 --> L18
-    L18 --> L19["C3k2 512 ×2 #19<br/>★ PAN P4 out · P4/16-medium"]
-
-    L19 --> L20["Conv 3×3 s2 #20<br/>512 @20"]
-    L20 --> L21["Concat #21<br/>cat #10 → 1536"]
-    L10 --> L21
-    L21 --> L22["C3k2 1024 ×1 #22<br/>e=0.5 · ★ PAN P5 out · P5/32-large"]
-
-    L16 --> DET["Detect #23<br/>P3/P4/P5 · end2end=True<br/>one2many + one2one 双分支<br/>reg_max=1 DFL 退化"]
-    L19 --> DET
-    L22 --> DET
+IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64ch @320 · P1/2"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"] ; L1 --> L2["C3k2 256 ×2 #2<br/>e=0.25 · no Bottleneck"] ; L2 --> L3["Conv 3×3 s2 #3<br/>256ch @80 · P3/8"] ; L3 --> L4["C3k2 512 ×2 #4<br/>e=0.25 · no Bottleneck"] ; L4 --> L5["Conv 3×3 s2 #5<br/>512ch @40 · P4/16"] ; L5 --> L6["C3k2 512 ×2 #6<br/>★ Bottleneck (with C3k)"] ; L6 --> L7["Conv 3×3 s2 #7<br/>1024ch @20 · P5/32"] ; L7 --> L8["C3k2 1024 ×2 #8<br/>★ Bottleneck (with C3k)"] ; L8 --> L9["SPPF 1024 ×5 ×3 #9<br/>★ 4-branch maxpool 池化"] ; L9 --> L10["C2PSA 1024 ×2 #10<br/>★ Spatial Attention"] ; L10 --> L11["Upsample ×2 #11<br/>1024 @40"] ; L11 --> L12["Concat #12<br/>cat #6 → 1536"] ; L6 --> L12 ; L12 --> L13["C3k2 512 ×2 #13<br/>★ FPN P4 融合"] ; L13 --> L14["Upsample ×2 #14<br/>512 @80"] ; L14 --> L15["Concat #15<br/>cat #4 → 1024"] ; L4 --> L15 ; L15 --> L16["C3k2 256 ×2 #16<br/>★ FPN P3 融合 · P3/8-small"] ; L16 --> L17["Conv 3×3 s2 #17<br/>256 @40"] ; L17 --> L18["Concat #18<br/>cat #13 → 768"] ; L13 --> L18 ; L18 --> L19["C3k2 512 ×2 #19<br/>★ PAN P4 out · P4/16-medium"] ; L19 --> L20["Conv 3×3 s2 #20<br/>512 @20"] ; L20 --> L21["Concat #21<br/>cat #10 → 1536"] ; L10 --> L21 ; L21 --> L22["C3k2 1024 ×1 #22<br/>e=0.5 · ★ PAN P5 out · P5/32-large"] ; L16 --> DET["Detect #23<br/>P3/P4/P5 · end2end=True<br/>one2many + one2one 双分支<br/>reg_max=1 DFL 退化"] ; L19 --> DET ; L22 --> DET
 ```
 
 - 图中通道数为 yaml 声明的**基准宽度**；n 档 depth=0.50 / width=0.25 把 C3k2 重复数 ×2→1、×4→2、×1→1，通道 ÷4（末级 1024→256），五档 scales 见 §6
@@ -96,29 +61,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    L10["C2PSA #10<br/>P5 @20"] --> L11["Upsample #11"]
-    L11 --> L12["Concat #12<br/>cat #6"]
-    L6["#6 P4 @40<br/>C3k2"] --> L12
-    L12 --> L13["C3k2 #13<br/>P4 fused"]
-
-    L13 --> L14["Upsample #14"]
-    L14 --> L15["Concat #15<br/>cat #4"]
-    L4["#4 P3 @80<br/>C3k2"] --> L15
-    L15 --> L16["C3k2 #16<br/>P3 fused"]
-
-    L16 --> L17["Conv s2 #17"]
-    L17 --> L18["Concat #18<br/>cat #13"]
-    L13 --> L18
-    L18 --> L19["C3k2 #19<br/>P4 out"]
-
-    L19 --> L20["Conv s2 #20"]
-    L20 --> L21["Concat #21<br/>cat #10"]
-    L10 --> L21
-    L21 --> L22["C3k2 #22<br/>P5 out<br/>e=0.5, cross_attn=True"]
-
-    L16 --> DET["Detect #23<br/>end2end=True<br/>P3/P4/P5"]
-    L19 --> DET
-    L22 --> DET
+L10["C2PSA #10<br/>P5 @20"] --> L11["Upsample #11"]
+L11 --> L12["Concat #12<br/>cat #6"]
+L6["#6 P4 @40<br/>C3k2"] --> L12
+L12 --> L13["C3k2 #13<br/>P4 fused"] ; L13 --> L14["Upsample #14"] ; L14 --> L15["Concat #15<br/>cat #4"]
+L4["#4 P3 @80<br/>C3k2"] --> L15
+L15 --> L16["C3k2 #16<br/>P3 fused"] ; L16 --> L17["Conv s2 #17"] ; L17 --> L18["Concat #18<br/>cat #13"] ; L13 --> L18 ; L18 --> L19["C3k2 #19<br/>P4 out"] ; L19 --> L20["Conv s2 #20"] ; L20 --> L21["Concat #21<br/>cat #10"] ; L10 --> L21 ; L21 --> L22["C3k2 #22<br/>P5 out<br/>e=0.5, cross_attn=True"] ; L16 --> DET["Detect #23<br/>end2end=True<br/>P3/P4/P5"] ; L19 --> DET ; L22 --> DET
 ```
 
 - **#11-#16 FPN 上采样**：#10 → Upsample → Concat #6 → C3k2 #13 → Upsample → Concat #4 → C3k2 #16（P3/8-small）；

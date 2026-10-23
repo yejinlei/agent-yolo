@@ -350,42 +350,35 @@ class SemanticSegmentationLoss(nn.Module):
 
 ```mermaid
 flowchart TB
-    subgraph 检测
-        E2E[E2E 双分支<br/>end2end=True]
-        DFL[DFL → Identity<br/>reg_max=1]
-    end
-    subgraph 分割
-        SEG[Segment26 + Proto26]
-        SEM[SemanticSegment<br/>CE+Dice+Cityscapes]
-    end
-    subgraph 深度
-        DEPTH[Depth head<br/>SILog + cal_a/cal_b]
-    end
-    subgraph 姿态
-        POSE[Pose26 + PoseLoss26]
-        RLE[RLE + RealNVP]
-    end
-    subgraph 分类
-        CLS[Classify]
-    end
-    subgraph 开放词汇
-        YOLOE[YOLOE + mobileclip2:b]
-    end
-
-    BACK["Backbone<br/>Conv-C3k2-SPPF-C2PSA<br/>（v8/v11 经典风格）"] --> E2E
-    BACK --> SEG
-    BACK --> SEM
-    BACK --> DEPTH
-    BACK --> POSE
-    BACK --> CLS
-    BACK --> YOLOE
-
-    style E2E fill:#fff3e0
-    style DFL fill:#fff3e0
-    style DEPTH fill:#e1f5fe
-    style POSE fill:#e8f5e9
-    style SEM fill:#f3e5f5
-    style YOLOE fill:#fce4ec
+subgraph 检测
+E2E[E2E 双分支<br/>end2end=True]
+DFL[DFL → Identity<br/>reg_max=1]
+end
+subgraph 分割
+SEG[Segment26 + Proto26]
+SEM[SemanticSegment<br/>CE+Dice+Cityscapes]
+end
+subgraph 深度
+DEPTH[Depth head<br/>SILog + cal_a/cal_b]
+end
+subgraph 姿态
+POSE[Pose26 + PoseLoss26]
+RLE[RLE + RealNVP]
+end
+subgraph 分类
+CLS[Classify]
+end
+subgraph 开放词汇
+YOLOE[YOLOE + mobileclip2:b]
+end
+BACK["Backbone<br/>Conv-C3k2-SPPF-C2PSA<br/>（v8/v11 经典风格）"] --> E2E
+BACK --> SEG ; BACK --> SEM ; BACK --> DEPTH ; BACK --> POSE ; BACK --> CLS ; BACK --> YOLOE
+style E2E fill:#fff3e0
+style DFL fill:#fff3e0
+style DEPTH fill:#e1f5fe
+style POSE fill:#e8f5e9
+style SEM fill:#f3e5f5
+style YOLOE fill:#fce4ec
 ```
 
 **正交性检验**：

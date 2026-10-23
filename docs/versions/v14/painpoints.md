@@ -434,27 +434,26 @@ batch["view_ids"] = torch.tensor([1, 1, 3, 2, 1, 3])  # fisheye/drone/mixed
 
 ```mermaid
 flowchart LR
-    subgraph GEN12["v12 痛点"]
-        G1["FlashAttention 硬依赖"]
-        G2["num_heads=c_//32 硬编码"]
-        G3["TAL topk=10 vs 论文 13"]
-    end
-    subgraph GEN13["v13 痛点"]
-        H1["HyperACE n 静默覆盖"]
-        H2["DownsampleConv l/x Identity"]
-        H3["FullPAD gate=0 死门"]
-        H4["AdaHGConv 内存放大"]
-    end
-    subgraph GEN14["v14 痛点"]
-        I1["3 类 README 声称但代码未落地"]
-        I2["DynamicScaleRouter 6 份 yaml 零实例化"]
-        I3["set_epoch try-except 静默吞异常"]
-        I4["Fast Mode 训练误开"]
-        I5["lambda_domain 内外层默认矛盾"]
-        I6["官方权重+四基准数据集未开源"]
-    end
-    GEN12 -->|"结构层收敛"| GEN13
-    GEN13 -->|"文档-代码分离"| GEN14
+subgraph GEN12["v12 痛点"]
+G1["FlashAttention 硬依赖"]
+G2["num_heads=c_//32 硬编码"]
+G3["TAL topk=10 vs 论文 13"]
+end
+subgraph GEN13["v13 痛点"]
+H1["HyperACE n 静默覆盖"]
+H2["DownsampleConv l/x Identity"]
+H3["FullPAD gate=0 死门"]
+H4["AdaHGConv 内存放大"]
+end
+subgraph GEN14["v14 痛点"]
+I1["3 类 README 声称但代码未落地"]
+I2["DynamicScaleRouter 6 份 yaml 零实例化"]
+I3["set_epoch try-except 静默吞异常"]
+I4["Fast Mode 训练误开"]
+I5["lambda_domain 内外层默认矛盾"]
+I6["官方权重+四基准数据集未开源"]
+end
+GEN12 -->|"结构层收敛"| GEN13 ; GEN13 -->|"文档-代码分离"| GEN14
 ```
 
 ### v14 新痛点谱系图

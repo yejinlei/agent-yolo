@@ -16,38 +16,8 @@
 
 ```mermaid
 flowchart TB
-    IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64 @320 · P1/2"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128 @160 · P2/4"]
-    L1 --> L2["C3k2 256 ×2 #2<br/>e=0.25"]
-    L2 --> L3["ES_MOE 256 #3<br/>★ 稀疏路由 1"]
-    L3 --> L4["Conv 3×3 s2 #4<br/>256 @80 · P3/8"]
-    L4 --> L5["C3k2 512 ×2 #5<br/>e=0.25"]
-    L5 --> L6["ES_MOE 512 #6<br/>★ 稀疏路由 2"]
-    L6 --> L7["Conv 3×3 s2 #7<br/>512 @40 · P4/16"]
-    L7 --> L8["A2C2f 512 ×4 #8<br/>a2=True, area=4<br/>★ 骨干注意力 1"]
-    L8 --> L9["ES_MOE 512 #9<br/>★ 稀疏路由 3"]
-    L9 --> L10["Conv 3×3 s2 #10<br/>1024 @20 · P5/32"]
-    L10 --> L11["A2C2f 1024 ×4 #11<br/>a2=True, area=1<br/>★ 骨干注意力 2"]
-    L11 --> L12["ES_MOE 1024 #12<br/>★ 稀疏路由 4"]
-    L12 --> L13["Upsample ×2 #13<br/>1024 @40"]
-    L13 --> L14["Concat #14<br/>cat #9 → 1536"]
-    L9 --> L14
-    L14 --> L15["C3k2 512 ×2 #15<br/>True"]
-    L15 --> L16["Upsample ×2 #16"]
-    L16 --> L17["Concat #17<br/>cat #6 → 1024"]
-    L6 --> L17
-    L17 --> L18["C3k2 256 ×2 #18<br/>True · P3 out"]
-    L18 --> L19["Conv 3×3 s2 #19"]
-    L19 --> L20["Concat #20<br/>cat #15 → 768"]
-    L15 --> L20
-    L20 --> L21["C3k2 512 ×2 #21<br/>True · P4 out"]
-    L21 --> L22["Conv 3×3 s2 #22"]
-    L22 --> L23["Concat #23<br/>cat #12 → 1536"]
-    L12 --> L23
-    L23 --> L24["C3k2 512 ×2 #24<br/>True · P5 out"]
-    L18 --> DET["Detect #25<br/>[18, 21, 24] 单头"]
-    L21 --> DET
-    L24 --> DET
+IMG["640×640×3"] --> L0["Conv 3×3 s2 #0<br/>64 @320 · P1/2"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128 @160 · P2/4"] ; L1 --> L2["C3k2 256 ×2 #2<br/>e=0.25"] ; L2 --> L3["ES_MOE 256 #3<br/>★ 稀疏路由 1"] ; L3 --> L4["Conv 3×3 s2 #4<br/>256 @80 · P3/8"] ; L4 --> L5["C3k2 512 ×2 #5<br/>e=0.25"] ; L5 --> L6["ES_MOE 512 #6<br/>★ 稀疏路由 2"] ; L6 --> L7["Conv 3×3 s2 #7<br/>512 @40 · P4/16"] ; L7 --> L8["A2C2f 512 ×4 #8<br/>a2=True, area=4<br/>★ 骨干注意力 1"] ; L8 --> L9["ES_MOE 512 #9<br/>★ 稀疏路由 3"] ; L9 --> L10["Conv 3×3 s2 #10<br/>1024 @20 · P5/32"] ; L10 --> L11["A2C2f 1024 ×4 #11<br/>a2=True, area=1<br/>★ 骨干注意力 2"] ; L11 --> L12["ES_MOE 1024 #12<br/>★ 稀疏路由 4"] ; L12 --> L13["Upsample ×2 #13<br/>1024 @40"] ; L13 --> L14["Concat #14<br/>cat #9 → 1536"] ; L9 --> L14 ; L14 --> L15["C3k2 512 ×2 #15<br/>True"] ; L15 --> L16["Upsample ×2 #16"] ; L16 --> L17["Concat #17<br/>cat #6 → 1024"] ; L6 --> L17 ; L17 --> L18["C3k2 256 ×2 #18<br/>True · P3 out"] ; L18 --> L19["Conv 3×3 s2 #19"] ; L19 --> L20["Concat #20<br/>cat #15 → 768"] ; L15 --> L20 ; L20 --> L21["C3k2 512 ×2 #21<br/>True · P4 out"] ; L21 --> L22["Conv 3×3 s2 #22"] ; L22 --> L23["Concat #23<br/>cat #12 → 1536"] ; L12 --> L23 ; L23 --> L24["C3k2 512 ×2 #24<br/>True · P5 out"] ; L18 --> DET["Detect #25<br/>[18, 21, 24] 单头"] ; L21 --> DET ; L24 --> DET
 ```
 
 - **骨干 13 层**（#0-#12）：`Conv` × 4（下采样）+ `C3k2` × 2（浅层融合）+ `A2C2f` × 2（骨干注意力）+ **`ES_MOE` × 4（稀疏路由，Master 招牌）**
@@ -183,27 +153,12 @@ DynamicRoutingLayer(in_channels, num_experts, reduction=8, top_k=2):
 
 ```mermaid
 flowchart TB
-    BB12["#12 ES_MOE 1024<br/>骨干出口"] --> L13["Upsample ×2 #13"]
-    BB12 --> BB9["#9 ES_MOE 512"]
-    L13 --> L14["Concat #14<br/>cat #9 → 1536"]
-    BB9 --> L14
-    L14 --> L15["C3k2 512 ×2 #15"]
-    BB6["#6 ES_MOE 512"]
-    L15 --> L16["Upsample ×2 #16"]
-    L16 --> L17["Concat #17<br/>cat #6 → 1024"]
-    BB6 --> L17
-    L17 --> L18["C3k2 256 ×2 #18<br/>P3 out"]
-    L18 --> L19["Conv 3×3 s2 #19"]
-    L19 --> L20["Concat #20<br/>cat #15 → 768"]
-    L15 --> L20
-    L20 --> L21["C3k2 512 ×2 #21<br/>P4 out"]
-    L21 --> L22["Conv 3×3 s2 #22"]
-    L22 --> L23["Concat #23<br/>cat #12 → 1536"]
-    L12["#12 ES_MOE 1024"] --> L23
-    L23 --> L24["C3k2 512 ×2 #24<br/>P5 out"]
-    L18 --> DET["Detect #25<br/>[18, 21, 24]"]
-    L21 --> DET
-    L24 --> DET
+BB12["#12 ES_MOE 1024<br/>骨干出口"] --> L13["Upsample ×2 #13"]
+BB12 --> BB9["#9 ES_MOE 512"] ; L13 --> L14["Concat #14<br/>cat #9 → 1536"] ; BB9 --> L14 ; L14 --> L15["C3k2 512 ×2 #15"]
+BB6["#6 ES_MOE 512"]
+L15 --> L16["Upsample ×2 #16"] ; L16 --> L17["Concat #17<br/>cat #6 → 1024"] ; BB6 --> L17 ; L17 --> L18["C3k2 256 ×2 #18<br/>P3 out"] ; L18 --> L19["Conv 3×3 s2 #19"] ; L19 --> L20["Concat #20<br/>cat #15 → 768"] ; L15 --> L20 ; L20 --> L21["C3k2 512 ×2 #21<br/>P4 out"] ; L21 --> L22["Conv 3×3 s2 #22"] ; L22 --> L23["Concat #23<br/>cat #12 → 1536"]
+L12["#12 ES_MOE 1024"] --> L23
+L23 --> L24["C3k2 512 ×2 #24<br/>P5 out"] ; L18 --> DET["Detect #25<br/>[18, 21, 24]"] ; L21 --> DET ; L24 --> DET
 ```
 
 ### 4.1 Head 逐层功能

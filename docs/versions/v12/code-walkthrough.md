@@ -24,27 +24,22 @@
 
 ```mermaid
 flowchart LR
-    subgraph NET["建网"]
-        A["from ultralytics import YOLO"] --> B["tasks.py 299 DetectionModel"]
-        B --> C["tasks.py 933 parse_model"]
-        C --> C1["L1034 A2C2f 特判<br/>插 n · L/X 补 residual+mlp_ratio"]
-        C --> C2["L1031/1035 legacy=False<br/>L1058 m.legacy = legacy"]
-        C1 --> D["yolov12.yaml<br/>A2C2f×6 + C3k2×3 + Detect"]
-    end
-    subgraph FWD["骨干前向"]
-        D --> E["A2C2f a2=True（P4/P5）<br/>ABlock → AAttn → flash_attn_func"]
-        D --> F["A2C2f a2=False（head 4 处）<br/>等价 C3k 骨架"]
-    end
-    subgraph TRAIN["训练路径"]
-        T1["DetectionModel.init_criterion<br/>→ v8DetectionLoss L157"] --> T2["TaskAlignedAssigner<br/>topk=10 · α=0.5 · β=6.0"]
-        T2 --> T3["box 7.5 + cls 0.5 + dfl 1.5"]
-    end
-    subgraph INFER["推理与评估"]
-        I1["Detect.forward（legacy=False）<br/>cv3 走 DW-separable"] --> I2["make_anchors + dist2bbox"]
-        I2 --> I3["NMS · conf 0.25 / iou 0.7 / max_det 300"]
-    end
-    D -->|"训练态三尺度"| T1
-    D -->|"推理态三尺度"| I1
+subgraph NET["建网"]
+A["from ultralytics import YOLO"] --> B["tasks.py 299 DetectionModel"]
+B --> C["tasks.py 933 parse_model"] ; C --> C1["L1034 A2C2f 特判<br/>插 n · L/X 补 residual+mlp_ratio"] ; C --> C2["L1031/1035 legacy=False<br/>L1058 m.legacy = legacy"] ; C1 --> D["yolov12.yaml<br/>A2C2f×6 + C3k2×3 + Detect"]
+end
+subgraph FWD["骨干前向"]
+D --> E["A2C2f a2=True（P4/P5）<br/>ABlock → AAttn → flash_attn_func"] ; D --> F["A2C2f a2=False（head 4 处）<br/>等价 C3k 骨架"]
+end
+subgraph TRAIN["训练路径"]
+T1["DetectionModel.init_criterion<br/>→ v8DetectionLoss L157"] --> T2["TaskAlignedAssigner<br/>topk=10 · α=0.5 · β=6.0"]
+T2 --> T3["box 7.5 + cls 0.5 + dfl 1.5"]
+end
+subgraph INFER["推理与评估"]
+I1["Detect.forward（legacy=False）<br/>cv3 走 DW-separable"] --> I2["make_anchors + dist2bbox"]
+I2 --> I3["NMS · conf 0.25 / iou 0.7 / max_det 300"]
+end
+D -->|"训练态三尺度"| T1 ; D -->|"推理态三尺度"| I1
 ```
 
 ## 1. 入口：`YOLO` 通用类，无 YOLOv12 类

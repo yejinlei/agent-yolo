@@ -16,44 +16,8 @@
 
 ```mermaid
 flowchart TB
-    %% Backbone #0-#11
-    IMG["640×640×3"] --> L0["CircularConv 3×3 s2 #0<br/>64ch @320 · P1/2<br/>★ 环形 padding"]
-    L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"]
-    L1 --> L2["ViewEmbedding [128, 6, 64] #2<br/>★ 6 类视角码字注入"]
-    L2 --> L3["DomainAdaptiveLayer [128] #3<br/>★ AdaIN game→real"]
-    L3 --> L4["C3k2 256 ×2 #4<br/>e=0.25"]
-    L4 --> L5["Conv 3×3 s2 #5<br/>256ch @80 · P3/8"]
-    L5 --> L6["C3k2 512 ×2 #6<br/>e=0.25"]
-    L6 --> L7["DomainAdaptiveLayer [512] #7<br/>★ AdaIN game→real（P3 出口）"]
-    L7 --> L8["Conv 3×3 s2 #8<br/>512ch @40 · P4/16"]
-    L8 --> L9["DeformableA2C2f 512 ×4 #9<br/>area=4<br/>★ 骨干形变注意力 1"]
-    L9 --> L10["Conv 3×3 s2 #10<br/>1024ch @20 · P5/32"]
-    L10 --> L11["DeformableA2C2f 1024 ×4 #11<br/>area=1<br/>★ 骨干形变注意力 2"]
-
-    %% Head #12-#23
-    L11 --> L12["Upsample ×2 #12<br/>1024 @40"]
-    L12 --> L13["Concat #13<br/>cat #9 → 1536"]
-    L9 --> L13
-    L13 --> L14["DeformableA2C2f 512 ×2 #14<br/>★ FPN P4 融合"]
-
-    L14 --> L15["Upsample ×2 #15<br/>512 @80"]
-    L15 --> L16["Concat #16<br/>cat #6 → 1024"]
-    L6 --> L16
-    L16 --> L17["DeformableA2C2f 256 ×2 #17<br/>★ FPN P3 融合"]
-
-    L17 --> L18["Conv 3×3 s2 #18<br/>256 @40"]
-    L18 --> L19["Concat #19<br/>cat #14 → 768"]
-    L14 --> L19
-    L19 --> L20["DeformableA2C2f 512 ×2 #20<br/>★ PAN P4 out"]
-
-    L20 --> L21["Conv 3×3 s2 #21<br/>512 @20"]
-    L21 --> L22["Concat #22<br/>cat #11 → 1536"]
-    L11 --> L22
-    L22 --> L23["C3k2 1024 ×2 #23<br/>★ PAN P5 out"]
-
-    L17 --> DET["Detect #24<br/>P3/P4/P5 单头 · stride 8/16/32<br/>cv2 box · cv3 DW-separable cls · dfl"]
-    L20 --> DET
-    L23 --> DET
+IMG["640×640×3"] --> L0["CircularConv 3×3 s2 #0<br/>64ch @320 · P1/2<br/>★ 环形 padding"]
+L0 --> L1["Conv 3×3 s2 #1<br/>128ch @160 · P2/4"] ; L1 --> L2["ViewEmbedding [128, 6, 64] #2<br/>★ 6 类视角码字注入"] ; L2 --> L3["DomainAdaptiveLayer [128] #3<br/>★ AdaIN game→real"] ; L3 --> L4["C3k2 256 ×2 #4<br/>e=0.25"] ; L4 --> L5["Conv 3×3 s2 #5<br/>256ch @80 · P3/8"] ; L5 --> L6["C3k2 512 ×2 #6<br/>e=0.25"] ; L6 --> L7["DomainAdaptiveLayer [512] #7<br/>★ AdaIN game→real（P3 出口）"] ; L7 --> L8["Conv 3×3 s2 #8<br/>512ch @40 · P4/16"] ; L8 --> L9["DeformableA2C2f 512 ×4 #9<br/>area=4<br/>★ 骨干形变注意力 1"] ; L9 --> L10["Conv 3×3 s2 #10<br/>1024ch @20 · P5/32"] ; L10 --> L11["DeformableA2C2f 1024 ×4 #11<br/>area=1<br/>★ 骨干形变注意力 2"] ; L11 --> L12["Upsample ×2 #12<br/>1024 @40"] ; L12 --> L13["Concat #13<br/>cat #9 → 1536"] ; L9 --> L13 ; L13 --> L14["DeformableA2C2f 512 ×2 #14<br/>★ FPN P4 融合"] ; L14 --> L15["Upsample ×2 #15<br/>512 @80"] ; L15 --> L16["Concat #16<br/>cat #6 → 1024"] ; L6 --> L16 ; L16 --> L17["DeformableA2C2f 256 ×2 #17<br/>★ FPN P3 融合"] ; L17 --> L18["Conv 3×3 s2 #18<br/>256 @40"] ; L18 --> L19["Concat #19<br/>cat #14 → 768"] ; L14 --> L19 ; L19 --> L20["DeformableA2C2f 512 ×2 #20<br/>★ PAN P4 out"] ; L20 --> L21["Conv 3×3 s2 #21<br/>512 @20"] ; L21 --> L22["Concat #22<br/>cat #11 → 1536"] ; L11 --> L22 ; L22 --> L23["C3k2 1024 ×2 #23<br/>★ PAN P5 out"] ; L17 --> DET["Detect #24<br/>P3/P4/P5 单头 · stride 8/16/32<br/>cv2 box · cv3 DW-separable cls · dfl"] ; L20 --> DET ; L23 --> DET
 ```
 
 - 图中通道数为 yaml 声明的**基准宽度**；n 档 depth=0.50 / width=0.25 把 DeformableA2C2f 与 C3k2 重复数 ×4→2、×2→1，通道 ÷4（末级 1024→256），五档 scales 见 §6
@@ -99,29 +63,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    L11["DeformableA2C2f #11<br/>P5 @20"] --> L12["Upsample #12"]
-    L12 --> L13["Concat #13<br/>cat #9"]
-    L9["#9 P4 @40<br/>DeformableA2C2f"] --> L13
-    L13 --> L14["DeformableA2C2f #14<br/>P4 fused"]
-
-    L14 --> L15["Upsample #15"]
-    L15 --> L16["Concat #16<br/>cat #6"]
-    L6["#6 P3 @80<br/>C3k2"] --> L16
-    L16 --> L17["DeformableA2C2f #17<br/>P3 fused"]
-
-    L17 --> L18["Conv s2 #18"]
-    L18 --> L19["Concat #19<br/>cat #14"]
-    L14 --> L19
-    L19 --> L20["DeformableA2C2f #20<br/>P4 out"]
-
-    L20 --> L21["Conv s2 #21"]
-    L21 --> L22["Concat #22<br/>cat #11"]
-    L11 --> L22
-    L22 --> L23["C3k2 #23<br/>P5 out"]
-
-    L17 --> DET["Detect #24<br/>P3/P4/P5"]
-    L20 --> DET
-    L23 --> DET
+L11["DeformableA2C2f #11<br/>P5 @20"] --> L12["Upsample #12"]
+L12 --> L13["Concat #13<br/>cat #9"]
+L9["#9 P4 @40<br/>DeformableA2C2f"] --> L13
+L13 --> L14["DeformableA2C2f #14<br/>P4 fused"] ; L14 --> L15["Upsample #15"] ; L15 --> L16["Concat #16<br/>cat #6"]
+L6["#6 P3 @80<br/>C3k2"] --> L16
+L16 --> L17["DeformableA2C2f #17<br/>P3 fused"] ; L17 --> L18["Conv s2 #18"] ; L18 --> L19["Concat #19<br/>cat #14"] ; L14 --> L19 ; L19 --> L20["DeformableA2C2f #20<br/>P4 out"] ; L20 --> L21["Conv s2 #21"] ; L21 --> L22["Concat #22<br/>cat #11"] ; L11 --> L22 ; L22 --> L23["C3k2 #23<br/>P5 out"] ; L17 --> DET["Detect #24<br/>P3/P4/P5"] ; L20 --> DET ; L23 --> DET
 ```
 
 - **#12-#17 FPN 上采样**：#11 → Upsample → Concat #9 → DeformableA2C2f #14 → Upsample → Concat #6 → DeformableA2C2f #17；

@@ -81,28 +81,14 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    IN["640×640×3"] --> C0["Conv 3×3 s2 → 64ch @320 · P1/2"]
-    C0 --> C1["Conv 3×3 s2 → 128ch @160 · P2/4"]
-    C1 --> E1["C2f ×3 → 128ch @160"]
-    E1 --> D1["Conv s2 → 256ch @80 · P3/8"]
-    D1 --> E2["C2f ×6 → 256ch @80"]
-    E2 --> D2["Conv s2 → 512ch @40 · P4/16"]
-    D2 --> E3["C2f ×6 → 512ch @40"]
-    E3 --> D3["Conv s2 → 1024ch @20 · P5/32"]
-    D3 --> E4["C2f ×3 → 1024ch @20"]
-    E4 --> S["SPPF 5 → 1024ch @20"]
-    S --> UP["上行：Upsample ×2 + Concat + C2f ×3"]
-    E3 -. route 6 .-> UP
-    E2 -. route 4 .-> UP
-    UP --> P3["C2f → 256ch @80 · #15"]
-    P3 --> DOWN["下行：Conv 3×3 s2 + Concat + C2f ×3"]
-    UP -. C2f 512 @40 .-> DOWN
-    S -. route 9 .-> DOWN
-    DOWN --> P4["C2f → 512ch @40 · #18"]
-    DOWN --> P5["C2f → 1024ch @20 · #21"]
-    P3 --> H1["Detect P3/8"]
-    P4 --> H2["Detect P4/16"]
-    P5 --> H3["Detect P5/32"]
+IN["640×640×3"] --> C0["Conv 3×3 s2 → 64ch @320 · P1/2"]
+C0 --> C1["Conv 3×3 s2 → 128ch @160 · P2/4"] ; C1 --> E1["C2f ×3 → 128ch @160"] ; E1 --> D1["Conv s2 → 256ch @80 · P3/8"] ; D1 --> E2["C2f ×6 → 256ch @80"] ; E2 --> D2["Conv s2 → 512ch @40 · P4/16"] ; D2 --> E3["C2f ×6 → 512ch @40"] ; E3 --> D3["Conv s2 → 1024ch @20 · P5/32"] ; D3 --> E4["C2f ×3 → 1024ch @20"] ; E4 --> S["SPPF 5 → 1024ch @20"] ; S --> UP["上行：Upsample ×2 + Concat + C2f ×3"]
+E3 -. route 6 .-> UP
+E2 -. route 4 .-> UP
+UP --> P3["C2f → 256ch @80 · #15"] ; P3 --> DOWN["下行：Conv 3×3 s2 + Concat + C2f ×3"]
+UP -. C2f 512 @40 .-> DOWN
+S -. route 9 .-> DOWN
+DOWN --> P4["C2f → 512ch @40 · #18"] ; DOWN --> P5["C2f → 1024ch @20 · #21"] ; P3 --> H1["Detect P3/8"] ; P4 --> H2["Detect P4/16"] ; P5 --> H3["Detect P5/32"]
 ```
 
 - 结构由 **scales 五档 + yaml 层表**驱动：<SrcLink file="v8:ultralytics/models/v8/yolov8.yaml" :line="5" :end="12" />（nc=80，n 档 depth 0.33 / width 0.25 / max_channels 1024），骨干层 0-9 <SrcLink file="v8:ultralytics/models/v8/yolov8.yaml" :line="15" :end="26" />、head 层 10-21 <SrcLink file="v8:ultralytics/models/v8/yolov8.yaml" :line="29" :end="46" />

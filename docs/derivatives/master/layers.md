@@ -177,25 +177,11 @@ DynamicRoutingLayer(in_channels, num_experts, reduction=8, top_k=2):
 
 ```mermaid
 flowchart TB
-    BB12["#12 ES_MOE 1024<br/>骨干出口"] --> L13["Upsample ×2 #13<br/>1024 @40"]
-    BB12 --> L23["Concat #23<br/>cat #12 → 1536"]
-    BB9["#9 ES_MOE 512"] --> L14["Concat #14<br/>cat #9 → 1536"]
-    BB6["#6 ES_MOE 512"] --> L17["Concat #17<br/>cat #6 → 1024"]
-    L13 --> L14
-    L14 --> L15["C3k2 512 ×2 #15"]
-    L15 --> L16["Upsample ×2 #16"]
-    L15 --> L20["Concat #20<br/>cat #15 → 768"]
-    L16 --> L17
-    L17 --> L18["C3k2 256 ×2 #18<br/>P3 out"]
-    L18 --> L19["Conv 3×3 s2 #19"]
-    L19 --> L20
-    L20 --> L21["C3k2 512 ×2 #21<br/>P4 out"]
-    L21 --> L22["Conv 3×3 s2 #22"]
-    L22 --> L23
-    L23 --> L24["C3k2 512 ×2 #24<br/>P5 out"]
-    L18 --> DET["Detect #25<br/>[18, 21, 24]"]
-    L21 --> DET
-    L24 --> DET
+BB12["#12 ES_MOE 1024<br/>骨干出口"] --> L13["Upsample ×2 #13<br/>1024 @40"]
+BB12 --> L23["Concat #23<br/>cat #12 → 1536"]
+BB9["#9 ES_MOE 512"] --> L14["Concat #14<br/>cat #9 → 1536"]
+BB6["#6 ES_MOE 512"] --> L17["Concat #17<br/>cat #6 → 1024"]
+L13 --> L14 ; L14 --> L15["C3k2 512 ×2 #15"] ; L15 --> L16["Upsample ×2 #16"] ; L15 --> L20["Concat #20<br/>cat #15 → 768"] ; L16 --> L17 ; L17 --> L18["C3k2 256 ×2 #18<br/>P3 out"] ; L18 --> L19["Conv 3×3 s2 #19"] ; L19 --> L20 ; L20 --> L21["C3k2 512 ×2 #21<br/>P4 out"] ; L21 --> L22["Conv 3×3 s2 #22"] ; L22 --> L23 ; L23 --> L24["C3k2 512 ×2 #24<br/>P5 out"] ; L18 --> DET["Detect #25<br/>[18, 21, 24]"] ; L21 --> DET ; L24 --> DET
 ```
 
 **Head 关键点**：

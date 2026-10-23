@@ -25,28 +25,22 @@
 
 ```mermaid
 flowchart LR
-    subgraph NET["建网"]
-        A["from ultralytics import YOLO"] --> B["tasks.py 304 DetectionModel"]
-        B --> C["tasks.py 938 parse_model"]
-        C --> C1["L1042 A2C2f<br/>L1040-1041 DSC3k2 补 e=True<br/>L1075 HyperACE 强制 n=1<br/>L1089 DownsampleConv 补 ch"]
-        C --> C2["L1038/1043/1076 legacy=False<br/>L1066 m.legacy = legacy"]
-        C1 --> D["yolov13.yaml<br/>32 层 · A2C2f×2 + DSC3k2×7<br/>+ HyperACE×1 + FullPAD_Tunnel×7"]
-    end
-    subgraph FWD["前向：骨干 + 颈部"]
-        D --> E["骨干 #0-#8<br/>A2C2f（P4/P5）<br/>DSConv 下采样 #5/#7"]
-        D --> F["HyperACE #9<br/>fuse → chunk(3)<br/>AdaHyperedgeGen → AdaHGConv<br/>2×C3AH + L×DSC3k 并行 → cv2"]
-        D --> G["FullPAD_Tunnel×7<br/>out = x[0] + gate·x[1]<br/>gate 初始 0.0"]
-    end
-    subgraph TRAIN["训练路径"]
-        T1["DetectionModel.init_criterion<br/>→ v8DetectionLoss L157"] --> T2["TaskAlignedAssigner<br/>topk=10 · α=0.5 · β=6.0"]
-        T2 --> T3["box 7.5 + cls 0.5 + dfl 1.5"]
-    end
-    subgraph INFER["推理与评估"]
-        I1["Detect.forward（legacy=False）<br/>cv3 走 DW-separable"] --> I2["make_anchors + dist2bbox"]
-        I2 --> I3["NMS · conf 0.25 / iou 0.7 / max_det 300"]
-    end
-    F -->|"训练态三尺度"| T1
-    G --> I1
+subgraph NET["建网"]
+A["from ultralytics import YOLO"] --> B["tasks.py 304 DetectionModel"]
+B --> C["tasks.py 938 parse_model"] ; C --> C1["L1042 A2C2f<br/>L1040-1041 DSC3k2 补 e=True<br/>L1075 HyperACE 强制 n=1<br/>L1089 DownsampleConv 补 ch"] ; C --> C2["L1038/1043/1076 legacy=False<br/>L1066 m.legacy = legacy"] ; C1 --> D["yolov13.yaml<br/>32 层 · A2C2f×2 + DSC3k2×7<br/>+ HyperACE×1 + FullPAD_Tunnel×7"]
+end
+subgraph FWD["前向：骨干 + 颈部"]
+D --> E["骨干 #0-#8<br/>A2C2f（P4/P5）<br/>DSConv 下采样 #5/#7"] ; D --> F["HyperACE #9<br/>fuse → chunk(3)<br/>AdaHyperedgeGen → AdaHGConv<br/>2×C3AH + L×DSC3k 并行 → cv2"] ; D --> G["FullPAD_Tunnel×7<br/>out = x[0] + gate·x[1]<br/>gate 初始 0.0"]
+end
+subgraph TRAIN["训练路径"]
+T1["DetectionModel.init_criterion<br/>→ v8DetectionLoss L157"] --> T2["TaskAlignedAssigner<br/>topk=10 · α=0.5 · β=6.0"]
+T2 --> T3["box 7.5 + cls 0.5 + dfl 1.5"]
+end
+subgraph INFER["推理与评估"]
+I1["Detect.forward（legacy=False）<br/>cv3 走 DW-separable"] --> I2["make_anchors + dist2bbox"]
+I2 --> I3["NMS · conf 0.25 / iou 0.7 / max_det 300"]
+end
+F -->|"训练态三尺度"| T1 ; G --> I1
 ```
 
 ## 1. 入口：`YOLO` 通用类，无 YOLOv13 类

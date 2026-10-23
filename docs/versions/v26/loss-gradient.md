@@ -14,33 +14,8 @@
 
 ```mermaid
 flowchart TB
-    BATCH["batch 字典<br/>img, targets, masks,<br/>depth, keypoints,<br/>semantic, text_prompts"]
-    
-    BATCH --> TASK{"任务类型？"}
-    
-    TASK -->|Detection| DETECT["v8DetectionLoss<br/>三分量梯度"]
-    TASK -->|E2E Detect| E2E["E2ELoss<br/>双分支加权梯度"]
-    TASK -->|Segmentation| SEG["v8SegmentationLoss"]
-    TASK -->|Pose| POSE["PoseLoss26<br/>+ RLE 梯度"]
-    TASK -->|Depth| DEPTH["DepthLoss26<br/>SILog + 4-尺度梯度 L1"]
-    TASK -->|Semantic| SEM["SemanticSegmentationLoss"]
-    
-    E2E --> O2M["one2many 分支<br/>topk=10 TAL<br/>w_o2m: 0.8→0.1"]
-    E2E --> O2O["one2one 分支<br/>topk=1 TAL<br/>w_o2o: 0.2→0.9"]
-    
-    DEPTH --> SILOG["SILog 中心化方差<br/>∂L/∂log_d = (log_d - log_pred - m)/L_silog"]
-    DEPTH --> GRAD["4-尺度梯度 L1<br/>keep mask 过滤 LiDAR 稀疏"]
-    
-    POSE --> RLE["RLE Normalizing Flow<br/>∂L/∂σ = 1/σ + error·(-1/σ²)<br/>∂L/∂φ = -1/φ"]
-    
-    DETECT --> TOTAL["L_total"]
-    SEG --> TOTAL
-    POSE --> TOTAL
-    DEPTH --> TOTAL
-    SEM --> TOTAL
-    E2E --> TOTAL
-    
-    TOTAL --> BW["backward"]
+BATCH["batch 字典<br/>img, targets, masks,<br/>depth, keypoints,<br/>semantic, text_prompts"]
+BATCH --> TASK{"任务类型？"} ; TASK -->|Detection| DETECT["v8DetectionLoss<br/>三分量梯度"] ; TASK -->|E2E Detect| E2E["E2ELoss<br/>双分支加权梯度"] ; TASK -->|Segmentation| SEG["v8SegmentationLoss"] ; TASK -->|Pose| POSE["PoseLoss26<br/>+ RLE 梯度"] ; TASK -->|Depth| DEPTH["DepthLoss26<br/>SILog + 4-尺度梯度 L1"] ; TASK -->|Semantic| SEM["SemanticSegmentationLoss"] ; E2E --> O2M["one2many 分支<br/>topk=10 TAL<br/>w_o2m: 0.8→0.1"] ; E2E --> O2O["one2one 分支<br/>topk=1 TAL<br/>w_o2o: 0.2→0.9"] ; DEPTH --> SILOG["SILog 中心化方差<br/>∂L/∂log_d = (log_d - log_pred - m)/L_silog"] ; DEPTH --> GRAD["4-尺度梯度 L1<br/>keep mask 过滤 LiDAR 稀疏"] ; POSE --> RLE["RLE Normalizing Flow<br/>∂L/∂σ = 1/σ + error·(-1/σ²)<br/>∂L/∂φ = -1/φ"] ; DETECT --> TOTAL["L_total"] ; SEG --> TOTAL ; POSE --> TOTAL ; DEPTH --> TOTAL ; SEM --> TOTAL ; E2E --> TOTAL ; TOTAL --> BW["backward"]
 ```
 
 - **6 任务损失梯度图独立**——每个任务有专用 loss 类，不共享 batch 字典开关（与 v14 不同）；
@@ -51,39 +26,12 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    IMG["640×640 输入"] --> B0["Conv #0 64×320×320"]
-    B0 --> B1["Conv #1 128×160×160"]
-    B1 --> B2["C3k2 #2 128×160×160"]
-    B2 --> B3["Conv #3 256×80×80"]
-    B3 --> B4["C3k2 #4 256×80×80"]
-    B4 --> B5["Conv #5 512×40×40"]
-    B5 --> B6["C3k2 #6 512×40×40"]
-    B6 --> B7["Conv #7 1024×20×20"]
-    B7 --> B8["C3k2 #8 1024×20×20"]
-    B8 --> B9["SPPF #9"]
-    B9 --> B10["C2PSA #10"]
-    
-    B10 --> H11["Upsample ×2"]
-    H11 --> H12["Concat + C3k2 #13"]
-    H12 --> H14["Upsample ×2"]
-    H14 --> H15["Concat + C3k2 #16"]
-    H15 --> H17["Conv s2"]
-    H17 --> H18["Concat + C3k2 #19"]
-    H18 --> H20["Conv s2"]
-    H20 --> H21["Concat + C3k2 #22 cross_attn"]
-    
-    H16["P3/8-small"] --> DETECT["Detect #23 end2end=True"]
-    H19["P4/16-medium"] --> DETECT
-    H22["P5/32-large"] --> DETECT
-    
-    DETECT --> O2M["one2many cv2/cv3<br/>topk=10 TAL"]
-    DETECT --> O2O["one2one cv2/cv3<br/>topk=1 TAL<br/>copy.deepcopy"]
-    
-    O2M --> LOSS["E2ELoss<br/>w_o2m·loss_o2m + w_o2o·loss_o2o<br/>decay: 0.8→0.1"]
-    O2O --> LOSS
-    
-    LOSS --> TOTAL["L_total"]
-    TOTAL --> BW["backward"]
+IMG["640×640 输入"] --> B0["Conv #0 64×320×320"]
+B0 --> B1["Conv #1 128×160×160"] ; B1 --> B2["C3k2 #2 128×160×160"] ; B2 --> B3["Conv #3 256×80×80"] ; B3 --> B4["C3k2 #4 256×80×80"] ; B4 --> B5["Conv #5 512×40×40"] ; B5 --> B6["C3k2 #6 512×40×40"] ; B6 --> B7["Conv #7 1024×20×20"] ; B7 --> B8["C3k2 #8 1024×20×20"] ; B8 --> B9["SPPF #9"] ; B9 --> B10["C2PSA #10"] ; B10 --> H11["Upsample ×2"] ; H11 --> H12["Concat + C3k2 #13"] ; H12 --> H14["Upsample ×2"] ; H14 --> H15["Concat + C3k2 #16"] ; H15 --> H17["Conv s2"] ; H17 --> H18["Concat + C3k2 #19"] ; H18 --> H20["Conv s2"] ; H20 --> H21["Concat + C3k2 #22 cross_attn"]
+H16["P3/8-small"] --> DETECT["Detect #23 end2end=True"]
+H19["P4/16-medium"] --> DETECT
+H22["P5/32-large"] --> DETECT
+DETECT --> O2M["one2many cv2/cv3<br/>topk=10 TAL"] ; DETECT --> O2O["one2one cv2/cv3<br/>topk=1 TAL<br/>copy.deepcopy"] ; O2M --> LOSS["E2ELoss<br/>w_o2m·loss_o2m + w_o2o·loss_o2o<br/>decay: 0.8→0.1"] ; O2O --> LOSS ; LOSS --> TOTAL["L_total"] ; TOTAL --> BW["backward"]
 ```
 
 本页记号：
