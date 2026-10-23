@@ -85,6 +85,22 @@ const modules = {
   v26: import.meta.glob(
     '../../../../source/yolo26/snapshot/**/*.{py,yaml}',
     { query: '?raw', import: 'default' }
+  ),
+  // YOLO-World（衍生分支）：AILab-CVC 原始仓库（v2.1）+ Ultralytics 8.1.39 集成
+  // AILab-CVC 配置为 mmengine Python dict，需一并纳入 .py glob
+  yoloworld: import.meta.glob(
+    '../../../../source/yoloworld/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
+  ),
+  // YOLOE（衍生分支）：Ultralytics 8.3.99 官方集成（THU-MIG/yoloe 论文实现仅落 README+LICENSE）
+  yoloe: import.meta.glob(
+    '../../../../source/yoloe/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
+  ),
+  // YOLO-Master（衍生分支）：Tencent/YOLO-Master（arXiv 2512.23273 CVPR 2026），YOLOv12 fork
+  master: import.meta.glob(
+    '../../../../source/yolomaster/snapshot/**/*.{py,yaml}',
+    { query: '?raw', import: 'default' }
   )
 }
 
@@ -173,7 +189,44 @@ export const SOURCE_PAGES = {
   'v26:nn/modules/head.py':                     '/versions/v26/source/head-py',
   'v26:utils/loss.py':                          '/versions/v26/source/loss-py',
   'v26:utils/tal.py':                           '/versions/v26/source/tal-py',
-  'v26:cfg_models_26/yolo26.yaml':              '/versions/v26/source/yolo26-yaml'
+  'v26:cfg_models_26/yolo26.yaml':              '/versions/v26/source/yolo26-yaml',
+  // YOLO-World（衍生）— Ultralytics 集成侧
+  'yoloworld:ultralytics/cfg/models/v8/yolov8-world.yaml':   '/derivatives/yoloworld/source/yolov8-world-yaml',
+  'yoloworld:ultralytics/cfg/models/v8/yolov8-worldv2.yaml': '/derivatives/yoloworld/source/yolov8-worldv2-yaml',
+  'yoloworld:ultralytics/nn/tasks_worldmodel.py':            '/derivatives/yoloworld/source/worldmodel-py',
+  'yoloworld:ultralytics/nn/modules/head.py':                '/derivatives/yoloworld/source/head-py',
+  'yoloworld:ultralytics/models/yolo/world/train.py':        '/derivatives/yoloworld/source/train-py',
+  'yoloworld:ultralytics/models/yolo/world/train_world.py':  '/derivatives/yoloworld/source/train-world-py',
+  // YOLO-World（衍生）— AILab-CVC 原始仓库侧
+  'yoloworld:ailab-cvc/yolo_world/models/detectors/yolo_world.py':             '/derivatives/yoloworld/source/detector-py',
+  'yoloworld:ailab-cvc/yolo_world/models/dense_heads/yolo_world_head.py':       '/derivatives/yoloworld/source/head-ailab-py',
+  'yoloworld:ailab-cvc/yolo_world/models/necks/yolo_world_pafpn.py':           '/derivatives/yoloworld/source/pafpn-py',
+  // YOLOE（衍生）— Ultralytics 8.3.99 集成
+  'yoloe:ultralytics/cfg/models/v8/yoloe-v8.yaml':   '/derivatives/yoloe/source/yoloe-v8-yaml',
+  'yoloe:ultralytics/cfg/models/v8/yoloe-v8-seg.yaml': '/derivatives/yoloe/source/yoloe-v8-seg-yaml',
+  'yoloe:ultralytics/cfg/models/26/yoloe-26.yaml':   '/derivatives/yoloe/source/yoloe-26-yaml',
+  'yoloe:ultralytics/cfg/models/26/yoloe-26-seg.yaml': '/derivatives/yoloe/source/yoloe-26-seg-yaml',
+  'yoloe:ultralytics/models/yolo/model.py':           '/derivatives/yoloe/source/model-py',
+  'yoloe:ultralytics/models/yolo/yoloe/train.py':     '/derivatives/yoloe/source/train-py',
+  'yoloe:ultralytics/models/yolo/yoloe/train_seg.py': '/derivatives/yoloe/source/train-seg-py',
+  'yoloe:ultralytics/models/yolo/yoloe/val.py':       '/derivatives/yoloe/source/val-py',
+  'yoloe:ultralytics/models/yolo/yoloe/predict.py':   '/derivatives/yoloe/source/predict-py',
+  'yoloe:ultralytics/nn/head.py':                     '/derivatives/yoloe/source/head-py',
+  'yoloe:ultralytics/nn/tasks.py':                    '/derivatives/yoloe/source/tasks-py',
+  // YOLO-Master（衍生）— ES-MoE + MoT + cfg
+  'master:ultralytics/cfg/models/master/v0/det/yolo-master-n.yaml':        '/derivatives/master/source/yolo-master-n-yaml',
+  'master:ultralytics/cfg/models/master/v0/det/yolo-master-l.yaml':        '/derivatives/master/source/yolo-master-l-yaml',
+  'master:ultralytics/cfg/models/master/v0/det/yolo-master-esmoe-n-coco.yaml': '/derivatives/master/source/yolo-master-esmoe-n-yaml',
+  'master:ultralytics/nn/modules/moe/modules.py':     '/derivatives/master/source/moe-modules-py',
+  'master:ultralytics/nn/modules/moe/routers.py':     '/derivatives/master/source/moe-routers-py',
+  'master:ultralytics/nn/modules/moe/experts.py':     '/derivatives/master/source/moe-experts-py',
+  'master:ultralytics/nn/modules/moe/loss.py':        '/derivatives/master/source/moe-loss-py',
+  'master:ultralytics/nn/modules/moe/topk_anneal.py': '/derivatives/master/source/moe-topk-anneal-py',
+  'master:ultralytics/nn/modules/mot/experts.py':     '/derivatives/master/source/mot-experts-py',
+  'master:ultralytics/nn/modules/mot/router.py':      '/derivatives/master/source/mot-router-py',
+  'master:ultralytics/nn/modules/transformer.py':     '/derivatives/master/source/transformer-py',
+  'master:ultralytics/nn/modules/head.py':            '/derivatives/master/source/head-py',
+  'master:ultralytics/models/yolo/detect/train.py':   '/derivatives/master/source/train-py'
 }
 
 const GH_BASES = {
@@ -191,7 +244,10 @@ const GH_BASES = {
   v12: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov12/snapshot/',
   v13: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov13/snapshot/',
   v14: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolov14/snapshot/',
-  v26: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolo26/snapshot/'
+  v26: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yolo26/snapshot/',
+  yoloworld: 'https://github.com/yejinlei/agent-yolo/blob/main/source/yoloworld/snapshot/',
+  yoloe:     'https://github.com/yejinlei/agent-yolo/blob/main/source/yoloe/snapshot/',
+  master:    'https://github.com/yejinlei/agent-yolo/blob/main/source/yolomaster/snapshot/'
 }
 
 function resolveKey(v, f) {

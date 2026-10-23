@@ -142,3 +142,72 @@
 
 两条线路都从 v13 分叉，共享 DSConv + C3k2 的骨干遗产，但在「头设计」和「任务广度」上走向完全不同的技术方向。
 
+> **注意**：主线 v26 使用 `NormalizingFlow` 家族中的 `RealNVP` 变体（RealNVP = Real-valued Non-volume preserving Flow）作为其**独立组件**，与本节的"RealNVP 主线"是两个含义完全不同的东西，不要混淆。详见 [v26 RealNVP 组件说明](/versions/v26/index)。
+
+---
+
+## 衍生分支演化事件
+
+主线之外三条并行研究路径的演化，按"从哪个主线版本 fork 出去"排列。
+
+### v8 → YOLO-World（2024-01，Tencent AI Lab，CVPR'24）
+
+| 引入 | 淘汰 |
+|------|------|
+| 文本 prompt 分支（Phrase Grounding / Open-Vocabulary Detection） | 闭集固定 80 类 |
+| **PHF**（Prompt-Handling Module） | — |
+| **BNContrastiveHead**（对比学习头） | — |
+| **WorldDetect** 检测头（同时兼容开闭集） | Detect 只做闭集 |
+
+- **动机**：让 YOLOv8 从固定 80 类扩展为开放词表——用户直接输入自然语言类别描述
+- **精度**：CO-COCO 20.6 mAP（v8 是 30.2 但只 80 类；CO-COCO 是 6000+ 类开放集）
+- **工程代价**：backbone 每层额外注入一次文本特征，参数量增加约 2.5M
+- **基座**：YOLOv8n / s / m / l / x 全系列
+
+### YOLO-World → YOLOE（2025-03，清华 THU-MIG，ICCV'25）
+
+| 引入 | 淘汰 |
+|------|------|
+| **Visual Prompt**（框选/点击/涂鸦） | — |
+| **Prompt-Free** 模式（无需任何 prompt 的零样本检测） | 必须给文本 prompt |
+| **ImagePoolingAttn（IAP）** 统一三种 prompt 通道 | PHF 只处理文本 |
+| **YOLOEDetect / YOLOESegment**（检测 + 分割双头） | 仅检测 |
+
+- **动机**：三种 prompt 输入方式统一到一个模型里，同时打通检测与分割
+- **精度**：COCO-Prompt 53.8 AP；Prompt-Free 模式 60.9 AP（v8 63.7 AP）
+- **基座**：v8 / v11 / v26 三基座，每个基座独立发布权重
+- **重要点**：不是 v8 的"补丁"，是独立的 detector 家族
+
+### v12 → YOLO-Master（2025-12，Tencent Youtu + SMU，CVPR'26）
+
+| 引入 | 淘汰 |
+|------|------|
+| **RepRTA**（Reparameterizable Token-Aware Attention） | 普通卷积/注意力 |
+| **ES-MoE**（Explicit Sparse MoE） + `ExpertRouter` + `SoftmaxTopkGate` + `TopKScheduler` | 稠密参数 |
+| **DynamicRoutingLayer**（可替换 Conv 的 MoE 层） | 静态 Conv |
+| **WorldALFF** neck | 固定 concat |
+| **SAVPE / LRPC**（稀疏位置编码） | ViT 全位置编码 |
+
+- **动机**：把"稀疏大参数 + 训练推理一致"塞进 YOLOv12 家族，对标 Transformer-based detector
+- **精度**：**42.4 mAP @ 1.62 ms**（T4 单卡）——同时打赢速度与精度两条基线
+- **基座**：YOLOv12n / s（仅小尺寸）
+- **重要点**：**RepRTA ≠ RealNVP**——RealNVP 是主线 v26 里 Normalizing Flow 的独立组件，两者不共享代码与语义
+- **对比锚点**：与 [v13 学术线](/versions/v13/index) 同期，但路线完全不同（v13 改 backbone/neck，YOLO-Master 改参数结构）
+
+### 三条分支的横向对照
+
+| 维度 | YOLO-World | YOLOE | YOLO-Master |
+|------|-----------|-------|-------------|
+| fork 基座 | v8 | v8 / v11 / v26 | v12 |
+| 核心新增 | PHF | IAP + YOLOE Detect/Segment | ES-MoE + RepRTA |
+| 能力扩展 | 开放词表 | 开放词表 + 视觉 prompt + Prompt-Free + Seg | 大参数量 + 稀疏推理 |
+| 会议 | CVPR'24 | ICCV'25 | CVPR'26 |
+| arXiv | 2401.17270 | 2503.07465 | 2512.23273 |
+| 与主线关系 | 完全独立 | 完全独立 | 完全独立 |
+
+### 与主线演化的耦合点
+
+- **v8 → v11 → v12 → v26** 主线连续演化中，每一版都被至少一个衍生分支复用为基座
+- 三个衍生分支**不进入** `docs/versions/`（无编号），而是归入 `docs/derivatives/`
+- 主线编号序列与衍生家族**并行不取代**：v26 之后是否会出现 v27，与 YOLO-Master 是否升级为新主线是两个独立判断
+

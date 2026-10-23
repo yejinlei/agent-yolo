@@ -258,3 +258,41 @@ v14 与 v26 是 YOLO 家族**第一次出现「同一起点、两条独立路线
 | 定位 | 多相机/多视角感知（自动驾驶场景） | **端到端极简头 + 多任务统一**（生产部署导向） |
 
 详见 [v14 首页](/versions/v14/index)、[v26 首页](/versions/v26/index)、[演化事件](/global/evolutions) 与 [时间线](/global/timeline)。
+
+## 衍生分支：主线之外的三条并行研究路径
+
+主线编号序列 v1→v26 是 Ultralytics 官方 + 学术 fork 的**编号演进**，从 2024 年起重，独立团队开始从主线某个版本 fork 出**并行研究路径**——**没有编号**、走**能力方向**（开放词表 / MoE 加速 / 部署特化）。三条衍生分支跨越 v8/v11/v12/v26 四个主线基座，形成独立于主线编号的**衍生家族**（详见 [derivatives/index](/derivatives/index)）：
+
+```mermaid
+flowchart LR
+  V8[YOLOv8<br/>2023-01] -.->|2024-01 fork| WORLD[YOLO-World<br/>CVPR'24<br/>Tencent AI Lab<br/>文本 prompt 开放词表]
+  WORLD -.->|2025-03 进化| YOLOE[YOLOE<br/>ICCV'25<br/>THU-MIG<br/>Text+Visual+Prompt-Free]
+  V11[YOLOv11] -.->|2025-03 fork| YOLOE
+  V26[YOLOv26] -.->|2025-03 fork| YOLOE
+  V12[YOLOv12] -.->|2025-12 fork| MASTER[YOLO-Master<br/>CVPR'26<br/>Tencent Youtu+SMU<br/>ES-MoE + Specialized Transformer]
+```
+
+### 三条衍生分支速览
+
+| 分支 | 出品方 | 论文 | 基座 | 能力方向 | 目录 |
+|------|--------|------|------|----------|------|
+| **YOLO-World** | Tencent AI Lab | [arXiv:2401.17270](https://arxiv.org/abs/2401.17270) CVPR'24 | v8 | **文本 prompt 开放词表** | [/derivatives/yoloworld](/derivatives/yoloworld/index) |
+| **YOLOE** | 清华 THU-MIG | [arXiv:2503.07465](https://arxiv.org/abs/2503.07465) ICCV'25 | v8/v11/v26 | **Text + Visual + Prompt-Free 三合一** | [/derivatives/yoloe](/derivatives/yoloe/index) |
+| **YOLO-Master** | Tencent Youtu + SMU | [arXiv:2512.23273](https://arxiv.org/abs/2512.23273) CVPR'26 | v12 | **ES-MoE + Specialized Transformer** | [/derivatives/master](/derivatives/master/index) |
+
+### 衍生 vs 主线：两个层次的分叉
+
+- **主线内部分叉（双线路）**：v13 → v14（学术线，YOLO-Omni 多相机）与 v13 → v26（官方线，End2End 六任务），都走**主线编号序列**（v14、v26 都有明确编号），仍归入 `docs/versions/`；
+- **主线外部分叉（衍生家族）**：v8 → YOLO-World、v8/v11/v26 → YOLOE、v12 → YOLO-Master，都**没有编号**、走**能力方向**，归入 `docs/derivatives/`。
+
+**准入判定**：进入 `docs/versions/` 或 `docs/derivatives/` 的判据是「是否进入主线编号序列」——YOLO-World/YOLOE/YOLO-Master 都没有「v 号」，它们的身份来自能力方向；v14 有 v14 编号，即便也是第三方 fork，也归入主线目录。详细准入标准见 [derivatives/index#准入标准](/derivatives/index#准入标准什么算衍生分支)。
+
+### 衍生家族 vs 主线：并行不取代
+
+衍生分支不是主线的"下一代"或"下一代候选"——它们是**并行存在**的研究路径：
+
+- **v26 官方线**已经**内建** `YOLOEDetect` head（[cfg/26/yoloe-26.yaml](/derivatives/yoloe/source/yoloe-26-yaml)），把 YOLOE 的开放词表能力收编为一种"任务模式"；
+- **v12 A2C2f 骨干**既是主线 v12/v13/v14 的核心，也是 YOLO-Master 的 fork 基座——MoE 加速与主线注意力骨干在同一个基座上共存；
+- **v8 基座**同时承载主线 v8 官方权重、YOLO-World 与 YOLOE 三条独立路线。
+
+**衍生不是主线的"下一版"，而是主线某个版本的"能力扩展方向"**——主线继续按编号演进（v26 → v27 → ...），衍生继续在能力方向纵深（YOLO-World → YOLOE → 未来 YOLOE-27，YOLO-Master → Master-X / Master-Mobile）。完整路线见 [derivatives/roadmap](/derivatives/roadmap)。

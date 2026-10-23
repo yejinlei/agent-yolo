@@ -62,6 +62,13 @@ export default defineConfig({
       { text: '术语表', link: '/glossary' },
       { text: '时间线', link: '/global/timeline' },
       { text: '本体 Schema', link: '/ontology/schema' },
+      { text: '衍生分支', items: [
+        { text: '总览', link: '/derivatives/index' },
+        { text: 'YOLO-World', link: '/derivatives/yoloworld/index' },
+        { text: 'YOLOE', link: '/derivatives/yoloe/index' },
+        { text: 'YOLO-Master', link: '/derivatives/master/index' },
+        { text: '路线预告', link: '/derivatives/roadmap' }
+      ]},
       { text: '版本', items: [
         { text: 'YOLOv1', link: '/versions/v1/index' },
         { text: 'YOLOv2', link: '/versions/v2/index' },
@@ -495,6 +502,108 @@ export default defineConfig({
             { text: '边缘部署', link: '/cases/edge-deployment' }
           ]
         }
+      ],
+      '/derivatives/': [
+        {
+          text: '衍生分支总览',
+          items: [
+            { text: '总览', link: '/derivatives/index' },
+            { text: '路线预告', link: '/derivatives/roadmap' }
+          ]
+        },
+        {
+          text: 'YOLO-World (2024-01 · Tencent)',
+          items: [
+            { text: '概览', link: '/derivatives/yoloworld/index' },
+            { text: '论文精读', link: '/derivatives/yoloworld/paper' },
+            { text: 'Architecture 逐层图解', link: '/derivatives/yoloworld/architecture' },
+            { text: '理论 (Concept)', link: '/derivatives/yoloworld/concepts' },
+            { text: '架构与层速查', link: '/derivatives/yoloworld/layers' },
+            { text: '损失函数', link: '/derivatives/yoloworld/losses' },
+            { text: '训练技巧', link: '/derivatives/yoloworld/tricks' },
+            { text: '痛点追踪', link: '/derivatives/yoloworld/painpoints' },
+            { text: '源码走读', link: '/derivatives/yoloworld/code-walkthrough' }
+          ]
+        },
+        {
+          text: 'YOLO-World 源码',
+          collapsed: false,
+          items: [
+            { text: 'cfg/yolov8-world.yaml', link: '/derivatives/yoloworld/source/yolov8-world-yaml' },
+            { text: 'cfg/yolov8-worldv2.yaml', link: '/derivatives/yoloworld/source/yolov8-worldv2-yaml' },
+            { text: 'nn/tasks_worldmodel.py', link: '/derivatives/yoloworld/source/worldmodel-py' },
+            { text: 'nn/modules/head.py (WorldDetect)', link: '/derivatives/yoloworld/source/head-py' },
+            { text: 'models/yolo/world/train.py', link: '/derivatives/yoloworld/source/train-py' },
+            { text: 'models/yolo/world/train_world.py', link: '/derivatives/yoloworld/source/train-world-py' },
+            { text: 'AILab-CVC · detectors/yolo_world.py', link: '/derivatives/yoloworld/source/detector-py' },
+            { text: 'AILab-CVC · dense_heads/yolo_world_head.py', link: '/derivatives/yoloworld/source/head-ailab-py' },
+            { text: 'AILab-CVC · necks/yolo_world_pafpn.py', link: '/derivatives/yoloworld/source/pafpn-py' }
+          ]
+        },
+        {
+          text: 'YOLOE (2025-03 · Tsinghua)',
+          items: [
+            { text: '概览', link: '/derivatives/yoloe/index' },
+            { text: '论文精读', link: '/derivatives/yoloe/paper' },
+            { text: 'Architecture 逐层图解', link: '/derivatives/yoloe/architecture' },
+            { text: '理论 (Concept)', link: '/derivatives/yoloe/concepts' },
+            { text: '架构与层速查', link: '/derivatives/yoloe/layers' },
+            { text: '损失函数', link: '/derivatives/yoloe/losses' },
+            { text: '训练技巧', link: '/derivatives/yoloe/tricks' },
+            { text: '痛点追踪', link: '/derivatives/yoloe/painpoints' },
+            { text: '源码走读', link: '/derivatives/yoloe/code-walkthrough' }
+          ]
+        },
+        {
+          text: 'YOLOE 源码',
+          collapsed: false,
+          items: [
+            { text: 'cfg/v8/yoloe-v8.yaml', link: '/derivatives/yoloe/source/yoloe-v8-yaml' },
+            { text: 'cfg/v8/yoloe-v8-seg.yaml', link: '/derivatives/yoloe/source/yoloe-v8-seg-yaml' },
+            { text: 'cfg/26/yoloe-26.yaml', link: '/derivatives/yoloe/source/yoloe-26-yaml' },
+            { text: 'cfg/26/yoloe-26-seg.yaml', link: '/derivatives/yoloe/source/yoloe-26-seg-yaml' },
+            { text: 'models/yolo/model.py', link: '/derivatives/yoloe/source/model-py' },
+            { text: 'models/yolo/yoloe/train.py', link: '/derivatives/yoloe/source/train-py' },
+            { text: 'models/yolo/yoloe/train_seg.py', link: '/derivatives/yoloe/source/train-seg-py' },
+            { text: 'models/yolo/yoloe/val.py', link: '/derivatives/yoloe/source/val-py' },
+            { text: 'models/yolo/yoloe/predict.py', link: '/derivatives/yoloe/source/predict-py' },
+            { text: 'nn/head.py (YOLOEDetect/Segment)', link: '/derivatives/yoloe/source/head-py' },
+            { text: 'nn/tasks.py', link: '/derivatives/yoloe/source/tasks-py' }
+          ]
+        },
+        {
+          text: 'YOLO-Master (2025-12 · Tencent)',
+          items: [
+            { text: '概览', link: '/derivatives/master/index' },
+            { text: '论文精读', link: '/derivatives/master/paper' },
+            { text: 'Architecture 逐层图解', link: '/derivatives/master/architecture' },
+            { text: '理论 (Concept)', link: '/derivatives/master/concepts' },
+            { text: '架构与层速查', link: '/derivatives/master/layers' },
+            { text: '损失函数', link: '/derivatives/master/losses' },
+            { text: '训练技巧', link: '/derivatives/master/tricks' },
+            { text: '痛点追踪', link: '/derivatives/master/painpoints' },
+            { text: '源码走读', link: '/derivatives/master/code-walkthrough' }
+          ]
+        },
+        {
+          text: 'YOLO-Master 源码',
+          collapsed: false,
+          items: [
+            { text: 'cfg/master/yolo-master-n.yaml', link: '/derivatives/master/source/yolo-master-n-yaml' },
+            { text: 'cfg/master/yolo-master-l.yaml', link: '/derivatives/master/source/yolo-master-l-yaml' },
+            { text: 'cfg/master/yolo-master-esmoe-n.yaml', link: '/derivatives/master/source/yolo-master-esmoe-n-yaml' },
+            { text: 'nn/modules/moe/modules.py (ES_MOE)', link: '/derivatives/master/source/moe-modules-py' },
+            { text: 'nn/modules/moe/routers.py', link: '/derivatives/master/source/moe-routers-py' },
+            { text: 'nn/modules/moe/experts.py', link: '/derivatives/master/source/moe-experts-py' },
+            { text: 'nn/modules/moe/loss.py', link: '/derivatives/master/source/moe-loss-py' },
+            { text: 'nn/modules/moe/topk_anneal.py', link: '/derivatives/master/source/moe-topk-anneal-py' },
+            { text: 'nn/modules/mot/experts.py', link: '/derivatives/master/source/mot-experts-py' },
+            { text: 'nn/modules/mot/router.py', link: '/derivatives/master/source/mot-router-py' },
+            { text: 'nn/modules/transformer.py', link: '/derivatives/master/source/transformer-py' },
+            { text: 'nn/modules/head.py', link: '/derivatives/master/source/head-py' },
+            { text: 'models/yolo/detect/train.py', link: '/derivatives/master/source/train-py' }
+          ]
+        }
       ]
     },
 
@@ -526,5 +635,9 @@ export default defineConfig({
       md.use(figurePlugin)
       md.use(markdownItKatex)
     }
-  }
+  },
+
+  // @REASON: /source/* 链接指向仓库内的 source/ 目录（源码快照），非 VitePress 站点内页面，需忽略死链检查
+  // @REASON: /groups/* 是历史遗留分组链接，v7 已迁移到 /versions/v7/ 下
+  ignoreDeadLinks: [/^\/source\//, /^\/groups\//]
 })

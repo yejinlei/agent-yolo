@@ -38,6 +38,26 @@ timeline
   2026-08 : YOLOv14 (YOLO-Omni 学术线)<br/>多相机感知 + GRL 域对抗
 ```
 
+## 2024-2026：衍生分支时间线
+
+主线之外，独立团队 fork 主线基座走出的三条并行研究路径——YOLO-World、YOLOE、YOLO-Master（详见 [derivatives/index](/derivatives/index)）：
+
+```mermaid
+timeline
+  title YOLO 衍生分支时间线 (2024-2026)
+  2024-01 : YOLO-World (Tencent AI Lab · CVPR'24)<br/>文本 prompt 开放词表检测 · v8 基座
+  2025-03 : YOLOE (清华 THU-MIG · ICCV'25)<br/>Text + Visual + Prompt-Free 三合一 · v8/v11/v26 三基座
+  2025-12 : YOLO-Master (Tencent Youtu + SMU · CVPR'26)<br/>ES-MoE + Specialized Transformer · 42.4 mAP @ 1.62ms
+```
+
+| 时间 | 分支 | 团队 | 论文 | 基座 | 里程碑 |
+|------|------|------|------|------|--------|
+| 2024-01 | [YOLO-World](/derivatives/yoloworld/index) | Tencent AI Lab | [arXiv:2401.17270](https://arxiv.org/abs/2401.17270) CVPR'24 | v8 | 首次文本 prompt 开放词表检测 |
+| 2025-03 | [YOLOE](/derivatives/yoloe/index) | 清华 THU-MIG | [arXiv:2503.07465](https://arxiv.org/abs/2503.07465) ICCV'25 | v8/v11/v26 | Text + Visual + Prompt-Free 三合一 + Seg |
+| 2025-12 | [YOLO-Master](/derivatives/master/index) | Tencent Youtu + SMU | [arXiv:2512.23273](https://arxiv.org/abs/2512.23273) CVPR'26 | v12 | ES-MoE + Specialized Transformer |
+
+**衍生与主线的并行关系**：2024-01 YOLO-World 从 v8 fork，2025-03 YOLOE 同时支持 v8/v11/v26 三基座，2025-12 YOLO-Master 从 v12 fork——三个衍生分支跨越 v8/v11/v12/v26 四个主线基座，走独立于主线编号序列的**能力方向**（开放词表 / MoE 加速）。详见 [global/family.md](/global/family) 与 [derivatives/roadmap](/derivatives/roadmap)。
+
 ## 关键年份速览
 
 | 年份 | 版本 | 里程碑 | 精度 | FPS |

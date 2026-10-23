@@ -428,6 +428,69 @@ v2 的 backbone 名字：19 层卷积 + BN，因去掉 FC 得名。也是 v2 预
 
 ---
 
+## 衍生分支术语
+
+主线之外三条并行研究路径（YOLO-World / YOLOE / YOLO-Master）的专属名词，按分支分组。
+
+### YOLO-World 专属
+
+#### PHF（Prompt-Handling Module / Reversible Prompt-Handling Function）
+YOLO-World 的核心新增模块：用**可逆函数**从文本 prompt 抽取语义特征，再逐层融合进 backbone/neck。文本信息被"注入"到检测主干里，让 YOLO 从闭集类别切换到开放词表。详见 [YOLO-World 总览](/derivatives/yoloworld/index)。
+
+#### BNContrastiveHead
+PHF 训练时用的对比学习头：对同一物体的图像-文本对拉近，不同类推远。CLIP 式对比损失在 backbone 上跑起来。
+
+#### WorldDetect
+YOLO-World 检测器的**官方类名**：把 `ImagePoolingAttn` + `BNContrastiveHead` 接到 `YOLOWorldModel` 上，同时承担推理（无 prompt → 闭集）与训练（有 prompt → 开放词表）两条路径。
+
+### YOLOE 专属
+
+#### ImagePoolingAttn（IAP）
+YOLOE 引入的**统一视觉特征注入器**：把图像内容池化成视觉 token，走 attention 融进文本分支，让 detector 同时接受文本 prompt、视觉 prompt 和 Prompt-Free 三种输入。
+
+#### SimpleYOLOWorldDetector
+YOLOE 早期版：仅文本 prompt 的检测基座，作为 v8/v11/v26 三基座的通用外壳。
+
+#### YOLOEDetect
+YOLOE 的**检测头类名**：`YOLOEDetect(Detect)` 继承主线 Detect，多加一条 prompt 分支，输出仍是 bbox + 类别分数。
+
+#### YOLOESegment
+YOLOE 的**分割头类名**：与 YOLOEDetect 同结构但输出 mask coefficient，配合 prompt 实现开放词表分割。
+
+### YOLO-Master 专属
+
+#### RepRTA（Reparameterized Reparametrizable Token-Aware Attention）
+YOLO-Master 骨干的核心 attention 块。**注意不是 RealNVP**——RealNVP 是主线 v26 中用于 Normalizing Flow 的独立术语，与 RepRTA 语义完全不同。RepRTA 训练时多分支并行、推理时折叠为单路卷积。
+
+#### SAVPE（Sparse Attention for ViT Positional Encoding）
+用稀疏位置编码让 Transformer 在高分辨率图上不炸显存：只在关键 token 位置做全注意力，其余用局部窗。
+
+#### LRPC（Lightweight Reparametrized Positional Convolution）
+把位置编码本身改写成可复用的轻量卷积，训练-推理一致。
+
+#### ES-MoE（Explicit Sparse Mixture of Experts）
+YOLO-Master 的稀疏专家路由：每个 token 只激活 TopK 个专家，用 `ExpertRouter` + `SoftmaxTopkGate` 决定路由。总参数量远大于实际激活参数量。
+
+#### ExpertRouter / SoftmaxTopkGate / TopKScheduler
+ES-MoE 三件套：`ExpertRouter` 计算各专家分数；`SoftmaxTopkGate` 做 softmax 后取 TopK；`TopKScheduler` 训练过程中逐渐增大 K，从稠密过渡到稀疏。
+
+#### DynamicRoutingLayer
+ES-MoE 之上的一层封装：把 router + gate + expert 拼成可直接插入 backbone 的模块，替代普通 Conv 层。
+
+#### ExpertLayer / _LocalConvTransformerExpert / _WindowTransformerExpert / _DeformableTransformerExpert
+YOLO-Master 里三种专家的实现：
+- `_LocalConvTransformerExpert`：局部卷积 + Transformer 的复合专家；
+- `_WindowTransformerExpert`：窗口注意力专家；
+- `_DeformableTransformerExpert`：可变形注意力专家。
+
+#### WorldALFF（World-Adaptive Local Feature Fusion）
+YOLO-Master 的 neck 改进：把局部特征与全局语义按区域重要性动态加权融合，替代固定 concat。
+
+#### MoT / GShard / MobileCLIP2 / CLIP ViT-B/32
+主线之外常被拿来对比的技术：`MoT`（Mixture-of-Transformers）、`GShard`（Google 大规模 MoE）、`MobileCLIP2`（Tencent 轻量 CLIP）、`CLIP ViT-B/32`（OpenAI 原版 CLIP 视觉塔）。衍生分支里作为参考或基线出现。
+
+---
+
 ## 还有不懂的？
 
 - 先从 [v1 概览](/versions/v1/index) 的"3 分钟电梯演讲"读起，按版本顺序走
