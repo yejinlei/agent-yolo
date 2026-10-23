@@ -1,5 +1,12 @@
 # YOLOv9 (2024-02)
 
+> **TL;DR**
+> - 一句话：PGI 可编程梯度信息 + GELAN 两级级联，训练多学、推理不亏
+> - 解决：训练效率 vs 推理速度的取舍
+> - 代价：辅助分支只在训练期，部署时要剥除
+>
+> **前置阅读**：[YOLOv8](/versions/v8/index) → [梯度信息](/glossary#梯度信息) → [GELAN](/glossary#gellan-generalized-elan) → [CBFuse / CBLinear](/glossary#cblinear-cbfuse)
+
 **PGI 可编程梯度信息 + GELAN——辅助分支管梯度、主分支管推理，「论文 + 实现同步」的学术回归之作**
 
 - 📄 论文：arXiv:2402.13616《YOLOv9: Learning What You Want to Learn Using Programmable Gradient Information》（2024-02-21，详见[论文精读](/versions/v9/paper)）

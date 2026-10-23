@@ -1,5 +1,12 @@
 # YOLOv6 (2022-06)
 
+> **TL;DR**
+> - 一句话：RepVGG 式重参数化骨干/Neck + 彻底 anchor-free + TAL + DFL
+> - 解决：部署慢（训练多分支、推理单卷积）
+> - 代价：配方与 v5 差异大，训练代码库独立
+>
+> **前置阅读**：[YOLOv5](/versions/v5/index) → [RepVGG 重参数化](/glossary#repggg-重参数化) → [anchor-free](/glossary#anchor-free) → [TAL](/glossary#tal-task-alignment-learning) → [DFL](/glossary#dfl-distribution-focal-loss)
+
 **美团 YOLOv6（工业部署导向的重参数化检测器）**
 
 - 📄 论文：[YOLOv6: A Single-Stage Object Detection Framework for Industrial Applications](https://arxiv.org/abs/2209.02976)（技术报告，2022-09；GitHub 2022-06 首发）

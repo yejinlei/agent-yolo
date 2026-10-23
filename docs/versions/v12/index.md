@@ -1,5 +1,12 @@
 # YOLOv12 (2025-02)
 
+> **TL;DR**
+> - 一句话：把注意力塞进骨干 P4/P5 的 A2C2f 里，去 SPPF + DW-separable cv3
+> - 解决：v11 骨干缺注意力、参数量还是偏重
+> - 代价：需要 FlashAttention，训练环境门槛高
+>
+> **前置阅读**：[YOLOv11](/versions/v11/index) → [A2C2f](/glossary#a2c2f-注意力版 C2f) → [AAttn 区域注意力](/glossary#aattn-area-attention) → [FlashAttention](/glossary#flashattention) → [DW-separable](/glossary#dw-separable-深度可分离)
+
 **Attention-Centric · 第三方 fork 官方化 · P4/P5 内嵌 A2C2f + 去 SPPF + Detect 默认 DW-separable——首次官方 YOLO 有 arXiv 论文（继 v10 之后）**
 
 - 📄 发布：**arXiv:2502.12524《YOLOv12: Attention-Centric Real-Time Object Detectors》**，2025-02-18；仓库 README + PyPI tag `v1.0` 三层材料构成，详见[发布精读](/versions/v12/paper)

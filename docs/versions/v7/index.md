@@ -1,5 +1,12 @@
 # YOLOv7 (2022-07)
 
+> **TL;DR**
+> - 一句话：trainable bag-of-freebies + E-ELAN + compound scaling，只花训练期成本
+> - 解决：v6 训练配方不"可学"
+> - 代价：推理结构比 v6 复杂
+>
+> **前置阅读**：[YOLOv6](/versions/v6/index) → [E-ELAN](/glossary#e-elan-efficiency-oriented-elastic) → [compound scaling](/glossary#compound-scaling) → [planned re-param](/glossary#planned-reparam-预规划重参数化)
+
 **中央研究院 YOLOv7（trainable bag-of-freebies 的实时检测器）**
 
 - 📄 论文：[YOLOv7: Trainable bag-of-freebies sets new state-of-the-art for real-time object detectors](https://arxiv.org/abs/2207.02696)（arXiv:2207.02696，2022-07-06 提交）

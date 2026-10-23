@@ -1,5 +1,12 @@
 # YOLOv2 (2017-12)
 
+> **TL;DR**
+> - 一句话：v1 的骨架换一遍，加 anchor / BN / log 回归
+> - 解决：v1 定位精度差
+> - 代价：引入 anchor 后配置复杂
+>
+> **前置阅读**：[YOLOv1](/versions/v1/index) → [anchor box](/glossary#anchor-box) → [BN](/glossary#bn-batchnorm)
+
 **YOLO 9000: Better, Faster, Stronger**
 
 - 📄 论文：[arXiv:1704.04861](https://arxiv.org/abs/1704.04861) · arXiv 2017

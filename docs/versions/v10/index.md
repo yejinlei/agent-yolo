@@ -1,5 +1,12 @@
 # YOLOv10 (2024-05)
 
+> **TL;DR**
+> - 一句话：一致性双分配训出双头，推理只走 one2one 分支，第一次真正 NMS-free
+> - 解决：v9 仍需 NMS 后处理
+> - 代价：训练期双头复杂
+>
+> **前置阅读**：[YOLOv9](/versions/v9/index) → [NMS](/glossary#nms-非极大值抑制) → [TAL 一致性双分配](/glossary#tal-一致性双分配) → [DFL](/glossary#dfl-distribution-focal-loss)
+
 **清华 THU-MIG 的 NMS-free 端到端之作——一致性双分配训出双头，one2one 分支推理直出 top-100**
 
 - 📄 论文：arXiv:2405.14447《YOLOv10: Real-Time End-to-End Object Detection》（2024-05-23，详见[论文精读](/versions/v10/paper)）

@@ -1,5 +1,12 @@
 # YOLO-Master（2026-01 · CVPR 2026）
 
+> **TL;DR**
+> - 一句话：在 YOLOv12 fork 上给每次下采样插一段 ES-MoE（3×3/5×5/7×7 深度可分离专家）+ MoT（三类 Transformer 专家），检测和损失全都不动
+> - 解决：COCO 之外的多数据集泛化，尤其是小目标密集场景
+> - 代价：AGPL-3.0 商用受限；未合并进 Ultralytics 主线；MoE 训练成本高、需 balance loss
+>
+> **前置阅读**：[YOLOv12](/versions/v12/index) → [MoE / 专家混合](/glossary#moe-专家混合) → [ES-MoE](/glossary#es-moe-高效稀疏专家混合) → [MoT / Mixture-of-Transformers](/glossary#mot-变换器混合) → [深度可分离卷积](/glossary#dw-深度可分离卷积)
+
 **Efficient Sparse MoE（3×3/5×5/7×7 深度可分离专家）+ Specialized Transformers（MoT 内嵌三类 Transformer 专家）——首次把「MoE + 动态稀疏路由」深度接入 YOLO 通用检测架构**
 
 - 📄 发布：**arXiv:2512.23273《YOLO-Master: MOE-Accelerated with Specialized Transformers for Enhanced Real-time Detection》**，2025-12-30 首发；**CVPR 2026** 已接收（2026-02-21 官宣）

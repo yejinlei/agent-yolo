@@ -1,5 +1,12 @@
 # YOLOv8 (2023-01)
 
+> **TL;DR**
+> - 一句话：C2f + SPPF + FPN/PAN + anchor-free Detect 头 + TAL + DFL，工业级归一
+> - 解决：v5/v6/v7 三流派配方不统一
+> - 代价：无（是"默认答案"，代价在其它版本）
+>
+> **前置阅读**：[YOLOv5](/versions/v5/index) → [C2f](/glossary#c2f-csp 变体) → [SPPF](/glossary#sppf-空间金字塔池化融合) → [TAL](/glossary#tal-task-alignment-learning) → [DFL](/glossary#dfl-distribution-focal-loss) → [Detect 头](/glossary#detect-解耦检测头)
+
 **Ultralytics 工业级旗舰——anchor-free、TAL、DFL 与解耦头的"出厂默认"归一之作**
 
 - 📄 论文：**无独立论文**——官方口径 [docs.ultralytics.com](https://docs.ultralytics.com) + 发布博客（详见[论文精读：以代码为论文](/versions/v8/paper)）

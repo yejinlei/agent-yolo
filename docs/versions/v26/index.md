@@ -1,5 +1,12 @@
 # YOLO26 / Ultralytics 官方线 (2026-06)
 
+> **TL;DR**
+> - 一句话：官方六任务大一统 + E2E 双分支（one2many + one2one）+ SPPF + C2PSA 回归经典骨干
+> - 解决：v26 之前 Detect/Seg/Pose/Depth/CLS/OBB 各自独立，权重不共享
+> - 代价：`reg_max=1` 让 DFL 退化为 Identity，DFL 那套技巧不再用
+>
+> **前置阅读**：[YOLOv13](/versions/v13/index) → [E2E 双分支](/glossary#e2e-双分支) → [C2PSA](/glossary#c2psa) → [C3k2](/glossary#c3k2) → [RealNVP](/glossary#realnvp) → [SAVPE](/glossary#savpe-稀疏位置编码)
+
 **官方六任务大一统：Detect + Seg + Semantic + Depth + Pose + Classify + OBB 全部在同一份 backbone 上，E2E 双分支 one2many + one2one 直接可部署，SPPF + C2PSA 回归经典骨干，`reg_max=1` 让 DFL 退化——首次把「检测 + 单目深度 + 语义分割 + 开放词汇」打包进一个官方家族**
 
 - 📄 发布：**arXiv:2606.03748《Ultralytics YOLO26》**，2026-06；仓库 README 首行 Banner 已指向 `yolo/yolo27`（<SrcLink file="v26:README.md" :line="125" :end="125" />），官方明说「**YOLO27 — Coming Soon**」——所以 v26 是「14 代官方主线里最后一代有论文的版本」，v27 已进 R&D

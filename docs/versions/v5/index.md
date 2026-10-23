@@ -1,5 +1,12 @@
 # YOLOv5 (2021-04)
 
+> **TL;DR**
+> - 一句话：darknet C 切到 PyTorch，配置改成 yaml，一键训练/导出
+> - 解决：v4 复现门槛高
+> - 代价：精度不追 SOTA，主打易用
+>
+> **前置阅读**：[YOLOv4](/versions/v4/index) → [PyTorch](/glossary#pytorch) → [yaml 配置](/glossary#yaml-配置) → [EMA](/glossary#ema-指数移动平均) → [AMP](/glossary#amp-自动混合精度)
+
 **Ultralytics YOLOv5（无正式论文，v5.0 release tag）**
 
 - 📄 论文：无正式 arXiv 论文，文档与指标在 [ultralytics/yolov5 README](https://github.com/ultralytics/yolov5)

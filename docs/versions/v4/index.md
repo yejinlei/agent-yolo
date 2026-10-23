@@ -1,5 +1,12 @@
 # YOLOv4 (2020-04)
 
+> **TL;DR**
+> - 一句话：CSPDarknet53 + SPP + PANet + CIoU + Mosaic 的"Bag of Tricks"大集合
+> - 解决：v3 之后的精度天花板
+> - 代价：配方太杂，复现门槛高
+>
+> **前置阅读**：[YOLOv3](/versions/v3/index) → [CSP 骨干](/glossary#csp-骨干) → [SPP](/glossary#spp-空间金字塔池化) → [PANet](/glossary#panet-path-aggregation-network) → [CIoU](/glossary#ciou-完全 IoU) → [Mosaic](/glossary#mosaic-数据增强)
+
 **YOLOv4: Optimal Speed and Accuracy of Object Detection**
 
 - 📄 论文：[arXiv:2004.10934](https://arxiv.org/abs/2004.10934) · arXiv 2020

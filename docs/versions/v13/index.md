@@ -1,5 +1,12 @@
 # YOLOv13 (2025-06)
 
+> **TL;DR**
+> - 一句话：HyperACE 超图融合 + FullPAD 门控 + DS 深度可分离，注意力 + 高阶消息传递
+> - 解决：v12 单尺度融合、深层梯度弱
+> - 代价：新类 11 个，理解门槛高；档位去掉 m 只留 n/s/l/x
+>
+> **前置阅读**：[YOLOv12](/versions/v12/index) → [HyperACE](/glossary#hyperace-超图自适应) → [FullPAD 门控](/glossary#fullpad-tunnel-门控) → [DSConv / DSC3k2](/glossary#dsconv-深度可分离) → [A2C2f](/glossary#a2c2f-注意力版 C2f)
+
 **HyperACE 超图融合 + FullPAD 门控 + DS 深度可分离体系——首次把「高阶超图消息传递」引入 YOLO 骨干，同时保留 v12 的 A2C2f 内嵌注意力**
 
 - 📄 发布：**arXiv:2506.17733v2《YOLOv13: Enhancing YOLO for High-Resolution Multi-Object Detection through Hypergraph-based Adaptive Correlation Enhancement》**，2025-06-21（v2 更新 2025-11）；仓库 README + `paper-yolov13.pdf` + releases 权重四层材料构成，详见[发布精读](/versions/v13/paper)

@@ -1,5 +1,12 @@
 # YOLOv1 (2015)
 
+> **TL;DR**
+> - 一句话：YOLO 是 single-shot 检测，一次前向出所有框（之前是 Faster R-CNN 两阶段）
+> - 解决：CNN 检测太慢
+> - 代价：小目标、密集目标精度弱
+>
+> **前置阅读**：[卷积与特征图](/glossary#卷积与特征图) → [bounding box 与 IoU](/glossary#bounding-box-与-iou) → [NMS](/glossary#nms-非极大值抑制)
+
 **You Only Look Once: Unified, Real-Time Object Detection**
 
 - 📄 论文：[arXiv:1506.02640](https://arxiv.org/abs/1506.02640) · ECCV 2016

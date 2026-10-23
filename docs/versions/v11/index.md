@@ -1,5 +1,12 @@
 # YOLOv11 (2024-09)
 
+> **TL;DR**
+> - 一句话：C3k2 换 C2f + C2PSA 换 PSA + Detect 换回 v8 单头，把 v10 双头/效率积木拆掉
+> - 解决：v10 部署链路重、cfg 目录太散
+> - 代价：牺牲一点精度，回归 NMS
+>
+> **前置阅读**：[YOLOv10](/versions/v10/index) → [C3k2](/glossary#c3k2) → [C2PSA](/glossary#c2psa) → [Detect](/glossary#detect-解耦检测头) → [NMS](/glossary#nms-非极大值抑制)
+
 **ultralytics 8.3.0 官方首发 · C3k2 + C2PSA + 回归 NMS 单头——把 v10 的双头拆掉，把 v10 的效率积木拆掉，重新回到单头 [Detect](/glossary#detect-解耦检测头) 与 NMS 收口**
 
 - 📄 发布：**无 arXiv 论文**——ultralytics 官方博客《YOLO11: 100% Faster, 100% Smarter》+ 仓库 README + PyPI tag `v8.3.0` 三层材料构成，详见[发布精读](/versions/v11/paper)

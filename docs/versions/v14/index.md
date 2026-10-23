@@ -1,5 +1,12 @@
 # YOLOv14 / YOLO-Omni (2026-08)
 
+> **TL;DR**
+> - 一句话：Deformable 形变注意力 + ViewEmbedding 视角嵌入 + DomainAdaptiveLayer 域适应 + SphereAAttn 全景，四个正交增强
+> - 解决：单一场景 YOLO 在鱼眼/无人机/全景/游戏画面下崩坏
+> - 代价：六份 yaml 变体，配置复杂；学术 fork 非官方
+>
+> **前置阅读**：[YOLOv13](/versions/v13/index) → [DeformableAAttn](/glossary#deformableaattn-形变注意力) → [ViewEmbedding](/glossary#viewembedding-视角嵌入) → [DomainAdaptiveLayer](/glossary#domainadaptivelayer-域适应) → [SphereAAttn](/glossary#sphereaattn-全景注意力)
+
 **统一多域鲁棒检测：Deformable 形变注意力 + ViewEmbedding 多视角嵌入 + DomainAdaptiveLayer 域适应 + SphereAAttn 全景——首次在一个模型里同时压过 Game / Fisheye / Drone / Panorama 四条基准线**
 
 - 📄 发布：**arXiv:2608.04720v3《YOLOv14: Adaptive Real-Time Object Detection for Diverse Imaging Conditions》**，2026-08-14；仓库 README 里作者自述「We name our detector **YOLO-Omni**」——所以 v14 的官方定位并非 COCO SOTA 竞赛，而是**统一多域鲁棒检测**；[发布精读](/versions/v14/paper)

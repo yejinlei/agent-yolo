@@ -1,5 +1,12 @@
 # YOLOE / Real-Time Seeing Anything（2025-03）
 
+> **TL;DR**
+> - 一句话：一个模型同时吃三种 prompt（文本 / 视觉 / 无 prompt），训完 `fuse()` 折叠后就和闭集 YOLO 长得一模一样，推理零额外开销
+> - 解决：YOLO-World 只能吃文本 prompt；Visual-Prompt（点/mask）另有一套 SAM-2 流程；三者没法共存
+> - 代价：AGPL-3.0 商用受限；CLIP tokenizer 只支持 ~77 token；Visual-Prompt 依赖 SAM 2.1 半自动标注
+>
+> **前置阅读**：[YOLOv8](/versions/v8/index) → [YOLO-World](/derivatives/yoloworld/index) → [RepRTA](/glossary#reparta-可重参数区域文本对齐) → [SAVPE](/glossary#savpe-视觉提示嵌入) → [LRPC](/glossary#lrpc-区域-提示对比)
+
 **一个模型里同时吃下文本、视觉、无 prompt 三种开放词表输入——训练完 RepRTA 后与闭集 YOLO 完全同构，推理零开销**
 
 - 📄 论文：**arXiv:2503.07465《YOLOE: Real-Time Seeing Anything》**，2025-03-10 首发；被 **ICCV 2025** 收录；作者 Ao Wang* / Lihao Liu* / Hui Chen / Zijia Lin / Jungong Han / Guiguang Ding，单位**清华大学 THU-MIG**

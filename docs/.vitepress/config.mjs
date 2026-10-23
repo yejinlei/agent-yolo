@@ -58,6 +58,7 @@ export default defineConfig({
     logo: '/logo.svg',
     nav: [
       { text: '首页', link: '/' },
+      { text: '小白入门', link: '/for-beginners' },
       { text: '系列演化', link: '/global/family' },
       { text: '术语表', link: '/glossary' },
       { text: '时间线', link: '/global/timeline' },

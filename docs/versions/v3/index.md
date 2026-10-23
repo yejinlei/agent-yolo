@@ -1,5 +1,12 @@
 # YOLOv3 (2018-04)
 
+> **TL;DR**
+> - 一句话：三尺度 FPN + Darknet-53 残差 + 多标签 logistic 类头
+> - 解决：v2 小目标差、只识别单标签
+> - 代价：模型变胖
+>
+> **前置阅读**：[YOLOv2](/versions/v2/index) → [Darknet-53](/glossary#darknet-53) → [FPN](/glossary#fpn-特征金字塔) → [logistic 类头](/glossary#logistic-类头)
+
 **YOLOv3: An Incremental Improvement**
 
 - 📄 论文：[arXiv:1804.02767](https://arxiv.org/abs/1804.02767) · arXiv 2018

@@ -1,5 +1,12 @@
 # YOLO-World / Open-Vocabulary Real-Time Object Detection（2024-01）
 
+> **TL;DR**
+> - 一句话：把 CLIP 文本嵌入当"类别标签"喂进 YOLOv8 的 Detect 头，用可学习的 BN 温度把「看图 → 说类别」换成「看图 → 匹配任意一段文本」
+> - 解决：闭集 YOLO 换个类别就要重新标注 + 重训；CLIP-based 检测器（GLIP / OWL-ViT）又快又慢又贵
+> - 代价：worldv1 不能 export ONNX / TensorRT；worldv2 才走通部署；checkpoint 早期含 CLIP 权重高达 328 MB
+>
+> **前置阅读**：[YOLOv8](/versions/v8/index) → [CLIP](/glossary#clip-对比语言图像预训练) → [开放词表检测](/glossary#开放词表检测) → [RepVL-PAN](/glossary#repvl-pan-可重参数视觉语言-pan) → [BNContrastiveHead](/glossary#bncontrastivehead-bn-对比学习头)
+
 **用 CLIP 冻结文本编码器 + 可学习 BNContrastiveHead 把 YOLOv8 从头做到开放词表实时检测——同一份权重直接跑 zero-shot LVIS / COCO / Objects365，无需下游标注**
 
 - 📄 论文：**arXiv:2401.17270《YOLO-World: Open-Vocabulary Real-Time Object Detection in the Wild》**，2024-01-31 首发；被 **CVPR 2024** 收录；作者 Yuheng Ji\* / Zhengqi Gao\* / Chenxi Li / Ding Liang / Huiyu Wang / Hongliang Zheng / Kai Chen / Peng Tang / Yu Qiao / Lewei Lu / Jifeng Dai / Zheng Zhang，单位 **Tencent AI Lab**（合作：中山大学 CV-CUP）
