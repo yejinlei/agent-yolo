@@ -2,22 +2,28 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 // ==================== 模型定义 ====================
-// 三个可选模型，URL 来自 Ultralytics 官方 HuggingFace 仓库
+// 三个可选模型：本地打包在 docs/public/models/，避开 HuggingFace CDN 在国内访问慢/失败
+// VitePress 会把 window.__VP_SITE_DATA__.base 注入全局，用于拼接站点 base 路径（如 /agent-yolo/）
+function siteBase() {
+  const w = window.__VP_SITE_DATA__
+  if (!w) return '/'
+  return (w.base || '/').replace(/\/$/, '') + '/'
+}
 const MODELS = {
   yolo26n: {
-    url: 'https://huggingface.co/ultralytics/yolov8/resolve/main/yolov8n.onnx',
-    label: 'yolo26n（2.8M · Preview）',
-    note: '最新小模型，ONNX 约 6MB。此处暂时用 v8 权重占位。'
+    url: () => siteBase() + 'models/yolo26n.onnx',
+    label: 'yolo26n（2.4M · Preview）',
+    note: '最新小模型，本地 ONNX 9.5MB。'
   },
   yolo11n: {
-    url: 'https://huggingface.co/ultralytics/yol11/resolve/main/yolo11n.onnx',
-    label: 'yol11n（2.6M · 主流）',
-    note: '主流小模型，ONNX 约 6.2MB。'
+    url: () => siteBase() + 'models/yolo11n.onnx',
+    label: 'yolo11n（2.6M · 主流）',
+    note: '主流小模型，本地 ONNX 10.2MB。'
   },
   yolov8n: {
-    url: 'https://huggingface.co/ultralytics/yolov8/resolve/main/yolov8n.onnx',
+    url: () => siteBase() + 'models/yolov8n.onnx',
     label: 'yolov8n（3.2M · 基线）',
-    note: '上一代基线，ONNX 约 12.5MB。'
+    note: '上一代基线，本地 ONNX 12.3MB。'
   }
 }
 
@@ -29,12 +35,17 @@ const COCO_CLASSES = [
   'cat', 'dog', 'horse', 'sheep', 'cow'
 ]
 
-// onnxruntime-web CDN
-const ORT_CDN = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/'
-const ORT_SCRIPT = ORT_CDN + 'ort.min.js'
+// onnxruntime-web：主 CDN 是 npmmirror（国内可达），本地 /ort 目录作为兜底
+// ort.min.js 会在加载时根据 window.ort.env.wasm.wasmFiles 拼出 wasm 文件路径
+const ORT_CDN_LOCAL = () => siteBase() + 'ort/'
+const ORT_CDN_FALLBACKS = [
+  'https://registry.npmmirror.com/onnxruntime-web/1.20.0/files/dist/',
+  'https://fastly.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/',
+  'https://unpkg.com/onnxruntime-web@1.20.0/dist/'
+]
 
-// 内置示例图（免费图片）
-const SAMPLE_IMG = 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=640'
+// 内置示例图（本地打包，避开 Unsplash 外链）
+const SAMPLE_IMG = () => siteBase() + 'models/sample.jpg'
 
 // ==================== 响应式状态 ====================
 const modelKey = ref('yolov8n')
@@ -73,41 +84,62 @@ function pushLog(msg, kind = 'info') {
 let ortSession = null
 let ortCache = null // key = modelKey
 
+function injectScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script')
+    s.src = src
+    s.crossOrigin = 'anonymous'
+    s.onload = () => {
+      if (window.ort) resolve(src)
+      else reject(new Error(`${src} 加载成功但未暴露 window.ort`))
+    }
+    s.onerror = () => reject(new Error(`无法加载 ${src}`))
+    document.head.appendChild(s)
+  })
+}
+
 async function ensureOrt() {
   if (typeof window !== 'undefined' && window.ort) return window.ort
-  return new Promise((resolve, reject) => {
-    status.value = 'loading-ort'
-    pushLog('加载 onnxruntime-web (UMD)...', 'loading')
-    const script = document.createElement('script')
-    script.src = ORT_SCRIPT
-    script.crossOrigin = 'anonymous'
-    script.onload = () => {
-      if (!window.ort) return reject(new Error('ort.min.js 加载成功但未暴露 window.ort'))
-      window.ort.env.wasm.wasmFiles = ORT_CDN
+  status.value = 'loading-ort'
+  pushLog('加载 onnxruntime-web ...', 'loading')
+
+  // 候选源：本地打包 → npmmirror → fastly.jsdelivr → unpkg
+  const candidates = [ORT_CDN_LOCAL() + 'ort.min.js', ...ORT_CDN_FALLBACKS.map(u => u + 'ort.min.js')]
+  let lastErr = null
+  for (const url of candidates) {
+    try {
+      const loaded = await injectScript(url)
+      // 关键：让 ort 从该 URL 所在目录加载 wasm 文件
+      window.ort.env.wasm.wasmFiles = loaded.replace(/ort\.min\.js$/, '')
       window.ort.env.wasm.numThreads = 4
       window.ort.env.wasm.proxy = true
-      pushLog('onnxruntime-web 就绪（WASM/SIMD · 4 线程）', 'success')
-      resolve(window.ort)
+      window.ort.env.wasm.threads = true
+      pushLog(`onnxruntime-web 就绪（源：${loaded} · WASM/SIMD · 4 线程）`, 'success')
+      return window.ort
+    } catch (e) {
+      lastErr = e
+      pushLog(`加载源失败：${url} · ${e.message}`, 'loading')
     }
-    script.onerror = () => reject(new Error('无法加载 onnxruntime-web，请检查网络 / CSP'))
-    document.head.appendChild(script)
-  })
+  }
+  status.value = 'error'
+  throw lastErr || new Error('所有 onnxruntime-web 源均加载失败')
 }
 
 async function ensureSession() {
   if (ortCache && ortCache.key === modelKey.value) return ortCache.session
   const ort = await ensureOrt()
   const m = currentModel.value
+  const url = typeof m.url === 'function' ? m.url() : m.url
   status.value = 'loading-model'
-  pushLog(`下载模型：${m.label}`, 'loading')
+  pushLog(`加载模型：${m.label}（${url}）`, 'loading')
   const t0 = performance.now()
-  // fetch 便于统计大小 + 后续可挂 IndexedDB 缓存（当前简化实现，只缓存 session）
-  const resp = await fetch(m.url, { mode: 'cors' })
-  if (!resp.ok) throw new Error(`模型下载失败：HTTP ${resp.status}`)
+  // 本地 fetch，无需 CORS；失败时给可读提示
+  const resp = await fetch(url, { cache: 'force-cache' })
+  if (!resp.ok) throw new Error(`模型加载失败：HTTP ${resp.status} ${url}`)
   const buf = await resp.arrayBuffer()
   const sizeMB = (buf.byteLength / 1024 / 1024).toFixed(2)
   perf.value.modelSize = `${sizeMB} MB`
-  pushLog(`模型已下载（${sizeMB} MB），开始构建 session...`, 'loading')
+  pushLog(`模型已加载（${sizeMB} MB），开始构建 session...`, 'loading')
   const session = await ort.InferenceSession.create(buf, { executionProviders: ['wasm'] })
   const loadMs = Math.round(performance.now() - t0)
   perf.value.loadTime = `${loadMs} ms`
@@ -147,7 +179,7 @@ function loadImage(src) {
 async function loadSample() {
   status.value = 'loading-model'
   try {
-    await loadImage(SAMPLE_IMG)
+    await loadImage(SAMPLE_IMG())
   } catch (e) {
     pushLog(e.message, 'error')
     status.value = 'error'
