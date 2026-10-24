@@ -265,6 +265,269 @@ metrics:
 reproduceLink: "experiments/autonomous/lane-multiscale/"
 ```
 
+## 生产部署 YAML
+
+### 1. `lane_data.yaml` · Waymo 数据集 + 4 类天气增强
+
+```yaml
+# 训练集：Waymo Open 100k 帧，按 4 天气 × 5 路况均衡抽样
+path: /data/waymo-open
+train: [weather/sunny/labels/*.txt, weather/night/labels/*.txt, weather/rain/labels/*.txt, weather/tunnel/labels/*.txt]
+val:   [val/split/labels/*.txt]
+test:  [test/holdout/labels/*.txt]
+
+# 类别
+names:
+  0: lane_solid      # 白色实线
+  1: lane_dashed     # 白色虚线
+  2: lane_edge       # 路缘
+  3: lane_yellow     # 黄色中心线
+
+# 关键：光流一致性需要相邻帧索引
+frames_per_seq: 8       # 序列长度，取 8 帧训练光流 loss
+seq_stride: 1           # 相邻帧间隔（Waymo 10Hz）
+keep_meta:              # 保留 PTP 时间戳用于后融合
+  - pts_time
+  - odom_x
+  - odom_y
+  - cam_extrinsics
+```
+
+### 2. `train_v11x_dual.yaml` · v11x 双头 + P2 + 光流一致性
+
+```yaml
+model: yolo11x-seg.pt
+data: lane_data.yaml
+imgsz: 1280x736         # 非标准，注意 stride 匹配
+
+# Batch 策略：光流需要相邻帧成对，故 batch 内交错排布
+batch: 16
+workers: 12
+
+# 训练
+epochs: 120
+patience: 20
+seed: 2024
+
+# 超参
+lr0: 1.0e-3
+lrf: 0.01               # 末端学习率系数，seg 任务需小
+momentum: 0.937
+weight_decay: 0.0005
+cos_lr: true
+warmup_epochs: 5
+
+# 损失函数：Dice + Focal + 光流一致性
+loss:
+  box: 7.5
+  cls: 0.5
+  dfl: 1.5
+  seg: 1.2
+  dice: 0.8             # 前景占 <3%，Dice 抗不均衡
+  focal_alpha: 0.75
+  focal_gamma: 2.0
+  optic_flow: 0.15      # 光流一致性 loss 权重
+  flow_threshold: 0.5cm # 抖动阈值
+
+# 数据增强：注意 lane 是长条，避免过度旋转
+hsv_h: 0.015            # 光照/白平衡模拟
+hsv_s: 0.5
+hsv_v: 0.5              # 夜间/隧道明暗大幅
+translate: 0.1
+scale: 0.5
+flipud: 0.2             # 上下翻转（模拟俯仰）
+fliplr: 0.0             # 禁用！左右翻转破坏道路方向语义
+shear: 0.0
+perspective: 0.0        # 车道线是俯视角，perspective 会让曲线扭曲
+rotate: 0.0             # 禁用，相机固定安装
+mosaic: 1.0
+copy_paste: 0.3         # 复制粘贴 lane mask
+auto_mask_area: 1280    # 大 mask 保留
+
+# 域自适应：先通用再 fine-tune
+phases:
+  - name: pretrain_4weather
+    epochs: 80
+    data: lane_data.yaml
+  - name: finetune_night
+    epochs: 10
+    data: [weather/night/labels/*.txt]
+    lr0: 3.0e-4
+    freeze_backbone: 10  # 只微调 head
+  - name: finetune_rain
+    epochs: 10
+    data: [weather/rain/labels/*.txt]
+    lr0: 3.0e-4
+    freeze_backbone: 10
+```
+
+### 3. `deploy_orin_agx.yaml` · v11x 双头部署 + PTP 时间对齐
+
+```yaml
+target: jetson-orin-agx-64g
+framework: TensorRT  # 首选 TensorRT，其次 ONNX Runtime
+
+# 三段流水线
+pipeline:
+  - stage: preproc
+    ops:
+      - op: resize          # 1920x1080 → 1280x736，保持短边等比
+        keep_ratio: true
+      - op: normalize       # mean/std 与训练一致
+        mean: [0.485, 0.456, 0.406]
+        std:  [0.229, 0.224, 0.225]
+      - op: letterbox       # 严格对齐 stride 32
+
+  - stage: detect
+    model: runs/v11x-dual/weights/final.engine
+    input_shape: [1, 3, 736, 1280]  # 严格匹配训练 imgsz
+    precision: FP16
+    plugins:
+      - name: SoftmaxFP32     # mask 边缘 softmax 强制 FP32
+        apply_to: seg_head
+    engine_cache: ./cache/v11x_dual_fp16.engine
+
+  - stage: seg_head_p2
+    # 训练用 P2 高分辨率 head，推理降级到 P3 减少 35% 显存
+    enable_p2: false
+    fallback_p3: true
+    mask_threshold: 0.45
+
+  - stage: postproc
+    ops:
+      - op: nms_free        # 车道是长条，禁用标准 NMS
+        merge_by_iou: 0.0
+      - op: temporal_smooth   # 跨帧抖动 8→2cm
+        window: 5
+        method: median_filter
+      - op: lidar_fusion    # LiDAR 点云投影兜底
+        align_method: PTP_clock
+        max_desync_ms: 5
+      - op: odom_fallback   # 相机丢失时 IMU 里程计填缝
+        enabled: true
+
+# 时间同步（PTP）
+time_sync:
+  protocol: PTP_802.1AS
+  max_drift_ms: 1.0
+  camera_lidar_align: true
+  on_desync: drop_frame     # 超过阈值直接丢帧，绝不撕裂
+
+# 性能目标
+targets:
+  latency_ms: 20
+  fps: 50
+  jitter_cm: 3
+  night_recall: 0.85
+
+# 监控指标
+metrics_to_report:
+  - mask_map_5k
+  - jitter_cm_500frame
+  - night_recall
+  - latency_p99_ms
+```
+
+### 4. `multi_cam_fusion.yaml` · 6 路环视融合配置
+
+```yaml
+cameras:
+  - id: front
+    resolution: [1920, 1080]
+    fov_h: 120
+    mount_angle: 0
+  - id: front_left
+    resolution: [1920, 1080]
+    fov_h: 90
+    mount_angle: -45
+  - id: front_right
+    resolution: [1920, 1080]
+    fov_h: 90
+    mount_angle: 45
+  - id: rear
+    resolution: [1920, 1080]
+    fov_h: 120
+    mount_angle: 180
+  - id: rear_left
+    resolution: [1920, 1080]
+    fov_h: 90
+    mount_angle: -135
+  - id: rear_right
+    resolution: [1920, 1080]
+    fov_h: 90
+    mount_angle: 135
+
+fusion:
+  coordinate_system: vehicle_body  # 统一到车体坐标系
+  transform_source: extrinsic_calib.yaml
+  lane_merge_strategy:
+    overlap_threshold: 0.3     # IoU > 0.3 认为同一条车道线
+    confidence_weighted: true   # 多路加权融合
+
+lidar:
+  model: Hesai_AT128
+  point_rate: 10Hz
+  project_to_image: true
+
+output:
+  format: proto  # 结构化输出供规控层消费
+  publish_topic: /perception/lane_and_objects
+  latency_budget_ms: 20
+```
+
+### 5. `run_pipeline.sh` · 一键流水线
+
+```bash
+#!/bin/bash
+# 一键：训练 → 量化 → 部署 → 校验
+set -euo pipefail
+
+# 1. 训练 v11x 双头
+yolo segment train \
+  --model yolo11x-seg.pt \
+  --data lane_data.yaml \
+  --imgsz 1280x736 \
+  --batch 16 --epochs 120 \
+  --name v11x-dual
+
+# 2. 导出 TensorRT FP16
+yolo export \
+  --weights runs/v11x-dual/weights/best.pt \
+  --format engine \
+  --device 0 \
+  --half \
+  --imgsz 1280x736 \
+  --workspace 8  # GB，Orin AGX 有足够显存
+
+# 3. 精度校验
+yolo segment val \
+  --data lane_data.yaml \
+  --weights runs/v11x-dual/weights/final.engine \
+  --imgsz 1280x736
+
+# 4. 跨帧抖动评估（关键指标）
+python eval_jitter.py \
+  --engine runs/v11x-dual/weights/final.engine \
+  --seq-data /data/waymo-open/val_seqs/ \
+  --window 5 \
+  --max-jitter-cm 3
+
+# 5. 上板
+scp runs/v11x-dual/weights/final.engine jetson:/opt/perception/
+```
+
+### 完整推理流水线示意
+
+```mermaid
+flowchart LR
+  A[6 路相机<br/>1920×1080] --> B[PTP 时间对齐<br/>±1ms]
+  B --> C[v11x 双头<br/>Detect + Seg]
+  C --> D[Temporal Smooth<br/>5 帧中值]
+  D --> E[LiDAR 融合<br/>点云投影]
+  E --> F[车体坐标系<br/>proto 输出]
+  F --> G[规控层<br/>< 20ms]
+```
+
 ## 反哺信号
 
 1. **new PainPoint**: `pain-mask-edge-fragmentation` — FP16 下分割 mask 边缘锯齿

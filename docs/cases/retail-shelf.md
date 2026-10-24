@@ -289,6 +289,352 @@ metrics:
 reproduceLink: "experiments/retail/shelf-3k/"
 ```
 
+## 生产部署 YAML
+
+### 1. `shelf_data.yaml` · 3000 SKU 数据集 + 5 视角
+
+```yaml
+# 3000 SKU 数据集，按 5 视角 + 3 场景组织
+path: /data/retail-shelf
+train:
+  - views/front/labels/*.txt       # 正视（占 40%）
+  - views/oblique_15/labels/*.txt  # 15° 侧拍（占 20%）
+  - views/oblique_30/labels/*.txt  # 30° 侧拍（占 15%）
+  - views/promo_pile/labels/*.txt  # 促销堆头（占 15%）
+  - views/occluded/labels/*.txt    # 遮挡场景（占 10%）
+val:   [val/stratified/labels/*.txt]
+test:  [test/holdout/labels/*.txt]
+
+# 品类层 50 类（YOLO 粗检测）
+names:
+  category:
+    0: cola
+    1: mineral_water
+    2: juice
+    # ... 共 50 类
+  sku:
+    # SKU 索引不在此写全，用外部 catalog.json
+    catalog: /data/retail-shelf/catalog.json  # 3000 SKU 字典
+
+# 数据增强视角分布约束
+view_sampling:
+  front: 0.40
+  oblique_15: 0.20
+  oblique_30: 0.15
+  promo_pile: 0.15
+  occluded: 0.10
+min_samples_per_sku: 10        # 每个 SKU 至少 10 张，不足走 oversampling
+balance_by_category: true      # 品类均衡采样
+```
+
+### 2. `train_two_stage.yaml` · v8s 粗检测 + ResNet-50 细分
+
+```yaml
+# Stage 1: YOLOv8s 品类粗检测
+stage1:
+  model: yolov8s.pt
+  data: shelf_data.yaml
+  task: detect
+  imgsz: 640
+
+  epochs: 200
+  batch: 64
+  patience: 30
+
+  # 损失：品类层不敏感于 bbox 精度，弱化 box loss
+  loss:
+    box: 3.7      # 默认 7.5，减半
+    cls: 1.5      # 强化分类
+    dfl: 1.5
+
+  # 关键：perspective 必须开，救侧拍
+  hyp:
+    perspective: 0.10    # 默认 0.0，零售必须开
+    translate: 0.4       # 位置变化
+    scale: 0.9           # 尺度变化大
+    flipud: 0.5          # 促销堆头常倒置
+    fliplr: 0.5
+    hsv_h: 0.015
+    hsv_s: 0.5
+    hsv_v: 0.5           # 店内灯光色温变化大
+    mosaic: 1.0
+    copy_paste: 0.5      # 复制粘贴密集场景
+
+  # 品类层召回 > 精确 bbox
+  conf: 0.25
+  iou: 0.5
+  max_det: 300           # 密集货架允许高数量
+
+# Stage 2: ResNet-50 SKU 分类器
+stage2:
+  model: resnet50.imagenet1k.pt
+  data: /data/retail-shelf/sku-catalog.json
+  task: classify
+  imgsz: 512
+
+  epochs: 100
+  batch: 256             # ResNet 单卡 4090 可跑 256
+  patience: 20
+
+  # 训练策略：分层路由，防止 softmax 崩塌
+  architecture:
+    router: cross_entropy       # 输入 ROI → 50 品类分支
+    branches:
+      - {cat: beverage, classes: 2000, head: resnet50_tail}
+      - {cat: snack,    classes: 3000, head: resnet50_tail}
+      - {cat: dairy,    classes: 500,  head: resnet50_tail}
+      - {cat: condiment, classes: 800, head: resnet50_tail}
+      - {cat: instant,  classes: 1200, head: resnet50_tail}
+
+  # 关键 trick：ROI 外扩 20% padding
+  roi:
+    padding_ratio: 0.20
+    resize_to: 512
+    keep_ratio: true
+
+  # 类间相似度高的用 center loss
+  loss:
+    ce: 1.0
+    center: 0.3          # 类中心远离
+    triplet: 0.1         # 相似 SKU 用 metric learning
+
+  # 训练预热
+  warmup_epochs: 5
+  warmup_lr: 1.0e-4
+  cos_lr: true
+  lr0: 1.0e-3
+  lrf: 0.01
+
+  # 数据增强（分类任务）
+  aug:
+    - RandomResizedCrop(512, scale=(0.6, 1.0))
+    - ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.05)
+    - RandomHorizontalFlip(p=0.5)
+    - RandomVerticalFlip(p=0.3)     # 促销堆头
+    - RandomRotation(degrees=30)    # 30° 侧拍模拟
+    - Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+```
+
+### 3. `lora_incremental.yaml` · 新 SKU 免重训
+
+```yaml
+# 每周 400 个新 SKU 免重训管线
+incremental:
+  trigger: catalog.json updated  # 检测 catalog 变化
+  batch:
+    new_skus_per_run: 400
+    old_skus_replay: 2000        # 200 老 SKU 图 regularize 防遗忘
+
+  # 冻结 backbone
+  freeze:
+    - model.features.*
+    - model.layer1.*
+    - model.layer2.*
+    - model.layer3.*
+    # 只训 layer4 + LoRA + Prompt + 分类 head
+
+  # LoRA 配置
+  lora:
+    rank: 64
+    alpha: 128
+    dropout: 0.05
+    target_modules:
+      - model.layer4.0.linear
+      - model.layer4.1.linear
+      - model.layer4.2.linear
+
+  # 视觉 Prompt 库
+  prompt:
+    dim: 32
+    per_sku_prompts: 3           # 每 SKU 3 个候选，训练随机选
+    source: /data/retail/prompts/  # 运营 + CV 工程师共同维护
+    format: |
+      # prompts/coca-cola-330ml.txt
+      红白色可乐罐 330ml 铝罐装 顶部有易拉环
+      可口可乐 330 毫升 银色顶部 红色波普字体
+      Coca-Cola 330ml 红罐 铝质
+
+  # 训练配置
+  training:
+    epochs: 3                   # LoRA 只需极少 epochs
+    lr: 1.0e-3                  # LoRA 学习率大
+    prompt_lr: 5.0e-4
+    batch_size: 64
+    devices: 1                  # 单卡 4 分钟完成
+
+  # 验收：老 SKU 不允许掉超过 1%
+  regression_check:
+    old_sku_top1_drop_max: 0.01
+    new_sku_top1_target: 0.85
+    fail_action: rollback_to_previous
+
+  # 时间目标
+  sla:
+    time_to_online_minutes: 5
+    peak_gpu_hours_per_week: 4  # 400 SKU × 4 分钟 ÷ 60
+```
+
+### 4. `promotions_dense_region.yaml` · 促销堆头专用
+
+```yaml
+# 促销堆头专用策略：密集区二次检测 + 遮挡感知
+promotions:
+  trigger_region:
+    box_density: 20             # 1 米内 >20 个框认为密集
+    window_m: 1.0
+
+  second_pass:
+    crop_size: 1280             # 密集区升到 1280 高清
+    conf_threshold: 0.30        # 二次检测降低阈值
+    topk_per_crop: 200
+    model: runs/stage1/yolov8s-best.pt
+
+  occlusion_filter:
+    # 遮挡感知：v8-seg 出 mask，可见像素 < 40% 跳过
+    model: runs/stage1/yolov8s-seg.pt
+    min_visible_ratio: 0.40
+    action_on_low: skip_and_report
+
+  # 促销价格 OCR 融合
+  ocr:
+    engine: paddleocr-mobile
+    trigger_on_roi: true
+    font_whitelist: [cn, en, digit]
+    min_confidence: 0.7
+    output: {sku_id, price, promo_flag}
+
+  # 堆头专用：SKU 可能倒置或倾斜
+  aug_reuse:
+    flipud: 0.5
+    rotate: 30
+    scale: 0.9
+```
+
+### 5. `deploy_server.yaml` · 服务器 + 边缘双部署
+
+```yaml
+# 双端部署：服务器高精度 + 边缘快速
+targets:
+  server:
+    hardware: RTX 4090
+    framework: TensorRT
+    precision: FP16
+    imgsz_det: 640
+    imgsz_cls: 512
+    latency_target_ms: 50
+    throughput_fps: 200         # ResNet-50 单卡吞吐
+
+  edge:
+    hardware: Jetson Orin Nano
+    framework: TensorRT
+    precision: INT8
+    imgsz_det: 640
+    imgsz_cls: 320              # 边缘用 MobileNet-V4-S 替 ResNet
+    latency_target_ms: 500
+    throughput_fps: 5           # 巡店手持设备
+
+pipeline:
+  - stage: ingest
+    ops:
+      - op: exif_transpose      # 关键：PIL 的 exif_transpose 处理手机拍照
+      - op: deduplicate
+        hash_algo: pHash
+        threshold: 12           # 汉明距离
+      - op: split_shelves
+        method: horizontal_line  # 货架按水平条分块
+
+  - stage: coarse_detect
+    model: runs/stage1/yolov8s-best.engine
+    conf: 0.25
+    iou: 0.5
+    max_det: 300
+
+  - stage: roi_crop
+    padding_ratio: 0.20         # 关键：外扩 20%
+    resize_to: 512
+    keep_ratio: true
+
+  - stage: fine_classify
+    model: runs/stage2/resnet50-sku.engine
+    topk: 3                     # 返回 Top-3 供后处理加权
+    temperature: 1.0            # 不校准，用原始 logit
+
+  - stage: postprocess
+    ops:
+      - op: confidence_weighted_fusion
+        weights: [0.3, 0.4, 0.3]  # Top-1/2/3 加权
+      - op: hierarchy_resolve
+        catalog: /data/retail/catalog.json  # 品类→SKU 层级关系
+        resolve_conflict: true
+      - op: min_count_per_sku: 1
+        output: {sku_id, bbox, count, confidence, view_type}
+```
+
+### 6. `run_pipeline.sh` · 一键流水线
+
+```bash
+#!/bin/bash
+# 一键：粗检测训练 → 细分训练 → LoRA 增量 → 部署 → 校验
+set -euo pipefail
+
+# 1. Stage 1: YOLOv8s 品类粗检测
+yolo detect train \
+  --model yolov8s.pt \
+  --data shelf_data.yaml \
+  --imgsz 640 \
+  --batch 64 --epochs 200 \
+  --name stage1
+
+# 2. Stage 2: ResNet-50 SKU 分类（用自研脚本，非 ultralytics 内置）
+python train_sku_classifier.py \
+  --config train_two_stage.yaml \
+  --stage stage2 \
+  --backbone resnet50.imagenet1k.pt \
+  --catalog catalog.json \
+  --roi-pad 0.20 \
+  --output-dir runs/stage2/
+
+# 3. LoRA 增量（catalog 有变化时触发）
+if diff -q catalog.json catalog.json.bak > /dev/null; then
+  echo "[SKIP] catalog 未更新，跳过 LoRA"
+else
+  python train_lora_incremental.py \
+    --config lora_incremental.yaml \
+    --new-skus "$(git diff --name-only catalog.json.bak catalog.json | wc -l)" \
+    --replay-count 200
+fi
+
+# 4. 导出 TensorRT
+yolo export --weights runs/stage1/weights/best.pt --format engine --half
+python export_resnet50_trt.py \
+  --checkpoint runs/stage2/weights/best.pth \
+  --output runs/stage2/resnet50-sku.engine \
+  --imgsz 512 --half
+
+# 5. 精度回归
+python eval_regression.py \
+  --data test/holdout/ \
+  --category-model runs/stage1/yolov8s-best.engine \
+  --sku-model runs/stage2/resnet50-sku.engine \
+  --metrics category_recall,sku_top1,latency_ms \
+  --thresholds "0.93,0.86,510"
+
+# 6. 上服务器
+rsync -avz runs/stage{1,2}/*.engine prod-server:/opt/retail-perception/
+```
+
+### 完整推理流水线示意
+
+```mermaid
+flowchart LR
+  A[货架图<br/>手机/摄像头] --> B[EXIF 旋转<br/>+ 去重]
+  B --> C[v8s 640<br/>50 品类粗检]
+  C --> D[ROI +20%<br/>外扩裁 512]
+  D --> E[ResNet-50<br/>Top-3 SKU]
+  E --> F[层级融合<br/>+ catalog 解析]
+  F --> G[SKU + 数量<br/>+ 位置 + 置信度]
+```
+
 ## 反哺信号
 
 1. **new PainPoint**: `pain-sofmax-huge-num-classes` — 千级类别 softmax 训练崩塌

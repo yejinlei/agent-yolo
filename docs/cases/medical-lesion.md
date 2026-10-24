@@ -300,6 +300,446 @@ metrics:
 reproduceLink: "experiments/medical/lesion-sam-doctor/"
 ```
 
+## 生产部署 YAML
+
+### 1. `lesion_data.yaml` · ISIC 2020 + 联邦脱敏配置
+
+```yaml
+# 皮肤癌数据集：ISIC 2020 (25k 图) + 三家医院乳腺 X 光
+path: /data/medical-lesion
+train:
+  - sources/isic2020/train/*.jpg           # ISIC 2020 皮肤癌
+  - sources/hosp_A/mammo/train/*.dcm       # 医院 A 乳腺 X 光
+  - sources/hosp_B/mammo/train/*.dcm
+  - sources/hosp_C/mammo/train/*.dcm
+val:   [val/holdout/*.jpg, val/holdout/*.dcm]
+test:  [test/nmpa_multi_center/*.dcm]      # NMPA 三类多中心测试
+
+names:
+  0: malignant_melanoma    # 恶性黑色素瘤
+  1: malignant_nevus       # 恶性痣
+  2: benign_nevus          # 良性痣
+  3: breast_mass_malignant # 乳腺恶性肿块
+  4: breast_mass_benign    # 乳腺良性肿块
+
+# 关键：数据脱敏清单（DICOM 30+ 字段）
+deidentify:
+  enabled: true
+  fields_to_strip:
+    - PatientName
+    - PatientID
+    - PatientBirthDate
+    - PatientAddress
+    - PatientSex
+    - InstitutionName
+    - ReferringPhysicianName
+    - OperatorsName
+    - PerformingPhysicianName
+    - DeviceSerialNumber
+    # ... 完整清单约 30 个字段
+  face_detection: true      # CT 面部 / 皮肤癌面部打码
+  face_detector: insightface-mobile
+  anonymize_id: sha256(patient_id + salt)  # 保留关联但不可逆
+
+# 种族/性别/年龄分布（防分布偏差）
+demographics_balance:
+  required_coverage:
+    race: [asian, caucasian, hispanic, african]
+    age_range: [18, 80]
+    gender: [male, female]
+  min_ratio_per_group: 0.05   # 每组至少 5%
+  warning_on_undersampling: true
+
+# 标注一致性检查
+annotation:
+  min_annotators_per_case: 2
+  kappa_threshold: 0.70       # Cohen's Kappa > 0.7
+  adjudicator_required: true  # 分歧走第三医师仲裁
+  blind_review: true          # 标注者互相盲审
+```
+
+### 2. `train_v8m_federated.yaml` · v8m + Tversky + FedAvg 三医院
+
+```yaml
+# 联邦学习配置：FedAvg 三家医院联合训练
+federated:
+  algorithm: FedAvg
+  clients:
+    - name: hosp_A
+      endpoint: hospital-a:internal
+      data_fraction: 0.40
+    - name: hosp_B
+      endpoint: hospital-b:internal
+      data_fraction: 0.35
+    - name: hosp_C
+      endpoint: hospital-c:internal
+      data_fraction: 0.25
+  rounds: 50                  # 联邦轮数
+  samples_per_round: 2000     # 每轮每家训练样本
+  min_available_clients: 2    # 至少 2 家参与才聚合
+  dropout_tolerance: 1        # 允许 1 家掉线
+
+  # 隐私保护
+  privacy:
+    gradient_differential_privacy: true
+    sigma: 0.5                # DP 噪声
+    max_grad_norm: 1.0
+    clip_threshold: 8.0       # L2 范数裁剪
+    audit_log: /var/log/fed-audit/
+
+  # 只上送梯度，不上传原始数据
+  transmission:
+    data: local_only          # 原始数据绝不出院
+    gradients: encrypted_rsa  # 梯度加密
+    aggregation: server_side  # 服务端聚合
+  aggregation_rule: weighted_average
+  weights_by: num_samples
+
+# 本地训练（每家医院）
+local_training:
+  model: yolov8m-seg.pt
+  data: ./local_shard.yaml    # 各医院本地数据切片
+  task: segment
+  imgsz: 1024x768             # 皮肤；乳腺 X 光走 2048x2560
+
+  epochs: 5                   # 联邦学习每轮只训少量 epochs
+  batch: 16
+  patience: 3
+
+  # 关键：Tversky Loss α<β 惩罚漏检
+  loss:
+    dice: 0.4
+    focal:
+      alpha: 0.75
+      gamma: 2.0
+      weight: 0.3
+    tversky:
+      alpha: 0.3              # 漏检惩罚（小）
+      beta: 0.7               # 误检惩罚（大）→ α<β 惩罚漏检
+      weight: 0.3
+
+  # 医疗专用数据增强：极其保守
+  aug:
+    translate: 0.2
+    scale: 0.3
+    fliplr: 0.5
+    flipud: 0.0                # 禁用！上下颠倒违反生理
+    hsv_h: 0.0                 # 色相不动，色相=组织类型
+    hsv_s: 0.1
+    hsv_v: 0.15
+    perspective: 0.0           # 禁用
+    rotate: 0.0                # 禁用
+    mixup: 0.0                 # 【严禁】医疗严禁 mixup
+    copy_paste: 0.1            # 只允许 paste 阳性病灶
+    copy_paste_positive_only: true
+
+  # LoRA 支持周增病例免重训
+  lora:
+    rank: 16
+    target_modules:
+      - backbone.c3_2.0.conv2
+      - backbone.c3_2.1.conv2
+      - seg_head.conv2
+    freeze_backbone: true
+    replay_buffer: ./replay_200.pt  # 200 张典型病例防灾难性遗忘
+    ewc_penalty: 0.1            # Elastic Weight Consolidation
+
+  # 超参
+  lr0: 1.0e-4                   # 联邦学习用较小学习率
+  lrf: 0.01
+  cos_lr: true
+  weight_decay: 0.0005
+
+# 聚合器（中央服务器）
+aggregator:
+  device: CPU                    # 聚合轻量，不需要 GPU
+  checkpointing:
+    every_round: 5
+    keep_last: 20
+    path: /opt/fed/checkpoints/
+  audit:
+    log_gradient_norms: true
+    detect_data_poisoning: true  # 检测数据投毒
+    anomaly_threshold_iqr: 3.0
+```
+
+### 3. `deploy_in_hospital.yaml` · 院内 A10 部署 + SAM 精修
+
+```yaml
+target: hospital-local
+hardware: NVIDIA A10 24GB
+framework: TensorRT
+
+# 完整推理流水线
+pipeline:
+  - stage: ingest
+    ops:
+      - op: dicom_decode        # DICOM → numpy array
+      - op: window_level         # X 光窗宽窗位
+        presets: {mammo: '40/25', ct_lung: '-600/1500'}
+      - op: normalize
+        mean: [0.485, 0.456, 0.406]
+        std:  [0.229, 0.224, 0.225]
+      - op: letterbox
+        target: [768, 1024]      # 皮肤：1024×768
+
+  - stage: det_seg
+    model: runs/fed-round-50/weights/final.engine
+    input_shape: [1, 3, 768, 1024]
+    precision: FP16
+    plugins:
+      - name: SoftmaxFP32        # 分割 head 强制 FP32（小病灶细节）
+        apply_to: seg_head
+    conf: 0.25                   # 医疗召回优先，低阈值
+    iou: 0.5
+    max_det: 100
+
+  - stage: sam_refine
+    # SAM 精修边界，解决低对比度失效
+    model: runs/sam-vit-h/sam_vit_h.pt
+    prompt_mode: box_prompt      # 用 v8m 的 bbox 作 prompt（不是 point）
+    point_prompt: false          # 【禁用】SAM point 在低对比度病灶上失效
+    polygon_fallback: true       # 极低对比度走 polygon 多点围合
+    nms_mask: true
+    mask_threshold: 0.45
+
+  - stage: gradcam
+    # 可解释性：mask + heatmap 双可视化
+    method: gradcam
+    layer: backbone.layer4[-1]
+    resolution: [768, 1024]
+    colormap: jet
+    overlay_opacity: 0.5         # 医师 UI 叠合 mask + heatmap
+
+  - stage: calibrate
+    # 置信度校准（关键！）
+    method: isotonic              # Platt scaling 更弱，isotonic 非线性更好
+    calibrator_path: ./calibrators/isotonic_2024-10.pt
+    out_of_bounds: clip
+    update_every: 1000_cases     # 每 1000 例重训校准器
+    report_ece: true             # Expected Calibration Error < 0.05
+
+  - stage: physician_ui
+    ops:
+      - op: mask_highlight          # 病灶 mask 红框高亮
+      - op: gradcam_overlay         # Grad-CAM 半透明叠合
+      - op: confidence_bands        # 置信度分色带显示
+      - op: review_timeout          # 10s 未复核自动标记
+        timeout_sec: 10
+      - op: audit_trail             # NMPA 要求：完整操作链
+        record:
+          - image_hash
+          - model_version
+          - confidence_raw
+          - confidence_calibrated
+          - physician_id
+          - review_decision
+
+# 合规要求
+compliance:
+  data_residency: on_premises   # 数据不出医院
+  pii_scrub: before_training
+  audit_log_retention_days: 2555  # 7 年（NMPA 要求）
+  tamper_proof: hash_chain      # 审计日志哈希链
+  nmpa_class: III               # 三类医疗器械
+  iso13485: true
+  ie62304: true
+
+# 性能目标
+targets:
+  malignant_recall: 0.95        # NMPA 硬指标
+  map50_95: 0.55
+  physician_review_sec: 10
+  latency_p99_ms: 3000          # 允许较大延迟，精度优先
+```
+
+### 4. `physician_closed_loop.yaml` · 医师闭环 + 持续学习
+
+```yaml
+# 医师复核 → 标注回流 → LoRA 增量 → 模型热更
+closed_loop:
+  review_queue:
+    priority: by_confidence     # 低置信度优先
+    capacity: 200_cases_per_day
+    sla_minutes: 15             # 15 分钟内医生处理
+
+  annotation_flow:
+    input: [mask, gradcam, bbox]
+    tools:
+      - polygon_edit        # 医师可编辑 mask 边界
+      - class_change        # 医师可改类别
+      - reject_as_false_positive  # 医师可标"无病灶"
+    version_control: true   # 每次修改都留痕
+
+  feedback_path:
+    to_training_set: true   # 医师修正的标注回流
+    replay_buffer_top_up: 200  # 补进 replay buffer
+    trigger_lora_finetune: 100  # 每积累 100 例触发 LoRA
+    lora_config: lora_incremental  # 引用训练 yaml 的 lora 段
+
+  # 灾难性遗忘防护
+  forgetting_prevention:
+    replay_ratio: 0.15          # 微调 batch 中 15% 是 replay buffer
+    ewc_lambda: 0.1             # EWC 正则化强度
+    regression_check:
+      old_dataset: 1000_cases   # 老病例回归测试
+      max_drop: 0.005           # Top-1 掉 0.5% 就阻断上线
+      recall_drop_max: 0.01     # Recall 掉 1% 阻断
+
+  # 模型热更
+  hot_reload:
+    method: shadow_model        # 影子模型并行
+    traffic_shift_pct: 5        # 先 5% 流量灰度
+    rollback_on_metric_drop: 0.01
+    rollback_timeout_sec: 60
+
+  # 审计链（NMPA 强要求）
+  audit_trail:
+    - field: model_version
+    - field: training_data_hash
+    - field: fed_round
+    - field: physician_review_count
+    - field: recall_change_delta
+    - field: approval_signature  # 医学主任电子签
+```
+
+### 5. `deploy_federated_server.yaml` · 联邦聚合服务端
+
+```yaml
+# 联邦学习聚合服务端（部署在医院联盟的监管节点）
+federated_server:
+  algorithm: FedAvg
+  aggregation_frequency: weekly   # 每周聚合一次
+  rounds_per_year: 52
+
+  clients_endpoint:
+    auth: mutual_tls               # 双向 TLS 认证
+    encryption: aes256_gcm
+    rate_limit: 100_requests_per_min
+
+  # 隐私保护：差分隐私 + 梯度裁剪
+  privacy:
+    differential_privacy:
+      epsilon: 8.0
+      delta: 1e-5
+      noise_multiplier: 1.1
+    gradient_clipping: 1.0
+    per_sample_norm_clip: true
+
+  # 投毒检测（恶意医院或攻击者可能投毒）
+  poisoning_detection:
+    - method: cosine_similarity
+      threshold: 0.3
+      action: reject_client
+    - method: krum
+      k: 2
+      action: weight_penalty
+    - method: gradient_anomaly_iqr
+      threshold: 3.0
+      action: quarantine_round
+
+  # 检查点与回滚
+  checkpoints:
+    path: /opt/fed/checkpoints/
+    retention: 52                # 保留 52 周
+    snapshot_on_round: true
+    rollback_command: |
+      python federated_rollback.py --round {n} --reason {reason}
+
+  # 审计与合规
+  audit:
+    log_to: /var/log/federated-audit/
+    retention_days: 2555         # 7 年
+    tamper_proof: hash_chain
+    regulator_export: true       # 支持 NMPA 审计导出
+    monthly_report: auto         # 每月自动出合规报告
+```
+
+### 6. `run_pipeline.sh` · 一键流水线
+
+```bash
+#!/bin/bash
+# 一键：脱敏 → 联邦训练 → 精度校验 → SAM 融合 → 校准 → 上 NMPA 审计
+set -euo pipefail
+
+# 1. 数据脱敏（DICOM 30+ 字段 + 面部打码）
+python deidentify_dicom.py \
+  --input /data/hosp_A/mammo/ \
+  --output /data/deidentified/hosp_A/ \
+  --config lesion_data.yaml \
+  --deidentify
+
+# 2. 启动联邦服务（后台）
+python -m federated.server \
+  --config deploy_federated_server.yaml \
+  --port 8443 \
+  --daemon &
+FED_PID=$!
+
+# 3. 三家医院分别训练 + 上传梯度
+for hosp in A B C; do
+  python -m federated.client \
+    --hospital hosp_${hosp} \
+    --config train_v8m_federated.yaml \
+    --local-data ./local_shard_${hosp}.yaml \
+    --epochs 5 \
+    --server-url https://fed-server:8443 &
+done
+wait  # 等待所有医院客户端
+
+# 4. 导出 TensorRT FP16
+yolo export \
+  --weights runs/fed-round-50/weights/best.pt \
+  --format engine \
+  --device 0 \
+  --half \
+  --imgsz 1024x768
+
+# 5. 置信度校准
+python calibrate_isotonic.py \
+  --engine runs/fed-round-50/weights/final.engine \
+  --val-data val/holdout/ \
+  --output calibrators/isotonic_$(date +%Y-%m).pt
+
+# 6. 精度回归（关键：NMPA Recall ≥ 95%）
+python eval_regression.py \
+  --engine runs/fed-round-50/weights/final.engine \
+  --calibrator calibrators/isotonic_$(date +%Y-%m).pt \
+  --data test/nmpa_multi_center/ \
+  --metrics malignant_recall,map50_95 \
+  --thresholds "0.95,0.55" \
+  --fail-action abort
+
+# 7. 影子模型灰度上线
+python shadow_deploy.py \
+  --engine runs/fed-round-50/weights/final.engine \
+  --traffic-shift 5 \
+  --rollback-on-drop 0.01 \
+  --rollback-timeout 60
+
+# 8. 出 NMPA 审计包
+python audit_export.py \
+  --fed-round 50 \
+  --output audit/nmpa_round_$(date +%Y%m%d).zip \
+  --sign-with medical_director_key.pem
+
+kill $FED_PID
+```
+
+### 完整推理流水线示意
+
+```mermaid
+flowchart LR
+  A[DICOM/图像<br/>+ PII 脱敏] --> B[v8m Seg<br/>1024×768]
+  B --> C[SAM box-prompt<br/>边界精修]
+  C --> D[Grad-CAM<br/>可解释]
+  D --> E[Isotonic 校准<br/>置信度可信]
+  E --> F[医师 UI<br/>10s 复核]
+  F --> G[审计日志<br/>哈希链]
+  G -.->|label 回流| H[LoRA 增量<br/>+ Replay]
+  H -.-> B
+```
+
 ## 反哺信号
 
 1. **new PainPoint**: `pain-data-leakage-medical` — 医疗标注一致性陷阱

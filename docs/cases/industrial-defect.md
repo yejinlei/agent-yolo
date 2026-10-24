@@ -225,7 +225,207 @@ reproduceLink: "experiments/industrial/pcb-defect/"
 
 ## 反哺信号
 
-本案例触发 3 条新本体实例：
+本案例触发 3 条新本体实例：## 生产部署 YAML
+
+以下 3 份 YAML 组合覆盖「训练 → 导出 → 推理」全链路，可直接复制到 `experiments/industrial/pcb-defect/` 目录运行。
+
+### 1. 数据集配置 `pcb_data.yaml`
+
+```yaml
+# 数据集根目录（仓库内相对路径）
+path: /data/pcb-500
+train: images/train          # 400 张
+val: images/val              # 50 张
+test: images/test            # 50 张（离线评估用）
+
+# 类别（顺序对应 labels/ 目录里的 class id）
+names:
+  0: solder_shortage
+  1: solder_overflow
+  2: cold_solder
+  3: missing_component
+  4: wrong_polarity
+  5: scratch
+
+# 类别权重（对应 cls_pw 计算，与训练脚本 --class-weights 联动）
+class_weights: [0.557, 0.645, 0.745, 0.845, 1.118, 1.581]
+
+# INT8 PTQ 校准集（必须含缺陷，见踩坑 #5）
+calibration:
+  path: /data/pcb-calib-100/images
+  count: 128
+  must_include_defect: true
+```
+
+### 2. 训练配置 `train_v13s.yaml`
+
+```yaml
+# 模型
+model: yolov13s.yaml           # DSConv + DSC3k2 体系
+data: pcb_data.yaml
+epochs: 300
+patience: 40
+imgsz: 1280                     # 高分辨率救细划痕
+
+# 硬件
+device: 0                       # 单卡 A100
+batch: 16                       # 1280 输入显存吃紧
+workers: 8
+deterministic: true
+seed: 42
+
+# 优化器
+optimizer: AdamW
+lr0: 0.001                      # SGD 常用 0.01，AdamW 用 0.001
+lrf: 0.01                       # 最终学习率 = lr0 * lrf
+momentum: 0.9                 # AdamW 下不生效，但保留配置以兼容
+weight_decay: 0.0005
+warmup_epochs: 3
+warmup_momentum: 0.8
+cos_lr: true                    # 余弦退火
+close_mosaic: 10                # 最后 10 epoch 关 mosaic 让模型见真实分布
+
+# 损失权重（PCB 不均衡场景：弱化 box、强化 cls）
+box: 3.7
+cls: 1.5
+dfl: 1.5
+hvl: 0.0
+
+# 数据增强（详见"训练细节"章节）
+augment:
+  mixup: 0.3
+  copy_paste: 0.8
+  copy_paste_non_overlap: true   # 关键：mask 不交叠
+  hsv_h: 0.015
+  hsv_s: 0.3
+  hsv_v: 0.4
+  perspective: 0.0
+  translate: 0.1
+  scale: 0.5
+  flipud: false                  # PCB 有固定极性，不能上下翻转
+  fliplr: true
+
+# 检查点
+project: runs/pcb-v13s
+name: pcb-main
+save_period: 10
+val: true
+plots: true
+
+# 类别不平衡补偿
+class_weights: [0.557, 0.645, 0.745, 0.845, 1.118, 1.581]
+```
+
+### 3. 导出与部署 `deploy_jetson.yaml`
+
+```yaml
+# 训练权重
+weights: runs/pcb-v13s/pcb-main/weights/best.pt
+
+# 三段式：v13s → SAM → YOLO-World + 规则
+pipeline:
+  detector:
+    task: detect
+    model: best.pt
+    imgsz: 1280
+    conf: 0.35
+    iou: 0.55                    # INT8 后需上调（见踩坑 #2）
+    agnostic_nms: false
+    device: 0
+
+  segmenter:
+    model: sam_vit_h.pt
+    prompt_mode: box             # 不用 point，见踩坑 #2
+    use_clahe: true              # 预处理直方图均衡化
+    min_visibility_ratio: 0.4    # 可见 <40% 跳过
+
+  classifier:
+    model: yolov8s-world.pt
+    imgsz: 640
+    prompts:
+      solder_shortage: "solder joint with concave depression and dim light"
+      solder_overflow: "solder joint with blob and bridge to adjacent pad"
+      cold_solder: "rough non-rounded solder joint with grayish white"
+      missing_component: "empty component footprint with exposed copper pads"
+      wrong_polarity: "polarity-marked component rotated 180 degrees"
+      scratch: "thin irregular dark line on green PCB surface"
+
+  rules:
+    min_area_px: 25               # 尺寸过滤，<25px 视为噪点
+    max_length_width_ratio: 8.0   # 长宽比 > 8 判划伤
+    position_whitelist_zones:
+      - "solder-pads"            # 只在这些区域接受检测
+    min_confidence: 0.62          # 规则后最终阈值
+```
+
+### 4. INT8 量化配置 `quantize_qat.yaml`
+
+```yaml
+# QAT 训练配置
+quantization:
+  method: qat                   # 不用 ptq，见踩坑 #5
+  bits: 8
+  calib_images: 200
+  calib_batches: 4
+  sensitive_layers:
+    - /model.23/cv2.0/          # DFL 层强制 FP32
+    - /model.23/cv3.0/
+    - final_head                # 分类 head 保精度
+
+# QAT 训练 epoch
+qat_epochs: 20
+qat_lr: 0.0001
+qat_batch: 8                    # 量化算子慢，batch 减半
+```
+
+### 5. 一键运行脚本 `run_pipeline.sh`
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# 1. 训练
+yolo detect train \
+  --model yolov13s.yaml \
+  --data pcb_data.yaml \
+  --cfg train_v13s.yaml
+
+# 2. QAT 量化
+yolo detect train \
+  --resume runs/pcb-v13s/pcb-main/weights/last.pt \
+  --quantize --quantization-method qat \
+  --epochs 20
+
+# 3. 导出 TensorRT FP16
+yolo export \
+  --weights runs/pcb-v13s/pcb-main/weights/best.pt \
+  --format engine \
+  --half \
+  --dynamic \
+  --imgsz 1280 \
+  --device 0
+
+# 4. 部署到 Jetson
+docker compose -f deploy/compose-jetson.yaml up -d
+
+# 5. 监控推理指标
+yolo val --data pcb_data.yaml \
+  --weights runs/pcb-v13s/pcb-main/weights/final.engine \
+  --split test
+```
+
+### 完整推理流水线示意
+
+```mermaid
+flowchart LR
+  A[输入图] --> B[v13s Detect<br/>1280 FP16]
+  B --> C[SAM box-prompt<br/>mask 精修]
+  C --> D[YOLO-World<br/>开放词汇分类]
+  D --> E[规则引擎<br/>尺寸+位置过滤]
+  E --> F[NG 报警]
+```
+
+## 反哺信号
 
 1. **new PainPoint**: `pain-class-imbalance-indefect` — PCB 缺陷天然不均衡，通用 cls 损失失效
 2. **new Trick**: `trick-mask-non-overlap-aug` — 增强时保证 mask 不交叠
