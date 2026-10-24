@@ -10,6 +10,29 @@
 
 **从 v1 的"单头 24 层 conv + 直接回归"出发，历经三代架构（Grid 回归 → Darknet + Anchor → CSP + Anchor-free），最终收敛到 v8 的 C2f + DFL 现代体系。v9/v10 试图超越它（NMS-free、双头双分配），v11/v12/v13 把注意力引入骨干并进一步压缩头，v14 与 v26 分别从学术和官方线走多任务统一。**
 
+## 衍生分支对比（YOLO-World / YOLOE / YOLO-Master）
+
+主线 YOLO 之外，衍生分支解决"开放词表""多模态统一"这类问题，是主线的重要补充。
+
+| 维度 | YOLO-World | YOLOE | YOLO-Master | 主线参考 |
+|------|-----------|-------|------------|---------|
+| **基座** | YOLOv8 + CLIP | YOLOv8 系列 | 多模态统一 | Ultralytics v8/v11 |
+| **开放词表** | ✅ 原生（CLIP 文本编码） | ✅ 原生（可开关） | ✅ 含文本理解 | ❌ 需重训 |
+| **零样本能力** | 强，任意类别名 | 强，且能关到纯检测 | 中，多模态为主 | 无 |
+| **训练方式** | COCO 预训 + Prompt Learner | 类似，但可训练/推理切换 | 大规模多模态 | 端到端 |
+| **推理速度** | 比 YOLOv8 慢 10-30% | 与 YOLOv8 相当（关闭模式） | 明显慢（多模态开销） | 基线 |
+| **典型任务** | 开放词汇检测 | 检测 + 分割（可切换） | 检测+分割+OCR+Caption | Detect/Segment/Pose/OBB |
+| **工业落地难度** | 中（要维护 CLIP 模型） | 低（Ultralytics 生态） | 高（多模态栈复杂） | 低 |
+| **推荐场景** | 需要零样本的检索类应用 | 已用 YOLOv8，想加开放词表 | 研究/多模态探索 | 主流生产任务 |
+| **官方仓库** | [AILab-CVC/YOLO-World](https://github.com/AILab-CVC/YOLO-World) | [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) | [VikParuchuri/yoloa](https://github.com/VikParuchuri/yoloa) | [ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) |
+
+**选型建议**：
+- 90% 场景用**主线 YOLOv8/v11** 就够，衍生分支不必默认引入
+- 需要"新类不用重训"才考虑 **YOLOE**（Ultralytics 生态最平滑）
+- 做研究或需要 OCR/Caption 才考虑 **YOLO-Master**
+
+---
+
 ## 骨干演进（Backbone）
 
 | 版本 | 骨干 | 关键结构 | 参数量（n 档） |

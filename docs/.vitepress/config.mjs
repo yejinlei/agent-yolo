@@ -85,6 +85,18 @@ export default defineConfig({
         { text: 'YOLO-Master', link: '/derivatives/master/index' },
         { text: '路线预告', link: '/derivatives/roadmap' }
       ]},
+      { text: '任务', items: [
+        { text: '实例分割', link: '/tasks/segment' },
+        { text: '姿态估计', link: '/tasks/pose' },
+        { text: '定向框 OBB', link: '/tasks/obb' },
+        { text: '旋转检测', link: '/tasks/rotated' }
+      ]},
+      { text: '实操', items: [
+        { text: '训练与微调', link: '/recipes/train' },
+        { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' }
+      ]},
+      { text: '问答', link: '/faq' },
+      { text: '进阶路线', link: '/mid-level-path' },
       { text: '横向使用', items: [
         { text: '选型决策树', link: '/choose-a-model' },
         { text: '基准数据', link: '/benchmarks' },
@@ -95,6 +107,8 @@ export default defineConfig({
       ]},
       { text: '实战案例', link: '/cases' },
       { text: '本体', link: '/ontology/schema' },
+      { text: '论文索引', link: '/references' },
+      { text: '关于', link: '/about' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
 
@@ -105,6 +119,7 @@ export default defineConfig({
           items: [
             { text: '首页', link: '/' },
             { text: '小白入门', link: '/for-beginners' },
+            { text: '进阶学习路线', link: '/mid-level-path' },
             { text: '实战案例总览', link: '/cases' }
           ]
         },
@@ -120,20 +135,39 @@ export default defineConfig({
           ]
         },
         {
+          text: '任务扩展',
+          items: [
+            { text: '实例分割 Segment', link: '/tasks/segment' },
+            { text: '姿态估计 Pose', link: '/tasks/pose' },
+            { text: '定向框 OBB', link: '/tasks/obb' },
+            { text: '旋转检测 Rotated', link: '/tasks/rotated' }
+          ]
+        },
+        {
+          text: '实操手册',
+          items: [
+            { text: '训练与微调', link: '/recipes/train' },
+            { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' }
+          ]
+        },
+        {
           text: '横向使用页',
           items: [
             { text: '选型决策树', link: '/choose-a-model' },
             { text: '基准数据', link: '/benchmarks' },
             { text: '数据流全景', link: '/data-flow' },
             { text: '故障排查', link: '/troubleshooting' },
-            { text: '概念反向索引', link: '/concepts' }
+            { text: '概念反向索引', link: '/concepts' },
+            { text: '常见问题 FAQ', link: '/faq' }
           ]
         },
         {
           text: '参考',
           items: [
             { text: '术语表', link: '/glossary' },
-            { text: '本体 Schema', link: '/ontology/schema' }
+            { text: '论文与仓库索引', link: '/references' },
+            { text: '本体 Schema', link: '/ontology/schema' },
+            { text: '关于本项目', link: '/about' }
           ]
         }
       ],
@@ -674,6 +708,41 @@ export default defineConfig({
             { text: 'models/yolo/detect/train.py', link: '/derivatives/master/source/train-py' }
           ]
         }
+      ],
+      '/tasks/': [
+        {
+          text: '任务扩展',
+          items: [
+            { text: '实例分割 Segment', link: '/tasks/segment' },
+            { text: '姿态估计 Pose', link: '/tasks/pose' },
+            { text: '定向框 OBB', link: '/tasks/obb' },
+            { text: '旋转检测 Rotated', link: '/tasks/rotated' }
+          ]
+        },
+        {
+          text: '相关',
+          items: [
+            { text: '常见问题 FAQ', link: '/faq' },
+            { text: '进阶学习路线', link: '/mid-level-path' }
+          ]
+        }
+      ],
+      '/recipes/': [
+        {
+          text: '实操手册',
+          items: [
+            { text: '训练与微调', link: '/recipes/train' },
+            { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' }
+          ]
+        },
+        {
+          text: '相关',
+          items: [
+            { text: '基准数据', link: '/benchmarks' },
+            { text: '故障排查', link: '/troubleshooting' },
+            { text: '术语表', link: '/glossary' }
+          ]
+        }
       ]
     },
 
@@ -710,7 +779,7 @@ export default defineConfig({
   // @REASON: /source/* 链接指向仓库内的 source/ 目录（源码快照），非 VitePress 站点内页面，需忽略死链检查
   // @REASON: /groups/* 是历史遗留分组链接，v7 已迁移到 /versions/v7/ 下
   // @REASON: 目录型链接（如 /cases）在部分 Markdown 严格模式下会误判为死链
-  ignoreDeadLinks: [/^\/source\//, /^\/groups\//, /^\/cases$/, /^\/derivatives$/, /^\/ontology$/],
+  ignoreDeadLinks: [/^\/source\//, /^\/groups\//, /^\/cases$/, /^\/derivatives$/, /^\/ontology$/, /^\/versions\/v\d+$/, /^\/derivatives\/(yoloworld|yoloe|master)(\/[^/]+)?$/],
 
   // @REASON: 把 mermaid / KaTeX 这类重量级依赖切到独立 chunk，避免主 bundle 超 500KB
   // @REASON: 用函数形式而非字面量，因为 markdown-it 由 vitepress 内部打包，不能作为入口模块

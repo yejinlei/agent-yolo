@@ -649,3 +649,86 @@ YOLO-Master 的 neck 改进：把局部特征与全局语义按区域重要性�
 - 先从 [v1 概览](/versions/v1/index) 的"3 分钟电梯演讲"读起，按版本顺序走
 - 遇到源码行号引用（如 `region_layer.c:168`），点一下就能跳到对应文件的高亮行
 - 全站支持搜索（页面顶部搜索框），术语、函数名都能搜
+
+---
+
+## 部署与量化术语（Batch 1 补充）
+
+工程部署高频出现但主线论文里少讲的一组术语，见 [部署指南](/recipes/export-onnx)。
+
+### ONNX（Open Neural Network Exchange）
+微软 2017 年主导的跨框架模型交换格式。PyTorch 训完的模型 → `torch.onnx.export` → 任意推理引擎（TensorRT / OpenVINO / NCNN）都能吃。是"训练框架"和"推理引擎"之间的桥梁。
+
+### TensorRT
+NVIDIA 的深度学习推理加速器，主要跑在 CUDA GPU / Jetson 系列。特点：算子融合（Conv+BN+ReLU 融成一个算子）、INT8/FP16 量化、`trtexec` 生成 `.engine` 二进制。速度通常是 PyTorch 的 2-4×，但绑定 NVIDIA 硬件。
+
+### OpenVINO
+Intel 的推理优化工具，跑在 Intel CPU / GPU / VPU（Myriad X 棒）。特点是支持"CPU 加速"到接近 GPU 水平，工业 PC 场景常用。
+
+### NCNN / MNN
+移动端推理框架。NCNN 是腾讯开源（无第三方依赖，C++ 单文件可编译），MNN 是阿里开源。二者在 Android / iOS 上比 ONNX Runtime 快 2-3×。
+
+### INT8 量化
+把模型权重和激活从 FP32 压到 INT8（8 位有符号整数），模型体积减 4×、推理速度约 2-3×。代价是精度可能掉 0.5-1% mAP，对 DFL 层尤其敏感。
+
+### PTQ（Post-Training Quantization）
+训练完后一次性量化：跑一批校准集（通常 500-1000 张）收集激活分布，再把权重和激活替换成 INT8。零训练成本、5-10 分钟搞定。适合有完整精调模型的团队。
+
+### QAT（Quantization Aware Training）
+训练时插入"伪量化"节点，模拟 INT8 的前向 + FP32 的反向，让模型学会"在 INT8 精度下降下依然工作"。比 PTQ 精度高 0.5-1% mAP，但要重新训练一轮。
+
+### 校准集（Calibration Set）
+PTQ 用的代表分布数据集，通常 500-1000 张，需覆盖所有类别、光照条件、目标尺寸。选不好会让 INT8 精度雪崩。
+
+### DFL 层保持 FP32
+Distribution Focal Loss 输出的分布对量化极敏感（`reg_max=16` 时，8 位整数只能表达 16 个 bin 的粗略分布）。**导出 TensorRT 时建议把 DFL 相关层标记为 FP32**，其他层保持 INT8——精度损失从 1.5% 压回 0.3% 左右。
+
+### TensorRT FP16
+半精度（16 位浮点）在 TensorRT 里几乎无精度损失，速度 1.5-2×。是"精度无损加速"的首选。
+
+### `reg_max` 参数
+DFL 的分布 bin 数。默认 16，YOLOv10 起降到 1（DFL 退化为直接回归）。量化时这个数字越大越敏感。
+
+### `end2end=True`
+YOLOv26 的核心开关：把 NMS 融进模型输出，配合 `_grouped_topk` 让推理阶段直接给 top-k 结果，省掉 Python NMS 的开销。导出 ONNX 时保留此参数。
+
+### DLA / DAL
+Domain Adaptation Layer（域自适应层），v14 提出，通过可学习的逐通道缩放向量让模型对视角/域鲁棒。
+
+### AMP（自动混合精度，训练侧）
+训练时用 FP16 做 matmul / conv，用 FP32 做 loss / softmax。速度和显存各省一半，几乎无精度损失。PyTorch `torch.cuda.amp.autocast()` 三行搞定。与推理侧的 TensorRT FP16 是不同概念。
+
+### 混合精度部署
+INT8 主体 + FP32 敏感层 + FP16 中间层。工业部署的常见组合，兼顾速度和精度。见 [部署指南 §4](/recipes/export-onnx)。
+
+### 数据集关键指标
+- **COCO mAP@0.5**：IoU 阈值 0.5 下的平均精度，最常用
+- **COCO mAP@0.5:0.95**：IoU 阈值从 0.5 到 0.95 每 0.05 一档取平均，最严格
+- **AP50** / **AP75**：分别对应阈值 0.5 和 0.75
+- **AR**（Average Recall）：召回率版本，`AR@1000` 表示每图最多 1000 个候选
+
+### 训练侧数据增强
+- **Mosaic**：4 图拼图，2020 YOLOv4 引入，v8 沿用，训练末期关闭
+- **HSV jitter**：色调/饱和度/亮度随机扰动
+- **Random Flip**：水平/垂直翻转
+- **Random Rotate**：随机旋转（**OBB 任务严禁用**）
+- **MixUp**：两图叠加（**Pose 任务慎用**）
+- **Copy-Paste**：抠图后贴到另一张图，提升小物体召回
+- **Copy-Paste Seg**：带 mask 的 Copy-Paste，用于分割任务
+
+### YAML 数据集配置（Ultralytics 格式）
+```yaml
+path: datasets/mydata
+train: images/train
+val: images/val
+nc: 80
+names: [person, bicycle, car, ...]
+```
+`nc` 是类别数，`names` 是从 0 开始的类别名列表，顺序决定模型输出索引。
+
+### 硬件基准参考
+- **RTX 4090**：v8-s INT8 约 350 FPS
+- **RTX 3060**：v8-s FP16 约 90 FPS
+- **Jetson Orin Nano 8GB**：v8-n INT8 约 25 FPS
+- **树莓派 4B 4GB**：v8-n NCNN 约 5-8 FPS
+- **手机骁龙 8Gen3**：v8-n MNN 约 30 FPS
