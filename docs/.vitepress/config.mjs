@@ -93,9 +93,15 @@ export default defineConfig({
       ]},
       { text: '实操', items: [
         { text: '训练与微调', link: '/recipes/train' },
-        { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' }
+        { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
+        { text: '量化深度指南', link: '/recipes/quantization' },
+        { text: '边缘设备实战', link: '/recipes/edge-deploy' },
+        { text: '数据标注避坑', link: '/recipes/data-annotation' },
+        { text: '高级训练技巧', link: '/recipes/advanced-train' },
+        { text: '生产化落地', link: '/recipes/production' }
       ]},
       { text: '问答', link: '/faq' },
+      { text: '翻车案例', link: '/bad-cases' },
       { text: '进阶路线', link: '/mid-level-path' },
       { text: '横向使用', items: [
         { text: '选型决策树', link: '/choose-a-model' },
@@ -115,14 +121,15 @@ export default defineConfig({
     sidebar: {
       '/': [
         {
-          text: '入口',
-          items: [
-            { text: '首页', link: '/' },
-            { text: '小白入门', link: '/for-beginners' },
-            { text: '进阶学习路线', link: '/mid-level-path' },
-            { text: '实战案例总览', link: '/cases' }
-          ]
-        },
+        text: '入口',
+        items: [
+          { text: '首页', link: '/' },
+          { text: '小白入门', link: '/for-beginners' },
+          { text: '进阶学习路线', link: '/mid-level-path' },
+          { text: '实战案例总览', link: '/cases' },
+          { text: '翻车案例集', link: '/bad-cases' }
+        ]
+      },
         {
           text: '全局视图',
           items: [
@@ -162,14 +169,15 @@ export default defineConfig({
           ]
         },
         {
-          text: '参考',
-          items: [
-            { text: '术语表', link: '/glossary' },
-            { text: '论文与仓库索引', link: '/references' },
-            { text: '本体 Schema', link: '/ontology/schema' },
-            { text: '关于本项目', link: '/about' }
-          ]
-        }
+        text: '参考',
+        items: [
+          { text: '术语表', link: '/glossary' },
+          { text: '论文与仓库索引', link: '/references' },
+          { text: '本体 Schema', link: '/ontology/schema' },
+          { text: '编写新页指南', link: '/ontology/authoring' },
+          { text: '关于本项目', link: '/about' }
+        ]
+      }
       ],
       '/global/': [
         {
@@ -570,9 +578,12 @@ export default defineConfig({
         ]
       },
         {
-          text: '共享',
+          text: '共享与横向',
           items: [
-            { text: '术语表', link: '/glossary' }
+            { text: '术语表', link: '/glossary' },
+            { divider: true },
+            { text: '版本改动清单', link: '/versions/changelog' },
+            { text: 'v8 vs v11 架构 diff', link: '/versions/deep-dive-v8-v11' }
           ]
         }
       ],
@@ -582,7 +593,8 @@ export default defineConfig({
           items: [
             { text: 'Schema', link: '/ontology/schema' },
             { text: '实体类型', link: '/ontology/entity-types' },
-            { text: '关系类型', link: '/ontology/relations' }
+            { text: '关系类型', link: '/ontology/relations' },
+            { text: '编写新页指南', link: '/ontology/authoring' }
           ]
         }
       ],
@@ -612,6 +624,7 @@ export default defineConfig({
           text: '衍生分支总览',
           items: [
             { text: '总览', link: '/derivatives/index' },
+            { text: '三衍生分支对比', link: '/derivatives/compare' },
             { text: '路线预告', link: '/derivatives/roadmap' }
           ]
         },
@@ -732,7 +745,13 @@ export default defineConfig({
           text: '实操手册',
           items: [
             { text: '训练与微调', link: '/recipes/train' },
-            { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' }
+            { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
+            { divider: true },
+            { text: '量化深度指南', link: '/recipes/quantization' },
+            { text: '边缘设备实战', link: '/recipes/edge-deploy' },
+            { text: '数据标注避坑', link: '/recipes/data-annotation' },
+            { text: '高级训练技巧', link: '/recipes/advanced-train' },
+            { text: '生产化落地', link: '/recipes/production' }
           ]
         },
         {
@@ -740,6 +759,7 @@ export default defineConfig({
           items: [
             { text: '基准数据', link: '/benchmarks' },
             { text: '故障排查', link: '/troubleshooting' },
+            { text: '翻车案例集', link: '/bad-cases' },
             { text: '术语表', link: '/glossary' }
           ]
         }
