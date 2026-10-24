@@ -222,6 +222,332 @@ flowchart TD
   Q5 -->|No| V6[v8n-tiny, 或考虑轻量模型]
 ```
 
+## 生产部署 YAML
+
+边缘部署的 YAML 必须**按硬件分档**——同一份模型导出到不同芯片需要不同框架、不同精度、不同算子。下面给出三大典型档位的完整配置。
+
+### 1. `deploy_rpi4.yaml` · 树莓派 4B（< 10 TOPS 档）
+
+```yaml
+target: raspberry-pi-4b-4gb
+framework: TFLite            # CPU + NEON，RPi 的 VPU 不能用于 TFLite
+hardware:
+  cores: 4
+  cpu_arch: ARMv8_A
+  gpu: vc4                    # 仅用于显示，无法跑 NN
+  ram_mb: 4096
+
+# 模型选择：v8n（3.6M 参数，anchor-free 减少 NMS）
+model:
+  name: yolo11n
+  params_m: 2.6
+  precision: INT8
+  input_size: 320x320         # 从 640 缩到 320，速度×3，小目标召回降
+
+# 量化配置
+quantization:
+  method: post_training        # PTQ（训练后量化），比 QAT 快 5 倍
+  calibration_set: 500_images
+  calibration_batch: 32
+  symmetric: true
+  int8_range: [0, 255]        # 输入已归一化到 [0, 255]
+  per_channel: false          # RPi 不支持 per-channel
+  op_exceptions:               # 敏感算子保留 FP32
+    - sigmoid
+    - softmax
+
+# 推理配置
+runtime:
+  thread_num: 4                # 用满 4 核
+  xnnpack: true                # XNNPACK NEON 加速
+  gpu_delegate: false          # RPi VPU 不可用于 TFLite
+  memory_arena_mb: 128
+
+# NMS 参数（320 输入对小目标敏感，阈值放宽）
+nms:
+  conf_threshold: 0.35         # INT8 漂移 0.05，阈值相应上调
+  iou_threshold: 0.60          # 从 0.45 上调，减少边缘误合并
+
+targets:
+  fps: 25
+  latency_ms: 40
+  map50: 40
+  model_size_mb: 11.6
+```
+
+### 2. `deploy_jetson.yaml` · Jetson Orin（10-275 TOPS 档）
+
+```yaml
+target: jetson-orin-nano-8gb
+framework: TensorRT            # Jetson 首选 TensorRT
+hardware:
+  gpu: Orin_8GB               # Ampere 架构
+  tensor_cores: 2048
+  precision: fp16             # FP16 精度无损，速度×2
+
+model:
+  name: yolo11s
+  params_m: 9.4
+  precision: FP16
+  input_size: 640x640
+
+# TensorRT 引擎构建
+engine:
+  build:
+    optimization_level: 3      # 0-5，3 是平衡点
+    workspace_mb: 1024
+    max_batch_size: 4          # 多目标批量推理
+    precision_constraints: FP16
+    fp16: true
+    tf32: true                 # FP32 层也用 TF32
+    cache: ./cache/orin_s_fp16.engine
+
+  # 关键算子插件
+  plugins:
+    - name: ConvBiasAct        # 融合卷积+偏置+激活
+    - name: DeconvToUpsample   # Jetson 上更高效
+    - name: SoftmaxFP32        # 置信度分数保留 FP32
+
+# 性能档位切换（热插拔）
+power_modes:
+  maxn:
+    max_gpu_clock_mhz: 600
+    max_ram_clock_mhz: 2046
+    power_limit_w: 7           # 电池模式
+    expected_fps: 35
+  maxp:
+    max_gpu_clock_mhz: 990
+    max_ram_clock_mhz: 2046
+    power_limit_w: 15          # 常规模式
+    expected_fps: 65
+  super:
+    max_gpu_clock_mhz: 1260
+    max_ram_clock_mhz: 3200
+    power_limit_w: 25          # 外接电源
+    expected_fps: 90
+
+runtime:
+  cuda_stream: 2               # 多 stream 并行 preproc + inference
+  cuda_graph: true             # CUDA Graph 减少 kernel launch 开销
+  dynamic_shape: true          # 支持 640/1280 双分辨率
+
+targets:
+  fps: 60                      # maxp 档位
+  latency_ms: 16
+  map50: 63
+  model_size_mb: 22.5
+```
+
+### 3. `deploy_mobile.yaml` · 手机 NPU（Android + iOS）
+
+```yaml
+target: mobile
+frameworks:
+  android: QNN                 # Qualcomm NPU
+  ios: CoreML                  # Apple Neural Engine
+
+hardware:
+  android:
+    chip: Snapdragon_8_gen3
+    npu_tops: 45
+    ram_mb: 12288
+  ios:
+    chip: A18_Pro
+    neural_engine_tops: 38
+    ram_mb: 8192
+
+model:
+  name: yolo11n
+  params_m: 2.6
+  input_size: 320x320
+
+# Android：QNN INT8
+android:
+  backend: qnn
+  precision: INT8
+  delegate: snapdragon_npu
+  calibration:
+    num_images: 100
+    method: min_max
+  op_set: standard_7
+  # 关键点：QNN 不支持某些 YOLOv11 特定算子，必须转换
+  unsupported_ops:
+    - c3_k2          # C3 变体的 stride-2
+    - dfconv_dynamic
+  fallback_to: cpu     # 遇到不支持算子降级到 CPU
+
+# iOS：CoreML
+ios:
+  backend: coreml
+  precision: INT8
+  compute_units: all   # CPU + GPU + ANE 联合
+  retraining_mode: on_device
+  optimization_level: high
+  memory_footprint_mb: 50     # iOS 内存紧张，50MB 上限
+
+runtime:
+  # 移动端共性
+  memory_pools: static          # 静态内存池，避免频繁 alloc
+  prewarm_batch: 4              # 首次启动预热，避免冷启动卡顿
+  timeout_ms: 100               # 单帧超 100ms 直接跳过
+
+  # 相机 pipeline 优化
+  camera:
+    resolution: 640x480         # 拍照模式降到 640 宽
+    fps: 30
+    hardware_rotation: true     # 用硬件旋转，避免 CPU 处理
+    exif_transpose: true
+
+  # 电池优化
+  battery:
+    low_power_mode:
+      trigger_below_percent: 20
+      fps_cap: 10
+      precision_drop_to: int8
+    thermal_throttling:
+      watch_deg_c: 42
+      action: reduce_fps_to_half
+
+nms:
+  conf_threshold: 0.5           # 手机端阈值更严，避免误报耗电
+  iou_threshold: 0.5
+
+targets:
+  android:
+    fps: 30
+    latency_ms: 33
+    power_ma: 200               # 200 mA @ 3.8V，约 800 mW
+  ios:
+    fps: 30
+    latency_ms: 33
+    power_ma: 180
+```
+
+### 4. `deploy_pipeline.yaml` · 通用三段式流水线（跨硬件可复用）
+
+```yaml
+# 通用的三段式流水线，各硬件 target 复用此模板
+pipeline:
+  - stage: preproc
+    ops:
+      - op: letterbox
+        target: 320
+        keep_ratio: true
+        padding_value: 114      # Ultralytics 默认灰色
+      - op: to_tensor
+        format: NHWC            # 移动端用 NHWC
+        device: cpu             # preproc 走 CPU
+      - op: normalize
+        mean: [0, 0, 0]         # 已归一化到 [0, 255]，不再减 mean
+        scale: 1.0/255.0
+        transpose: true          # NHWC → NCHW
+
+  - stage: inference
+    model_file: model.engine    # 由具体 target 提供
+    warmup_iterations: 100      # 预热，避免冷启动
+    output_layout:
+      boxes: [N, 4, "xyxy"]
+      scores: [N, num_classes]
+      masks: [N, masks, mask_h, mask_w]
+
+  - stage: postproc
+    ops:
+      - op: nms
+        conf: ${target.conf_threshold}
+        iou: ${target.iou_threshold}
+      - op: rescale_to_original
+        letterbox_undo: true    # 恢复原始尺寸坐标
+      - op: to_proto
+        fields: [class_id, bbox, score, mask_poly]
+
+# 监控指标（跨硬件统一上报）
+metrics:
+  report:
+    - latency_ms_p50
+    - latency_ms_p99
+    - fps
+    - gpu_utilization
+    - ram_peak_mb
+    - thermal_deg_c
+  alert:
+    latency_p99_over: 2x_target
+    thermal_over: 65
+    ram_over: 80_percent_of_max
+```
+
+### 5. `run_deploy.sh` · 一键导出脚本
+
+```bash
+#!/bin/bash
+# 一键：PT → 4 种硬件目标
+set -euo pipefail
+
+MODEL=${1:-yolo11n}
+DATA=${2:-./data/coco-subset}
+
+# 1. PyTorch → ONNX（通用中间格式）
+yolo export \
+  --weights ${MODEL}.pt \
+  --format onnx \
+  --imgsz 320 \
+  --simplify \
+  --opset 12                    # TensorRT / QNN 兼容
+  --half false                  # ONNX 保留 FP32，量化交给后端
+
+# 2. ONNX → TensorRT（Jetson）
+yolo export \
+  --weights ${MODEL}.onnx \
+  --format engine \
+  --device 0 \
+  --half \
+  --workspace 1024 \
+  --imgsz 320
+
+# 3. ONNX → TFLite INT8（树莓派）
+python export_tflite.py \
+  --onnx ${MODEL}.onnx \
+  --int8 --calibrate ${DATA} \
+  --output ${MODEL}_rpi.tflite \
+  --calibration-images 500
+
+# 4. ONNX → QNN（Android NPU）
+python export_qnn.py \
+  --onnx ${MODEL}.onnx \
+  --target snapdragon_8 \
+  --precision int8 \
+  --output ${MODEL}_qnn.bin
+
+# 5. ONNX → CoreML（iOS）
+python export_coreml.py \
+  --onnx ${MODEL}.onnx \
+  --precision int8 \
+  --compute-units all \
+  --output ${MODEL}_ane.mlpackage
+
+# 6. 交叉平台验证
+for target in engine tflite qnn coreml; do
+  python validate_accuracy.py \
+    --model ${MODEL}_${target} \
+    --ref ${MODEL}.pt \
+    --data ${DATA} \
+    --max-mass-error 0.02        # 与 PT 的 mAP 差 < 2%
+done
+
+echo "✅ 部署完成，产物："
+ls -lh ${MODEL}*.{engine,tflite,bin,mlpackage}
+```
+
+### 决策速查
+
+```mermaid
+flowchart LR
+  A[目标硬件] --> B{算力档位}
+  B -->|< 10 TOPS| C[RPi / 手机<br/>v11n INT8<br/>TFLite / QNN / CoreML]
+  B -->|10-100 TOPS| D[Jetson Orin<br/>v11s FP16<br/>TensorRT]
+  B -->|> 100 TOPS| E[Jetson AGX<br/>v11x FP16<br/>TensorRT + P2 head]
+  C & D & E --> F[统一 pipeline.yaml<br/>跨硬件复用]
+```
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

@@ -118,6 +118,8 @@ reproduceLink: "experiments/edge-deployment/rpi4b/"
 
 ## 当前案例索引
 
+9 个案例 · 覆盖 6 大 domain · 每个案例都有 YAML 配置 + 演进故事 + 反哺信号。
+
 | ID | Domain | 简述 | 状态 |
 |----|--------|------|------|
 | `case-edge-rpi4b` | edge_deployment | 树莓派 4B 实时检测 · 量化对比 | 📖 [边缘部署](/cases/edge-deployment) |
@@ -125,6 +127,16 @@ reproduceLink: "experiments/edge-deployment/rpi4b/"
 | `case-autonomous-lane` | autonomous_driving | 车道线多尺度 · v11x 双头 | 📖 [自动驾驶](/cases/autonomous-lane) |
 | `case-retail-shelf` | retail | 货架 3000 SKU · 两级分类 | 📖 [零售](/cases/retail-shelf) |
 | `case-medical-lesion` | medical | 皮肤癌 + 乳腺分割 · SAM + 医师闭环 | 📖 [医疗](/cases/medical-lesion) |
+| `case-security-monitoring` | security | 入侵/跌倒/聚集事件 · BoT-SORT + SlowFast | 📖 [安防监控](/cases/security-monitoring) |
+| `case-agriculture-citrus` | agriculture | 柑橘病害 + 成熟度分级 · 多光谱 + 无人机 | 📖 [智慧农业](/cases/agriculture) |
+| `case-drone-port-obb` | drone_aerial | 港口卡车 OBB · 旋转框 + DEM 正射 | 📖 [无人机 OBB](/cases/drone-obb) |
+| `case-3d-bev-driving` | autonomous_driving | 6 目环视 3D 位姿 · v11-3D + BEVFormer | 📖 [3D BEV](/cases/3d-bev) |
+| — | compare | 9 案例横向对比 · 选型速查 · 踩坑聚合 | 📊 [横向对比](/cases/compare) |
+
+**推荐阅读顺序**：
+1. 先看 [横向对比](/cases/compare) 的选型速查表定位你的场景
+2. 再读最接近的案例
+3. 遇到跨案例共性问题 → 看对比页的"踩坑模式聚合"
 
 ## 案例编写规范
 

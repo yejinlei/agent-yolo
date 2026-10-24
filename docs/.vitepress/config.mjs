@@ -500,11 +500,18 @@ export default defineConfig({
           text: '实战',
           items: [
             { text: '案例总览', link: '/cases' },
+            { text: '横向对比（选型速查）', link: '/cases/compare' },
+            { divider: true },
             { text: '边缘部署', link: '/cases/edge-deployment' },
             { text: '工业质检', link: '/cases/industrial-defect' },
             { text: '自动驾驶', link: '/cases/autonomous-lane' },
             { text: '零售', link: '/cases/retail-shelf' },
-            { text: '医疗', link: '/cases/medical-lesion' }
+            { text: '医疗', link: '/cases/medical-lesion' },
+            { divider: true },
+            { text: '安防监控', link: '/cases/security-monitoring' },
+            { text: '智慧农业', link: '/cases/agriculture' },
+            { text: '无人机 OBB', link: '/cases/drone-obb' },
+            { text: '3D BEV', link: '/cases/3d-bev' }
           ]
         }
       ],
