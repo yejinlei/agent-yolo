@@ -626,7 +626,7 @@ yolo detect export model=exp/rpi4b_v8n_640/weights/best.pt \
 xychart-beta
   title "Loss 与 mAP50 收敛曲线（示意）"
   x-axis [0, 5, 10, 20, 40, 60, 80]
-  y-axis "loss / mAP50" 0 6
+  y-axis "loss / mAP50" 0 --> 6
   line [5.8, 3.1, 2.4, 1.7, 1.1, 0.7, 0.55]
 ```
 
@@ -638,7 +638,7 @@ xychart-beta
 xychart-beta
   title "mAP50 收敛（示意，v8n 640 输入）"
   x-axis [0, 5, 10, 20, 40, 60, 80]
-  y-axis "mAP50 (%)" 0 60
+  y-axis "mAP50 (%)" 0 --> 60
   line [0, 32, 40, 44, 46, 47, 47.3]
 ```
 

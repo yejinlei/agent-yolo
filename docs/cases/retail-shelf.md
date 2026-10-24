@@ -799,7 +799,7 @@ python incremental.py \
 xychart-beta
   title "粗分类 68 类收敛（v8s 640，示意）"
   x-axis [0, 10, 20, 40, 60, 80, 100]
-  y-axis "loss" 0 4
+  y-axis "loss" 0 --> 4
   line [3.8, 1.6, 0.9, 0.45, 0.22, 0.12, 0.08]
 ```
 
@@ -809,7 +809,7 @@ xychart-beta
 xychart-beta
   title "SKU 细分类 Recall 月度走势（示意）"
   x-axis [0, 2, 4, 6, 8, 10, 12]
-  y-axis "Recall (%)" 0 100
+  y-axis "Recall (%)" 0 --> 100
   line [91, 82, 88, 85, 90, 87, 92]
 ```
 

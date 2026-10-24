@@ -420,7 +420,7 @@ python train_slowfast.py \
 xychart-beta
   title "检测 loss 收敛（v8s 640，示意）"
   x-axis [0, 5, 10, 20, 30, 45, 60]
-  y-axis "loss" 0 4
+  y-axis "loss" 0 --> 4
   line [3.6, 1.9, 1.1, 0.62, 0.41, 0.26, 0.19]
 ```
 
@@ -430,7 +430,7 @@ xychart-beta
 xychart-beta
   title "事件召回 vs 误报率（示意，随训练推进）"
   x-axis [0, 10, 20, 30, 40, 50, 60]
-  y-axis "value (%)" 0 100
+  y-axis "value (%)" 0 --> 100
   line [0, 42, 63, 78, 86, 90, 92]
 ```
 

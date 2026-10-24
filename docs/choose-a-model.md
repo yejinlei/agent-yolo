@@ -76,7 +76,7 @@ flowchart TB
   E -->|内嵌| C
   E -->|独立/社区| F[YOLO-World / YOLOE]
   D -->|否| G{是否要多相机/多视角?}
-  G -->|是| H[YOLOv14 (Omni)<br/>⚠️ 学术线]
+  G -->|是| H[YOLOv14 Omni<br/>学术线]
   G -->|否| I{核心诉求?}
   I -->|极致速度/边缘| J[⭐ v11<br/>C3k2 · 2.6M]
   I -->|最佳精度/科研| K[⭐ v13<br/>DSC3k2+HyperACE]

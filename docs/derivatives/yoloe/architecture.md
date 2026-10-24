@@ -58,7 +58,7 @@ YOLOE-v8 / YOLOE-11 / YOLOE-26 的 Backbone 与 Neck 完全沿用对应基座版
 
 ```mermaid
 flowchart TB
-    subgraph [每个尺度 P3/P4/P5]
+    subgraph S1["每个尺度 P3/P4/P5"]
         X["x_i"] --> CV2["cv2<br/>位置分支<br/>→ reg_max×4"]
         X --> CV3["cv3<br/>类别分支<br/>→ embed=512"]
         CV3 --> CV4["cv4 = BNContrastiveHead<br/>cls_feat @ cls_pe.T × logit_scale + bias<br/>→ cls_pe.shape[-1]"]
@@ -105,7 +105,7 @@ class YOLOEDetect(Detect):
 
 ```mermaid
 flowchart LR
-    TXT["文本 prompt<br/>'dog cat'] --> TOK["CLIP tokenizer<br/>(≤77 token)"]
+    TXT["文本 prompt<br/>'dog cat'"] --> TOK["CLIP tokenizer<br/>(最多 77 tokens)"]
     TOK --> MOB["MobileCLIP-B(LT)<br/>512-dim embedding"]
     MOB --> RTA["RepRTA = Residual(SwiGLUFFN)"]
     RTA --> NORM["F.normalize(dim=-1)"]
@@ -255,13 +255,13 @@ class YOLOESegment(YOLOEDetect):
 
 ```mermaid
 flowchart TB
-    subgraph [训练时]
+    subgraph TRAIN["训练时"]
         A1["cv3[i][-1]<br/>1×1 Conv(embed, embed)"]
         A2["cv4[i] = BNContrastiveHead<br/>BN + logit_scale + bias"]
         A3["reprta = Residual(SwiGLUFFN)"]
         A4["txt_pe (B, N, 512)"]
     end
-    subgraph [fuse() 后]
+    subgraph FUSED["fuse() 后"]
         B1["cls_head[-1] = 1×1 Conv(embed, N)<br/>W_new = txt @ W<br/>b_new = txt @ b + bias"]
         B2["reprta = Identity"]
     end
@@ -361,13 +361,13 @@ YOLOE-26 系列在 Ultralytics 8.4.0（2026-01-14）首发，**头结构不变**
 
 ```mermaid
 flowchart LR
-    subgraph [YOLOE（fuse 后）]
+    subgraph YOLOE["YOLOE（fuse 后）"]
         IE1["P3"] --> IE_C2["cv2"]
         IE1 --> IE_C3["cv3 → 1×1 Conv(N, 1)"]
         IE_C2 --> IE_CAT["concat"]
         IE_C3 --> IE_CAT
     end
-    subgraph [闭集 YOLOv8]
+    subgraph CLOSED["闭集 YOLOv8"]
         CE1["P3"] --> CE_C2["cv2"]
         CE1 --> CE_C3["cv3 → 1×1 Conv(80, 1)"]
         CE_C2 --> CE_CAT["concat"]

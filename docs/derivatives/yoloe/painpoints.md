@@ -357,7 +357,7 @@ flowchart TB
         A2["cv3[i] 1×1 Conv<br/>权重已折叠文本 embedding"]
         A2 -.-> X["无法再调用<br/>set_classes()"]
     end
-    BEFORE -->|fuse()| AFTER
+    BEFORE -->|"fuse()"| AFTER
 ```
 
 ### 8.2 源码证据

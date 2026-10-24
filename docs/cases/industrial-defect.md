@@ -567,7 +567,7 @@ yolo detect finetune data=datas/pcb_da.yaml \
 xychart-beta
   title "PCB 缺陷检测收敛（v13s 1280，示意）"
   x-axis [0, 5, 10, 20, 30, 45, 60]
-  y-axis "loss / mAP" 0 6
+  y-axis "loss / mAP" 0 --> 6
   line [6.2, 3.6, 2.4, 1.4, 0.9, 0.55, 0.42]
 ```
 
@@ -577,7 +577,7 @@ xychart-beta
 xychart-beta
   title "划痕 Recall 收敛（关键稀有类，示意）"
   x-axis [0, 5, 10, 20, 30, 45, 60]
-  y-axis "Recall (%)" 0 100
+  y-axis "Recall (%)" 0 --> 100
   line [0, 22, 41, 62, 73, 79, 83]
 ```
 

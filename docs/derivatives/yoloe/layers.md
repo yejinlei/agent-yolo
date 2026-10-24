@@ -625,7 +625,7 @@ flowchart LR
     subgraph AFTER["fuse 后"]
         F4["cv3[-1]: 普通 1×1 Conv<br/>(已吸收 tpe @ W)"]
     end
-    BEFORE -.->|fuse(txt_feats)| AFTER
+    BEFORE -.->|"fuse(txt_feats)"| AFTER
 ```
 
 **fuse 后 `YOLOEDetect` 与闭集 `Detect` 结构完全同构**——这是 YOLOE 零样本推理零延迟的数学保证。

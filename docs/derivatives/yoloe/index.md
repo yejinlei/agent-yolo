@@ -20,7 +20,7 @@
 
 ```mermaid
 flowchart LR
-    T["文本 prompt<br/>'dog cat'] -->|"RepRTA<br/>SwiGLU+Residual"| PE["class prompt embedding"]
+    T["文本 prompt<br/>dog cat"] -->|"RepRTA<br/>SwiGLU + Residual"| PE["class prompt embedding"]
     V["视觉 prompt<br/>SAM 2.1 mask"] -->|"SAVPE<br/>Decoupled Q/K"| PE
     P["Prompt-free<br/>1000 词 vocabulary"] -->|"LRPC<br/>Region-Prompt Contrast"| PE
     PE --> H["YOLOEDetect / YOLOESegment<br/>BNContrastiveHead"]

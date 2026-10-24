@@ -145,20 +145,20 @@ yolo detect train data=... \
 
 ```mermaid
 xychart-beta
-  title "<案例> 收敛示意"
+  title "示例：车道线收敛"
   x-axis [0, 10, 20, 40, 60, 80, 100]
-  y-axis "loss / mAP" 0 5
-  line [<你的数据>]
+  y-axis "loss / mAP" 0 --> 5
+  line [4.8, 3.2, 2.1, 1.2, 0.8, 0.5, 0.3]
 ```
 
 **关键指标**（比 mAP 更贴近业务的那个）：
 
 ```mermaid
 xychart-beta
-  title "<指标名> 收敛"
+  title "示例：mAP 收敛"
   x-axis [0, 10, 20, 40, 60, 80, 100]
-  y-axis "%" 0 100
-  line [<你的数据>]
+  y-axis "%" 0 --> 100
+  line [20, 45, 62, 78, 88, 94, 96]
 ```
 
 > **注意**：`xychart-beta` 的 x-axis **必须全数值**，不支持字符串标签。用 `[0, 10, 20]` 而不是 `["0ep", "10ep"]`。

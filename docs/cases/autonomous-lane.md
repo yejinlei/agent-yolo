@@ -665,7 +665,7 @@ yolo detect export model=exp/lane_v11x/weights/best.pt \
 xychart-beta
   title "车道线 mask mAP 收敛（v11x 1920，示意）"
   x-axis [0, 5, 10, 15, 25, 35, 40]
-  y-axis "loss" 0 5
+  y-axis "loss" 0 --> 5
   line [4.8, 2.6, 1.5, 1.0, 0.65, 0.42, 0.35]
 ```
 
@@ -675,7 +675,7 @@ xychart-beta
 xychart-beta
   title "mask mAP & 夜间召回（示意）"
   x-axis [0, 5, 10, 15, 25, 35, 40]
-  y-axis "value (%)" 0 100
+  y-axis "value (%)" 0 --> 100
   line [0, 34, 46, 51, 55, 58, 59]
   line [0, 42, 62, 73, 82, 88, 89]
 ```

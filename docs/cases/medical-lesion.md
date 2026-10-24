@@ -906,7 +906,7 @@ python federate.py \
 xychart-beta
   title "病灶 mask mAP 收敛（v8m 1280 + Tversky，示意）"
   x-axis [0, 10, 20, 40, 60, 80, 100, 120]
-  y-axis "loss" 0 5
+  y-axis "loss" 0 --> 5
   line [4.6, 2.3, 1.4, 0.85, 0.55, 0.38, 0.28, 0.22]
 ```
 
@@ -916,7 +916,7 @@ xychart-beta
 xychart-beta
   title "黑色素瘤 Recall & Precision（示意）"
   x-axis [0, 10, 20, 40, 60, 80, 100, 120]
-  y-axis "value (%)" 0 100
+  y-axis "value (%)" 0 --> 100
   line [0, 42, 62, 78, 87, 91, 94, 96]
   line [0, 78, 82, 84, 85, 86, 86, 86]
 ```
