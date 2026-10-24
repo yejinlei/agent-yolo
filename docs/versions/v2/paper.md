@@ -310,30 +310,12 @@ v2 保留 weight decay = 0.0005，**去掉了 dropout**。
 
 ```mermaid
 flowchart TB
-subgraph Stem
-S1["Conv 3×3, 32"] ; S2["MaxPool"] ; S3["Conv 3×3, 64"] ; S4["MaxPool"]
-S1 --> S2 --> S3 --> S4
-end
-subgraph B1["Dense1"]
-D1a["Conv 3×3, 128"] ; D1b["Conv 1×1, 64"] ; D1c["Conv 3×3, 128"] ; D1d["MaxPool"]
-D1a --> D1b --> D1c --> D1d
-end
-subgraph B2["Dense2"]
-D2a["Conv 3×3, 256"] ; D2b["Conv 1×1, 128"] ; D2c["Conv 3×3, 256"] ; D2d["MaxPool"]
-D2a --> D2b --> D2c --> D2d
-end
-subgraph B3["Dense3"]
-D3a["Conv 3×3, 512"] ; D3b["Conv 1×1, 256"] ; D3c["Conv 3×3, 512"] ; D3d["Conv 1×1, 256"] ; D3e["Conv 3×3, 512"] ; D3f["MaxPool"]
-D3a --> D3b --> D3c --> D3d --> D3e --> D3f
-end
-subgraph B4["Dense4"]
-D4a["Conv 3×3, 1024"] ; D4b["Conv 1×1, 512"] ; D4c["Conv 3×3, 1024"] ; D4d["Conv 1×1, 512"] ; D4e["Conv 3×3, 1024"]
-D4a --> D4b --> D4c --> D4d --> D4e
-end
-subgraph B5["Dense5 + Head"]
-D5a["Conv 3×3, 1024"] ; D5b["Conv 3×3, 1024"] ; D5c["Passthrough"] ; D5d["Conv 3×3, 1024"] ; D5e["Conv 1×1, 425"]
-D5a --> D5b --> D5c --> D5d --> D5e
-end
+subgraph Stem ; S1["Conv 3×3, 32"] --> S2["MaxPool"] --> S3["Conv 3×3, 64"] --> S4["MaxPool"] ; end
+subgraph B1["Dense1"] ; D1a["Conv 3×3, 128"] --> D1b["Conv 1×1, 64"] --> D1c["Conv 3×3, 128"] --> D1d["MaxPool"] ; end
+subgraph B2["Dense2"] ; D2a["Conv 3×3, 256"] --> D2b["Conv 1×1, 128"] --> D2c["Conv 3×3, 256"] --> D2d["MaxPool"] ; end
+subgraph B3["Dense3"] ; D3a["Conv 3×3, 512"] --> D3b["Conv 1×1, 256"] --> D3c["Conv 3×3, 512"] --> D3d["Conv 1×1, 256"] --> D3e["Conv 3×3, 512"] --> D3f["MaxPool"] ; end
+subgraph B4["Dense4"] ; D4a["Conv 3×3, 1024"] --> D4b["Conv 1×1, 512"] --> D4c["Conv 3×3, 1024"] --> D4d["Conv 1×1, 512"] --> D4e["Conv 3×3, 1024"] ; end
+subgraph B5["Dense5 + Head"] ; D5a["Conv 3×3, 1024"] --> D5b["Conv 3×3, 1024"] --> D5c["Passthrough"] --> D5d["Conv 3×3, 1024"] --> D5e["Conv 1×1, 425"] ; end
 S4 --> B1 --> B2 --> B3 ; D3e --> D5a ; D3f --> D4a ; D4e --> D5c ; D5e --> R["Region 13×13×5×85"]
 ```
 
