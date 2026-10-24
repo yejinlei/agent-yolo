@@ -210,6 +210,8 @@ xychart-beta
 
 **v26 是首个 8 任务统一 backbone**——把 YOLOE 也塞进同一 backbone，成为"YOLO 家族的最终形态"。v14（YOLO-Omni）走的不是任务广度路线，而是**多相机/多视角感知**——它把"任务"扩展到了"视角"维度，两者是不同方向的分叉。
 
+**任务扩展阅读**：[Segment](/tasks/segment) · [Pose](/tasks/pose) · [OBB](/tasks/obb) · [Rotated](/tasks/rotated) · [Depth](/tasks/depth)
+
 ## 快速选择指南
 
 **如果你……**

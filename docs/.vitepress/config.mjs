@@ -76,7 +76,8 @@ export default defineConfig({
         { text: 'YOLOv11', link: '/versions/v11/index' },
         { text: 'YOLOv13', link: '/versions/v13/index' },
         { text: 'YOLOv14 (Omni)', link: '/versions/v14/index' },
-        { text: 'YOLO26', link: '/versions/v26/index' }
+        { text: 'YOLO26', link: '/versions/v26/index' },
+        { text: 'YOLO27 (Preview)', link: '/models/v27-preview' }
       ]},
       { text: '衍生分支', items: [
         { text: '总览', link: '/derivatives/index' },
@@ -89,7 +90,8 @@ export default defineConfig({
         { text: '实例分割', link: '/tasks/segment' },
         { text: '姿态估计', link: '/tasks/pose' },
         { text: '定向框 OBB', link: '/tasks/obb' },
-        { text: '旋转检测', link: '/tasks/rotated' }
+        { text: '旋转检测', link: '/tasks/rotated' },
+        { text: '单目深度估计', link: '/tasks/depth' }
       ]},
       { text: '实操', items: [
         { text: '训练与微调', link: '/recipes/train' },
@@ -112,6 +114,7 @@ export default defineConfig({
         { text: '术语表', link: '/glossary' }
       ]},
       { text: '实战案例', link: '/cases' },
+      { text: '即用配方', link: '/solutions/recipes' },
       { text: '本体', link: '/ontology/schema' },
       { text: '论文索引', link: '/references' },
       { text: '关于', link: '/about' },
@@ -127,6 +130,7 @@ export default defineConfig({
           { text: '小白入门', link: '/for-beginners' },
           { text: '进阶学习路线', link: '/mid-level-path' },
           { text: '实战案例总览', link: '/cases' },
+          { text: '即用配方（Solutions）', link: '/solutions/recipes' },
           { text: '翻车案例集', link: '/bad-cases' }
         ]
       },
@@ -734,7 +738,8 @@ export default defineConfig({
             { text: '实例分割 Segment', link: '/tasks/segment' },
             { text: '姿态估计 Pose', link: '/tasks/pose' },
             { text: '定向框 OBB', link: '/tasks/obb' },
-            { text: '旋转检测 Rotated', link: '/tasks/rotated' }
+            { text: '旋转检测 Rotated', link: '/tasks/rotated' },
+            { text: '单目深度估计 Depth', link: '/tasks/depth' }
           ]
         },
         {
@@ -742,6 +747,22 @@ export default defineConfig({
           items: [
             { text: '常见问题 FAQ', link: '/faq' },
             { text: '进阶学习路线', link: '/mid-level-path' }
+          ]
+        }
+      ],
+      '/solutions/': [
+        {
+          text: '即用配方',
+          items: [
+            { text: 'Solutions 配方总览', link: '/solutions/recipes' }
+          ]
+        },
+        {
+          text: '相关',
+          items: [
+            { text: '实战案例总览', link: '/cases' },
+            { text: '安防监控案例', link: '/cases/security-monitoring' },
+            { text: '训练与微调', link: '/recipes/train' }
           ]
         }
       ],

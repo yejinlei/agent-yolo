@@ -174,6 +174,70 @@ agent-yolo/
 - 贡献者指南完善
 - 版本时间线的可视化增强
 
+### 已完成（Batch 4）
+
+- 12 案例横向对比（选型速查 + 踩坑聚合）
+- 版本矩阵扩充（任务广度对比）
+- 时间线可视化（Gantt 全景 + 三时代划分）
+- 术语中英对照总表（130 条）
+
+### 已完成（Batch 5 · 2026-10-25）
+
+- MOT 案例扩到 6 tracker + 决策树 + ONNX ReID
+- Ultralytics Solutions 配方页（8 配方 · 即用不训）
+- 单目深度估计任务页（yolo26-depth 5 档 + calibrate()）
+- YOLO27 雷达页（Preview · 未 GA）
+
+---
+
+## 训练配方约定：三种文档的边界
+
+本仓库有大量"训练 / 使用 / 落地"的文档，为避免读者混淆，统一约定三类文档的边界与命名：
+
+| 目录 | 定位 | 训不训模型 | 典型内容 |
+|-----|-----|---------|---------|
+| [**cases/**](/cases) | 深度实战案例 | ✅ 从数据到部署全链路 | 具体场景 + 演进故事 + 反哺信号 |
+| [**solutions/**](/solutions/recipes) | 官方即用配方 | ❌ 直接用官方权重 | 5-8 行 CLI + 关键参数 + 常见坑 |
+| [**recipes/**](/recipes/train) | 训练 / 部署实操手册 | ✅ 训练方法学 | 训练技巧 · 数据标注 · 量化 · 生产化 |
+| [**tasks/**](/tasks/segment) | 单任务技术页 | 可训可推理 | 任务定义 · 架构 · 数据集 · 调优 |
+| [**versions/**](/versions/v26/index) | 单版本深度页 | 参考实现 | 论文精读 · 源码走读 · 逐层图解 |
+
+**决策速查**：
+
+- 我要"用现成模型快速出结果" → 看 [solutions/recipes](/solutions/recipes)
+- 我要"从零训练一个模型" → 看 [recipes/train](/recipes/train)
+- 我要"某个具体场景的完整方案" → 看 [cases/](/cases) 里的对应案例
+- 我要"某个任务的技术细节" → 看 [tasks/](/tasks/segment) 对应任务
+- 我要"某个版本到底改了什么" → 看 [versions/](/versions/v26/index) 对应版本
+
+**避免踩坑的通用约定**：
+
+1. **cases/ 只写"能复现的方案"**——不允许只写"用 XX 模型"这种空话
+2. **solutions/ 只写"能直接跑的命令"**——每个配方必须有一键脚本
+3. **recipes/ 只写"训练方法学"**——不绑定具体版本或场景
+4. **反哺信号（PainPoint / Trick / Metric）只允许出现在 cases/ 与 tasks/**——recipes/ 是"方法学"层，不承担反哺责任
+
+**新增案例时必须做的 4 件事**：
+1. 在 [cases/compare.md](/cases/compare) 加入 12 案例横向对比表
+1. 在 [compare-matrix.md](/compare-matrix) 的"实战案例与版本匹配"表加一行
+3. 在 [cases/index.md](/cases) 的案例索引加一行
+4. 在 [.vitepress/config.mjs](https://github.com/yejinlei/agent-yolo/blob/main/docs/.vitepress/config.mjs) 的 sidebar 加链接
+
+**新增任务页时必须做的 3 件事**：
+1. 在 [compare-matrix.md](/compare-matrix) 的"任务广度对比"表加一行
+2. 在 nav / sidebar 两处都加链接
+3. 在至少 1 个案例页里做回链
+
+**新增版本页时必须做的 3 件事**：
+1. 在 [compare-matrix.md](/compare-matrix) 的"主线版本对比"表加一行
+2. 在 [global/timeline.md](/global/timeline) 的 Gantt 加一个节点
+3. 在 [versions/changelog.md](/versions/changelog) 加入改动清单
+
+**新增 solutions 配方时必须做的 3 件事**：
+1. 在 [solutions/recipes.md](/solutions/recipes) 加入全景表
+2. 加入横向对比表
+3. 关联到至少 1 个 cases/ 深度案例
+
 ---
 
 ## 参与项目
