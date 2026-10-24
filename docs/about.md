@@ -188,6 +188,13 @@ agent-yolo/
 - 单目深度估计任务页（yolo26-depth 5 档 + calibrate()）
 - YOLO27 雷达页（Preview · 未 GA）
 
+### 已完成（Batch 6 · 2026-10-25）
+
+- **交互式模型对比**（`/interactive/compare`）：浏览器内跑 ONNX 推理，对比 yolo26n / yolo11n / yolov8n，onnxruntime-web WASM + SIMD
+- **贡献者指南**（`/CONTRIBUTING`）：10 章规范 · 5 类文档边界 · 术语一致性 · PR checklist
+- **版本一句话差异卡片**（`/versions/deltas`）：v1→v27 Preview 共 16 张卡片 · 3 张速查表 · 三代范式
+- **反哺信号自动同步脚本**（`scripts/sync-feedback.js`）：扫描全站 markdown，生成 `/concepts-feedback` 汇总页（41 条信号 · PainPoint 14 / Trick 18 / Metric 9）
+
 ---
 
 ## 训练配方约定：三种文档的边界
@@ -258,6 +265,7 @@ agent-yolo/
 
 **贡献前请读**：
 
+- [docs/CONTRIBUTING.md](/CONTRIBUTING) — 贡献指南（章节结构 / 术语一致性 / PR checklist）
 - [docs/glossary.md](/glossary) — 术语必须与全站一致
 - [docs/.vitepress/config.mjs](https://github.com/yejinlei/agent-yolo/blob/main/docs/.vitepress/config.mjs) — 新增页面要更新 nav + sidebar
 
@@ -284,5 +292,8 @@ A：如果你是纯使用者（跑模型、改参数），本体层不重要，�
 - 想快速上手 → [for-beginners](/for-beginners)
 - 想系统学习 → [mid-level-path](/mid-level-path)
 - 想查术语 → [glossary](/glossary)
+- 想在浏览器内试模型 → [interactive/compare](/interactive/compare)
+- 想看版本差异 → [versions/deltas](/versions/deltas)
+- 想贡献内容 → [CONTRIBUTING](/CONTRIBUTING)
 - 想看本体细节 → [ontology/schema](/ontology/schema)
 - 想提意见 → [GitHub Issues](https://github.com/yejinlei/agent-yolo/issues)

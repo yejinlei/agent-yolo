@@ -100,7 +100,8 @@ export default defineConfig({
         { text: '边缘设备实战', link: '/recipes/edge-deploy' },
         { text: '数据标注避坑', link: '/recipes/data-annotation' },
         { text: '高级训练技巧', link: '/recipes/advanced-train' },
-        { text: '生产化落地', link: '/recipes/production' }
+        { text: '生产化落地', link: '/recipes/production' },
+        { text: '交互式对比（浏览器 ONNX）', link: '/interactive/compare' }
       ]},
       { text: '问答', link: '/faq' },
       { text: '翻车案例', link: '/bad-cases' },
@@ -117,6 +118,9 @@ export default defineConfig({
       { text: '即用配方', link: '/solutions/recipes' },
       { text: '本体', link: '/ontology/schema' },
       { text: '论文索引', link: '/references' },
+      { text: '贡献指南', link: '/CONTRIBUTING' },
+      { text: '反哺信号', link: '/concepts-feedback' },
+      { text: '版本差异卡片', link: '/versions/deltas' },
       { text: '关于', link: '/about' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
@@ -169,7 +173,14 @@ export default defineConfig({
             { text: '数据流全景', link: '/data-flow' },
             { text: '故障排查', link: '/troubleshooting' },
             { text: '概念反向索引', link: '/concepts' },
+            { text: '反哺信号汇总', link: '/concepts-feedback' },
             { text: '常见问题 FAQ', link: '/faq' }
+          ]
+        },
+        {
+          text: '交互式',
+          items: [
+            { text: '交互式模型对比（浏览器 ONNX）', link: '/interactive/compare' }
           ]
         },
         {
@@ -179,6 +190,7 @@ export default defineConfig({
           { text: '论文与仓库索引', link: '/references' },
           { text: '本体 Schema', link: '/ontology/schema' },
           { text: '编写新页指南', link: '/ontology/authoring' },
+          { text: '贡献指南（CONTRIBUTING）', link: '/CONTRIBUTING' },
           { text: '关于本项目', link: '/about' }
         ]
       }
@@ -586,6 +598,7 @@ export default defineConfig({
           items: [
             { text: '术语表', link: '/glossary' },
             { divider: true },
+            { text: '版本一句话差异卡片', link: '/versions/deltas' },
             { text: '版本改动清单', link: '/versions/changelog' },
             { text: 'v8 vs v11 架构 diff', link: '/versions/deep-dive-v8-v11' },
             { text: '逐版本 diff（v1→v26）', link: '/versions/version-diffs' }
@@ -728,6 +741,14 @@ export default defineConfig({
             { text: 'nn/modules/transformer.py', link: '/derivatives/master/source/transformer-py' },
             { text: 'nn/modules/head.py', link: '/derivatives/master/source/head-py' },
             { text: 'models/yolo/detect/train.py', link: '/derivatives/master/source/train-py' }
+          ]
+        }
+      ],
+      '/interactive/': [
+        {
+          text: '交互式',
+          items: [
+            { text: '交互式模型对比（浏览器 ONNX）', link: '/interactive/compare' }
           ]
         }
       ],

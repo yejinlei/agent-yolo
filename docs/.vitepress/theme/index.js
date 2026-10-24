@@ -13,6 +13,7 @@ import DiagramDecode from './components/DiagramDecode.vue'
 import DiagramArch from './components/DiagramArch.vue'
 import DiagramNms from './components/DiagramNms.vue'
 import DiagramPipeline from './components/DiagramPipeline.vue'
+import InteractiveCompare from './components/InteractiveCompare.vue'
 
 // @AI_GUARD: Mermaid 主题变量必须与 style.css 的 d-* 调色板保持一致；明暗两套都要维护
 const MERMAID_THEMES = {
@@ -56,6 +57,7 @@ export default {
     app.component('DiagramArch', DiagramArch)
     app.component('DiagramNms', DiagramNms)
     app.component('DiagramPipeline', DiagramPipeline)
+    app.component('InteractiveCompare', InteractiveCompare)
 
     if (typeof window === 'undefined') return
 
