@@ -583,7 +583,8 @@ export default defineConfig({
             { text: '术语表', link: '/glossary' },
             { divider: true },
             { text: '版本改动清单', link: '/versions/changelog' },
-            { text: 'v8 vs v11 架构 diff', link: '/versions/deep-dive-v8-v11' }
+            { text: 'v8 vs v11 架构 diff', link: '/versions/deep-dive-v8-v11' },
+            { text: '逐版本 diff（v1→v26）', link: '/versions/version-diffs' }
           ]
         }
       ],
@@ -615,7 +616,11 @@ export default defineConfig({
             { text: '安防监控', link: '/cases/security-monitoring' },
             { text: '智慧农业', link: '/cases/agriculture' },
             { text: '无人机 OBB', link: '/cases/drone-obb' },
-            { text: '3D BEV', link: '/cases/3d-bev' }
+            { text: '3D BEV', link: '/cases/3d-bev' },
+            { divider: true },
+            { text: '多目标跟踪（MOT）', link: '/cases/mot' },
+            { text: '视频流检测优化', link: '/cases/video-stream' },
+            { text: '多模态融合（YOLO + SAM + LLM）', link: '/cases/multimodal' }
           ]
         }
       ],

@@ -118,7 +118,7 @@ reproduceLink: "experiments/edge-deployment/rpi4b/"
 
 ## 当前案例索引
 
-9 个案例 · 覆盖 6 大 domain · 每个案例都有 YAML 配置 + 演进故事 + 反哺信号。
+12 个案例 · 覆盖 8 大 domain · 每个案例都有 YAML 配置 + 演进故事 + 反哺信号。
 
 | ID | Domain | 简述 | 状态 |
 |----|--------|------|------|
@@ -131,7 +131,10 @@ reproduceLink: "experiments/edge-deployment/rpi4b/"
 | `case-agriculture-citrus` | agriculture | 柑橘病害 + 成熟度分级 · 多光谱 + 无人机 | 📖 [智慧农业](/cases/agriculture) |
 | `case-drone-port-obb` | drone_aerial | 港口卡车 OBB · 旋转框 + DEM 正射 | 📖 [无人机 OBB](/cases/drone-obb) |
 | `case-3d-bev-driving` | autonomous_driving | 6 目环视 3D 位姿 · v11-3D + BEVFormer | 📖 [3D BEV](/cases/3d-bev) |
-| — | compare | 9 案例横向对比 · 选型速查 · 踩坑聚合 | 📊 [横向对比](/cases/compare) |
+| `case-mot-warehouse` | multimodal_tracking | 仓库叉车调度 · BoT-SORT 6 算法对比 | 📖 [MOT 深度对比](/cases/mot) |
+| `case-video-stream-64` | video_analytics | 64 路 4K 视频流 · NGF + Kafka + 4090 | 📖 [视频流检测优化](/cases/video-stream) |
+| `case-multimodal-shopping` | multimodal_fusion | 商场开放词表 · YOLO-World + SAM + Qwen2-VL | 📖 [多模态融合](/cases/multimodal) |
+| — | compare | 12 案例横向对比 · 选型速查 · 踩坑聚合 | 📊 [横向对比](/cases/compare) |
 
 **推荐阅读顺序**：
 1. 先看 [横向对比](/cases/compare) 的选型速查表定位你的场景
