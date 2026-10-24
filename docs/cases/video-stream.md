@@ -222,6 +222,10 @@ xychart-beta
 - [Kafka Best Practices (Confluent)](https://www.confluent.io/blog/best-practices-for-designing-kafka-topics/)
 - [Caffe2 GPU Backpressure Pattern](https://github.com/pytorch/pytorch/blob/main/caffe2/operators)
 
+## 反哺信号
+
+本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。
+
 ---
 
 **案例作者**：agent-yolo 文档组  

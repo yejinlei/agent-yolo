@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-// 用法：node scripts/audit-cases.js
+// 用法：
+//   node scripts/audit-cases.js         # 仅审计
+//   node scripts/audit-cases.js --fix   # 自动修复缺 "最后更新" 与缺 "## 反哺信号" 章节
 //
 // 功能：对 docs/cases/*.md 中每个「案例页」跑 7 项健康检查，
 //      生成 docs/cases/health.md 审计报告。
+//      加 --fix 时先补齐 2 类可自动修复的问题，再审计。
 //
 // 7 项检查：
 //   a) 最后更新日期    （末尾是否有 "最后更新" 字段）
@@ -15,11 +18,13 @@
 //
 import fs from 'node:fs'
 import path from 'node:path'
+import { execSync } from 'node:child_process'
 
 const ROOT = process.cwd()
 const DOCS = path.join(ROOT, 'docs')
 const CASES = path.join(DOCS, 'cases')
 const OUT = path.join(CASES, 'health.md')
+const FIX = process.argv.includes('--fix')
 
 // 已知版本页（config.mjs 中的 YOLO 主线）
 const KNOWN_VERSIONS = new Set([
@@ -179,6 +184,84 @@ const SKIP_CASES = new Set(['_template.md', 'index.md', 'compare.md', 'health.md
 const files = fs.readdirSync(CASES).filter(f =>
   f.endsWith('.md') && !SKIP_CASES.has(f)
 ).sort()
+
+// ---- --fix: 自动补齐 "最后更新" 日期 + "## 反哺信号" 章节 ----
+function getGitLastCommitDate(relPath) {
+  try {
+    const out = execSync(`git log -1 --format=%ai -- "${relPath}"`, { cwd: ROOT }).toString().trim()
+    return out.split(' ')[0]  // YYYY-MM-DD
+  } catch { return null }
+}
+
+function ensureUpdatedAt(text) {
+  if (/最后更新[^\n]*\d{4}-\d{2}-\d{2}/.test(text)) return { text, changed: false }
+  // 已存在 "案例作者/最后更新/相关案例" 块（无日期）时替换；否则在文件末尾追加
+  if (/\*\*最后更新\*\*[:：]\s*$/.test(text)) {
+    return { text: text.replace(/\*\*最后更新\*\*[:：]\s*$/, '**最后更新**：' + localDate() + '  '), changed: true }
+  }
+  return { text: text.replace(/\s*$/, '') + `\n\n---\n\n**案例作者**：agent-yolo 文档组  \n**最后更新**：${localDate()}  \n`, changed: true }
+}
+
+function ensureSignalSection(text) {
+  if (/^#{2,4}\s+.*反哺信号/m.test(text)) return { text, changed: false }
+  const stub = `
+
+## 反哺信号
+
+本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。
+`
+  return { text: text.replace(/\s*$/, '') + stub, changed: true }
+}
+
+if (FIX) {
+  console.log('🔧 --fix 模式：自动补齐缺失字段')
+  for (const f of files) {
+    const file = path.join(CASES, f)
+    let text = fs.readFileSync(file, 'utf8')
+    const relPath = path.relative(ROOT, file)
+    let changed = false
+
+    // 补齐 "最后更新" 日期（优先用 git commit 日期）
+    if (!/最后更新[^\n]*\d{4}-\d{2}-\d{2}/.test(stripCodeBlocks(text))) {
+      const gitDate = getGitLastCommitDate(relPath)
+      if (gitDate) {
+        // 替换 "**最后更新**： " 空行占位
+        if (/\*\*最后更新\*\*[:：]\s*$/m.test(text)) {
+          text = text.replace(/\*\*最后更新\*\*[:：]\s*$/, `**最后更新**：${gitDate}  `)
+          changed = true
+          console.log(`  + ${f.padEnd(24)} 最后更新 → ${gitDate}`)
+        } else {
+          // 追加到文件末尾
+          text = text.replace(/\s*$/, '') + `\n\n---\n\n**案例作者**：agent-yolo 文档组  \n**最后更新**：${gitDate}  \n`
+          changed = true
+          console.log(`  + ${f.padEnd(24)} 追加末尾 最后更新 ${gitDate}`)
+        }
+      } else {
+        // 无 git 记录则用本地日期
+        text = text.replace(/\s*$/, '') + `\n\n---\n\n**案例作者**：agent-yolo 文档组  \n**最后更新**：${localDate()}  \n`
+        changed = true
+        console.log(`  + ${f.padEnd(24)} 追加末尾 最后更新 ${localDate()} (git 无记录，用本地日期)`)
+      }
+    }
+
+    // 补齐 "## 反哺信号" 章节（插到签名块之前；若无签名块则追加到末尾）
+    if (!/^#{2,4}\s+.*反哺信号/m.test(stripCodeBlocks(text))) {
+      const sigBlockRe = /\n---\n\n\*\*案例作者\*\*[^\n]*\n\*\*最后更新\*\*[^\n]*\n(?:\*\*相关案例\*\*[^\n]*\n)?\s*$/
+      const sigBlock = text.match(sigBlockRe)
+      const stub = `\n## 反哺信号\n\n本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。\n\n---\n\n**案例作者**：agent-yolo 文档组  \n**最后更新**：${localDate()}  `
+      if (sigBlock) {
+        // 把签名块替换成"反哺信号章节 + 签名块"
+        text = text.replace(sigBlockRe, stub + sigBlock[0].slice(sigBlock[0].lastIndexOf('**案例作者**')))
+      } else {
+        text = text.replace(/\s*$/, '') + `\n\n## 反哺信号\n\n本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。\n\n---\n\n**案例作者**：agent-yolo 文档组  \n**最后更新**：${localDate()}  \n`
+      }
+      changed = true
+      console.log(`  + ${f.padEnd(24)} 追加 反哺信号 章节`)
+    }
+
+    if (changed) fs.writeFileSync(file, text, 'utf8')
+  }
+}
 
 const reports = files.map(f => {
   const basename = f.slice(0, -3)

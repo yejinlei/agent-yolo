@@ -4,7 +4,62 @@
 >
 > **前置要求**：高中数学 + Python 语法基础。**不要**先看 [术语表](/glossary)——那本书适合"已经入门想查"的人。
 
----
+<!-- BEGIN_PROGRESS_TRACKER -->
+<div class="beginner-tracker" style="position:sticky;top:60px;z-index:20;background:rgba(255,255,255,0.95);backdrop-filter:blur(6px);padding:12px 16px;margin:-8px -20px 16px;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;">
+    <div style="font-size:14px;font-weight:600;">🎯 通关进度：<span id="beginner-progress-text">0 / 5 页</span></div>
+    <button onclick="localStorage.removeItem('beginner-progress');location.reload()" style="font-size:12px;padding:4px 10px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;">重置</button>
+  </div>
+  <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+    <div id="beginner-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#10b981);transition:width .3s;"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;">
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e5e7eb;background:#fafafa;"><input type="checkbox" class="beginner-step-check" data-step="1" style="margin:0;"> 第 1 页</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e5e7eb;background:#fafafa;"><input type="checkbox" class="beginner-step-check" data-step="2" style="margin:0;"> 第 2 页</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e5e7eb;background:#fafafa;"><input type="checkbox" class="beginner-step-check" data-step="3" style="margin:0;"> 第 3 页</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e5e7eb;background:#fafafa;"><input type="checkbox" class="beginner-step-check" data-step="4" style="margin:0;"> 第 4 页</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid #e5e7eb;background:#fafafa;"><input type="checkbox" class="beginner-step-check" data-step="5" style="margin:0;"> 第 5 页</label>
+  </div>
+</div>
+
+<script>
+(function () {
+  function restore() {
+    var raw = localStorage.getItem('beginner-progress')
+    var done = []
+    try { done = JSON.parse(raw || '[]') } catch (e) {}
+    document.querySelectorAll('.beginner-step-check').forEach(function (el) {
+      var step = parseInt(el.dataset.step, 10)
+      el.checked = done.indexOf(step) >= 0
+      el.addEventListener('change', function () {
+        var key = 'beginner-progress'
+        var cur = []
+        try { cur = JSON.parse(localStorage.getItem(key) || '[]') } catch (e) {}
+        var i = cur.indexOf(step)
+        if (el.checked) { if (i < 0) cur.push(step) } else { if (i >= 0) cur.splice(i, 1) }
+        localStorage.setItem(key, JSON.stringify(cur))
+        render()
+      })
+    })
+    render()
+  }
+  function render() {
+    var bar = document.getElementById('beginner-progress-bar')
+    var txt = document.getElementById('beginner-progress-text')
+    if (!bar || !txt) return
+    var n = document.querySelectorAll('.beginner-step-check:checked').length
+    var pct = (n / 5) * 100
+    bar.style.width = pct + '%'
+    txt.textContent = n + ' / 5 页' + (pct === 100 ? ' ✅ 通关！' : '')
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restore)
+  else restore()
+})()
+</script>
+<!-- END_PROGRESS_TRACKER -->
+
+<details open>
+<summary><strong>第 1 页 · 目标检测到底在做什么</strong> <span style="color:#9ca3af;font-size:0.9em;">（3 分钟 · 输入 / 输出 / bbox / IoU / NMS）</span></summary>
 
 ## 第 1 页 · 目标检测到底在做什么
 
@@ -28,7 +83,10 @@
 
 想深入就跳：[术语表·检测基础](/glossary#检测基础) · [v1·concepts](/versions/v1/concepts)
 
----
+</details>
+
+<details open>
+<summary><strong>第 2 页 · 从 v1 到 v8 的六个关键转折</strong> <span style="color:#9ca3af;font-size:0.9em;">（5 分钟 · 8 个版本演化链）</span></summary>
 
 ## 第 2 页 · 从 v1 到 v8 的六个关键转折
 
@@ -49,7 +107,10 @@
 
 深入跳：[v1](/versions/v1/index) · [v3](/versions/v3/index) · [v4](/versions/v4/index) · [v5](/versions/v5/index) · [v6](/versions/v6/index) · [v7](/versions/v7/index) · [v8](/versions/v8/index)
 
----
+</details>
+
+<details open>
+<summary><strong>第 3 页 · YOLOv8 拆解（重点，工业主力）</strong> <span style="color:#9ca3af;font-size:0.9em;">（10 分钟 · Backbone / Neck / Detect / Loss 四段结构）</span></summary>
 
 ## 第 3 页 · YOLOv8 拆解（重点，工业主力）
 
@@ -81,7 +142,10 @@
 
 跳：[v8·index](/versions/v8/index) · [v8·architecture](/versions/v8/architecture) · [术语表·C2f](/glossary#c2f-csp-变体) · [TAL](/glossary#tal-任务对齐学习) · [DFL](/glossary#dfl-分布焦点损失)
 
----
+</details>
+
+<details open>
+<summary><strong>第 4 页 · v9~v26 各记一句</strong> <span style="color:#9ca3af;font-size:0.9em;">（3 分钟 · 每版只做一件事 + 衍生分支）</span></summary>
 
 ## 第 4 页 · v9~v26 各记一句
 
@@ -107,7 +171,10 @@
 
 跳：[v9](/versions/v9/index) · [v10](/versions/v10/index) · [v11](/versions/v11/index) · [v12](/versions/v12/index) · [v13](/versions/v13/index) · [v14](/versions/v14/index) · [v26](/versions/v26/index) · [衍生分支总览](/derivatives/index)
 
----
+</details>
+
+<details open>
+<summary><strong>第 5 页 · 你该做什么？（按场景选路）</strong> <span style="color:#9ca3af;font-size:0.9em;">（3 分钟 · 按场景选路 + 读完之后的延伸）</span></summary>
 
 ## 第 5 页 · 你该做什么？（按场景选路）
 
@@ -141,6 +208,8 @@
 - 想看**踩坑速查**（症状 → 原因 → 修复，按业务口径组织） → [故障排查](/troubleshooting)
 - 想动手跑起来 → [实战案例](/cases/index)（挑一个跟你最像的场景跑一遍）
 - 想**按算力/精度/场景直接选**（比翻 5 页更快） → [选型决策树](/choose-a-model)
+
+</details>
 
 ---
 
@@ -177,3 +246,16 @@ A：**v14 是第三方学术 fork**（iMoonLab），非 Ultralytics 官方；**Y
 
 **Q：衍生分支我该看哪个？**
 A：**只想换类别就选 YOLO-World**；**要"检测任何东西"选 YOLOE**；**追求多数据集 SOTA 选 YOLO-Master**。三个都是"闭集 YOLO 的扩展"，先看 [衍生分支总览](/derivatives/index) 再决定。
+
+---
+
+## 反哺信号
+
+- **Trick 新增**：`trick-beginner-progress-checklist`（顶部 sticky 进度条 + 5 个 checkbox + localStorage 持久化，把"读 5 页"变成可勾选的通关任务）
+- **Trick 新增**：`trick-details-collapsible-pages`（用 `<details open>` 折叠 5 段内容，小白默认展开不遮挡、老手可折叠快速跳转）
+- **Metric 新增**：`metric-beginner-completion-rate`（5 页勾选率，可追踪小白用户是否走完入门路径）
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-25

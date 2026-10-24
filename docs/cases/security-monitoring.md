@@ -470,3 +470,8 @@ xychart-beta
 - [ByteTrack (arXiv 2110.06864)](https://arxiv.org/abs/2110.06864)
 - [SlowFast Networks (arXiv 1812.03982)](https://arxiv.org/abs/1812.03982)
 - [Person Re-identification Survey](https://arxiv.org/abs/2101.04270)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

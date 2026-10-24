@@ -300,6 +300,10 @@ xychart-beta
 - [MCG-NJU ByteTrack](https://github.com/MCG-NJU/ByteTrack)
 - [MCG-NJU BoT-SORT](https://github.com/ifzhang/BoT-SORT)
 
+## 反哺信号
+
+本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。
+
 ---
 
 **案例作者**：agent-yolo 文档组  

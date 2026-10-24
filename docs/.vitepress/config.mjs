@@ -160,7 +160,10 @@ export default defineConfig({
       { text: '本体', link: '/ontology/schema' },
       { text: '论文索引', link: '/references' },
       { text: '贡献指南', link: '/CONTRIBUTING' },
-      { text: '反哺信号', link: '/concepts-feedback' },
+      { text: '反哺信号', items: [
+        { text: '汇总', link: '/concepts-feedback' },
+        { text: '看板', link: '/feedback-dashboard' }
+      ]},
       { text: '版本差异卡片', link: '/versions/deltas' },
       { text: '关于', link: '/about' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
@@ -216,6 +219,7 @@ export default defineConfig({
             { text: '故障排查', link: '/troubleshooting' },
             { text: '概念反向索引', link: '/concepts' },
             { text: '反哺信号汇总', link: '/concepts-feedback' },
+            { text: '反哺信号看板', link: '/feedback-dashboard' },
             { text: '常见问题 FAQ', link: '/faq' }
           ]
         },
@@ -665,6 +669,7 @@ export default defineConfig({
             { text: '案例总览', link: '/cases' },
             { text: '横向对比（选型速查）', link: '/cases/compare' },
             { text: '案例健康度报告', link: '/cases/health' },
+            { text: '案例×对比一致性', link: '/cases/cross-links' },
             { text: '案例模板（新案例写作）', link: '/cases/_template' },
             { divider: true },
             { text: '边缘部署', link: '/cases/edge-deployment' },

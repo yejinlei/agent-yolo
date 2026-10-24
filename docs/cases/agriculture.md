@@ -471,3 +471,8 @@ xychart-beta
 - [Deep Learning for Plant Disease Detection Review](https://arxiv.org/abs/2101.04299)
 - [MOSAIC: Multispectral Crop Disease Detection](https://arxiv.org/abs/2210.06808)
 - [Segment Anything for Agriculture (arXiv 2308.00583)](https://arxiv.org/abs/2308.00583)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

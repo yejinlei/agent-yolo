@@ -672,3 +672,13 @@ xychart-beta
 - [YOLOv11 paper (ArXiv 2410.17725)](https://arxiv.org/abs/2410.17725)
 - [Ultralytics 量化指南](https://docs.ultralytics.com/guides/quantization/)
 - [TensorRT INT8 PTQ 教程](https://docs.nvidia.com/deeplearning/tensorrt/api/python_api/API/google.protobuf.ModelConfig.html)
+
+## 反哺信号
+
+本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24
+

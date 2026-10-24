@@ -2,18 +2,18 @@
 
 > 自动生成，请勿手改。运行 `node scripts/sync-feedback.js` 重新生成。
 > 最后更新：2026-10-25
-> 扫描范围：`docs/**/*.md` · 共扫描 **344** 个 md 文件，检出 **53** 条信号（分布在 **16** 个文件）
+> 扫描范围：`docs/**/*.md` · 共扫描 **346** 个 md 文件，检出 **60** 条信号（分布在 **22** 个文件）
 
 ## 分类速览
 
 | 类型 | 数量 |
 |-----|-----|
-| PainPoint | 18 |
-| Trick | 24 |
-| Metric | 11 |
-| **合计** | **53** |
+| PainPoint | 19 |
+| Trick | 28 |
+| Metric | 13 |
+| **合计** | **60** |
 
-## PainPoint（18 条）
+## PainPoint（19 条）
 
 | 名称 | 说明 | 来源 |
 |------|------|------|
@@ -30,22 +30,27 @@
 |`pain-mask-edge-fragmentation`| FP16 下分割 mask 边缘锯齿 | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
 |`pain-multi-camera-id-switch`| 多摄像头 ID 切换率难以接受 | `[cases/security-monitoring.md](/cases/security-monitoring)` |
 |`pain-pytorch-export-torch-compile-conflict`| torch.compile 后导出 ONNX 报错 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
+|`pain-signal-density-imbalance`| 12 案例中 4 个信号密度为 0，反映新加案例未走完「文档 → 落地 → 反哺」闭环 | `[feedback-dashboard.md](/feedback-dashboard)` |
 |`pain-sofmax-huge-num-classes`| 千级类别 softmax 训练崩塌 | `[cases/retail-shelf.md](/cases/retail-shelf)` |
 |`pain-temporal-inconsistency`| 相邻帧预测抖动 | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
 |`pain-tensorrt-version-pin`| TensorRT 引擎化后跨版本不通用，回滚困难 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`pain-training-cost-estimate-noise`| 估算与实际偏差大，硬件驱动版本影响明显 | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 |`pain-wasm-sharedarraybuffer-cors`| 浏览器需要 COOP/COEP header 才能开 SharedArrayBuffer | `[interactive/compare.md](/interactive/compare)` |
 
-## Trick（24 条）
+## Trick（28 条）
 
 | 名称 | 说明 | 来源 |
 |------|------|------|
+|`trick-beginner-progress-checklist`| 顶部 sticky 进度条 + 5 个 checkbox + localStorage 持久化，把"读 5 页"变成可勾选的通关任务 | `[for-beginners.md](/for-beginners)` |
 |`trick-browser-onnx-warmup`| 首次推理会因 JIT 慢，预热一次即可稳定 | `[interactive/compare.md](/interactive/compare)` |
 |`trick-browser-ort-wasm-threads`| `numThreads=4` + `proxy=true` 是稳定组合，2 线程以上需 SAB | `[interactive/compare.md](/interactive/compare)` |
 |`trick-coreml-op-coverage-check`| 用 `coremltools` 加载时抓 warning 检查算子覆盖 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
+|`trick-dashed-edge-for-unsaturated`| 关联网络用虚线表示「尚未显式沉淀但内容相近」的关联，比只画实线更容易发现补写点 | `[feedback-dashboard.md](/feedback-dashboard)` |
+|`trick-details-collapsible-pages`| 用 `<details open>` 折叠 5 段内容，小白默认展开不遮挡、老手可折叠快速跳转 | `[for-beginners.md](/for-beginners)` |
 |`trick-edge-cloud-candidate-only`| 边缘粗筛 + 云精定位，省带宽 90% | `[cases/agriculture.md](/cases/agriculture)` |
 |`trick-event-cooldown-per-zone`| 事件冷却按 zone 分区，不按全局 | `[cases/security-monitoring.md](/cases/security-monitoring)` |
 |`trick-federated-doctor-loop`| 联邦 + 医师闭环合规方案 | `[cases/medical-lesion.md](/cases/medical-lesion)` |
+|`trick-feedback-dashboard-heatmap`| 用「案例 × 类型」矩阵可视化反哺信号密度，空白格直接暴露文档缺口 | `[feedback-dashboard.md](/feedback-dashboard)` |
 |`trick-foreground-alignment`| Query-based 与 one-to-one 的精度补偿 | `[models/v27-preview.md](/models/v27-preview)` |
 |`trick-gpu-utilization-plateau`| >90% 后加卡边际收益递减 | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 |`trick-log-affine-calibration`| `calibrate()` 闭式解 | `[tasks/depth.md](/tasks/depth)` |
@@ -65,12 +70,13 @@
 |`trick-tversky-loss-recall-first`| α<β Tversky 惩罚漏检 | `[cases/medical-lesion.md](/cases/medical-lesion)` |
 |`trick-version-delta-card`| 版本差异卡片：每代 3 行的极简形式，避免读者陷入版本页细节 | `[versions/deltas.md](/versions/deltas)` |
 
-## Metric（11 条）
+## Metric（13 条）
 
 | 名称 | 说明 | 来源 |
 |------|------|------|
 |`metric-angle-error-deg`| 角度误差（度），OBB 必备指标 | `[cases/drone-obb.md](/cases/drone-obb)` |
 |`metric-backend-latency-yolo11n-640`| yolo11n/640 各后端延迟基准 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
+|`metric-beginner-completion-rate`| 5 页勾选率，可追踪小白用户是否走完入门路径 | `[for-beginners.md](/for-beginners)` |
 |`metric-bev-coverage-m2`| BEV 有效覆盖面积 | `[cases/3d-bev.md](/cases/3d-bev)` |
 |`metric-browser-inference-ms`| WASM 单张 640×640 端到端耗时 | `[interactive/compare.md](/interactive/compare)` |
 |`metric-daily-farmer-action`| 每日农户可执行动作数（业务指标） | `[cases/agriculture.md](/cases/agriculture)` |
@@ -78,6 +84,7 @@
 |`metric-false-positive-rate`| 工业质检场景 FP 比漏检更致命 | `[cases/industrial-defect.md](/cases/industrial-defect)` |
 |`metric-jitter-cm`| 跨帧位置抖动，单位 cm | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
 |`metric-physician-review-time`| 医师复核时间（秒） | `[cases/medical-lesion.md](/cases/medical-lesion)` |
+|`metric-signal-per-source-file`| 来源文件平均信号数，识别热点页与空洞页 | `[feedback-dashboard.md](/feedback-dashboard)` |
 |`metric-time-to-online`| 新类上线时间（分钟） | `[cases/retail-shelf.md](/cases/retail-shelf)` |
 |`metric-training-gpu-hour`| 单 epoch 单卡 A100 耗时 | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 

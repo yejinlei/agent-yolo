@@ -222,6 +222,10 @@ xychart-beta
 - [LLaVA-1.6 (arXiv 2310.03714)](https://arxiv.org/abs/2310.03714)
 - [YOLO + SAM Pipeline (TNTech)](https://github.com/DirkWeigl/ultralytics-yolo-sam-pipeline)
 
+## 反哺信号
+
+本页暂无反哺信号，待后续补充（可参考 [concepts-feedback](/concepts-feedback) 中已有信号格式）。
+
 ---
 
 **案例作者**：agent-yolo 文档组  

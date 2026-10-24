@@ -203,6 +203,14 @@ agent-yolo/
 - **站内搜索增强**：中文 i18n 翻译 + 术语别名注入（`_render` 钩子），中英文双向关键词可搜（anchor-free ↔ 无锚框、nms ↔ 非极大值抑制）
 - **反哺信号增长**：41 → 53 条（新增 12 条：deploy-compare 7 条 + cost-calculator 4 条 + 1 关联）
 
+### 已完成（Batch 8 · 2026-10-25）
+
+- **案例健康度补齐到 100%**（`scripts/audit-cases.js --fix`）：新增 `--fix` 模式，用 `git log` 回填 8 案例的最后更新日期，4 案例自动补 `## 反哺信号` 骨架章节；`/cases/health` 从 85% → **100%**
+- **反哺信号看板**（`/feedback-dashboard`）：53 条信号的可视化聚合，含类型饼图 · 来源热度表 · 12 案例 × 3 类型矩阵 · 关联网络（mermaid graph LR）· 4 类文档缺口清单
+- **小白路径可视化升级**（`/for-beginners`）：顶部 sticky 通关进度条（localStorage 持久化 · 5 段 checkbox）+ 5 段 `<details open>` 折叠 + 3 条反哺信号
+- **案例 × 对比一致性校验脚本**（`scripts/audit-cross-links.js` + `/cases/cross-links`）：三方一致性（案例 ↔ cases/compare.md ↔ compare-matrix.md），12 案例 × 2 对比页 × 6 维度，10 条告警 + 1 条提示
+- **反哺信号增长**：53 → 60 条（+3 for-beginners + 4 feedback-dashboard）
+
 ---
 
 ## 训练配方约定：三种文档的边界

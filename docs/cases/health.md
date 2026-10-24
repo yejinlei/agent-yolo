@@ -2,59 +2,45 @@
 
 > 运行 `node scripts/audit-cases.js` 重新生成。
 > 最后更新：2026-10-25
-> 扫描范围：`docs/cases/*.md`（排除 _template.md / index.md / compare.md） · 共 **12** 个案例页 · 平均得分 **85%**
+> 扫描范围：`docs/cases/*.md`（排除 _template.md / index.md / compare.md） · 共 **12** 个案例页 · 平均得分 **100%**
 
 ## 总览
 
 | 案例 | 得分 | 问题数 | 主要问题 |
 |------|------|--------|----------|
-| [3d-bev](/cases/3d-bev) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [agriculture](/cases/agriculture) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [autonomous-lane](/cases/autonomous-lane) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [drone-obb](/cases/drone-obb) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [edge-deployment](/cases/edge-deployment) | 🟡 5/7 | 2 | 缺少 "最后更新" 日期字段<br>缺少 "## 反哺信号" 章节 |
-| [industrial-defect](/cases/industrial-defect) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [medical-lesion](/cases/medical-lesion) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [mot](/cases/mot) | 🟡 6/7 | 1 | 缺少 "## 反哺信号" 章节 |
-| [multimodal](/cases/multimodal) | 🟡 6/7 | 1 | 缺少 "## 反哺信号" 章节 |
-| [retail-shelf](/cases/retail-shelf) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [security-monitoring](/cases/security-monitoring) | 🟡 6/7 | 1 | 缺少 "最后更新" 日期字段 |
-| [video-stream](/cases/video-stream) | 🟡 6/7 | 1 | 缺少 "## 反哺信号" 章节 |
+| [3d-bev](/cases/3d-bev) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [agriculture](/cases/agriculture) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [autonomous-lane](/cases/autonomous-lane) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [drone-obb](/cases/drone-obb) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [edge-deployment](/cases/edge-deployment) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [industrial-defect](/cases/industrial-defect) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [medical-lesion](/cases/medical-lesion) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [mot](/cases/mot) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [multimodal](/cases/multimodal) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [retail-shelf](/cases/retail-shelf) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [security-monitoring](/cases/security-monitoring) | 🟢 7/7 | 0 | ✅ 全部通过 |
+| [video-stream](/cases/video-stream) | 🟢 7/7 | 0 | ✅ 全部通过 |
 
 ## 问题清单
 
-| 案例 | 检查项 | 问题描述 |
-|------|--------|----------|
-| [3d-bev](/cases/3d-bev) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [agriculture](/cases/agriculture) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [autonomous-lane](/cases/autonomous-lane) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [drone-obb](/cases/drone-obb) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [edge-deployment](/cases/edge-deployment) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [edge-deployment](/cases/edge-deployment) | 反哺信号章节 | 缺少 "## 反哺信号" 章节 |
-| [industrial-defect](/cases/industrial-defect) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [medical-lesion](/cases/medical-lesion) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [mot](/cases/mot) | 反哺信号章节 | 缺少 "## 反哺信号" 章节 |
-| [multimodal](/cases/multimodal) | 反哺信号章节 | 缺少 "## 反哺信号" 章节 |
-| [retail-shelf](/cases/retail-shelf) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [security-monitoring](/cases/security-monitoring) | 最后更新日期 | 缺少 "最后更新" 日期字段 |
-| [video-stream](/cases/video-stream) | 反哺信号章节 | 缺少 "## 反哺信号" 章节 |
+✅ 无问题，所有案例通过全部检查。
 
 ## 详情诊断
 
 | 案例 | 最后更新 | 反哺信号 | 信号同步 | 横向对比 | sidebar | 死链 | 版本页 |
 |------|---------|---------|---------|---------|---------|------|--------|
-| [3d-bev](/cases/3d-bev) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [agriculture](/cases/agriculture) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [autonomous-lane](/cases/autonomous-lane) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [drone-obb](/cases/drone-obb) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [edge-deployment](/cases/edge-deployment) | ❌ 缺少 "最后更新" 日期字段 | ❌ 缺少 "## 反哺信号" 章节 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [industrial-defect](/cases/industrial-defect) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [medical-lesion](/cases/medical-lesion) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [mot](/cases/mot) | ✅ | ❌ 缺少 "## 反哺信号" 章节 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [multimodal](/cases/multimodal) | ✅ | ❌ 缺少 "## 反哺信号" 章节 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [retail-shelf](/cases/retail-shelf) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [security-monitoring](/cases/security-monitoring) | ❌ 缺少 "最后更新" 日期字段 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [video-stream](/cases/video-stream) | ✅ | ❌ 缺少 "## 反哺信号" 章节 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [3d-bev](/cases/3d-bev) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [agriculture](/cases/agriculture) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [autonomous-lane](/cases/autonomous-lane) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [drone-obb](/cases/drone-obb) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [edge-deployment](/cases/edge-deployment) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [industrial-defect](/cases/industrial-defect) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [medical-lesion](/cases/medical-lesion) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [mot](/cases/mot) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [multimodal](/cases/multimodal) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [retail-shelf](/cases/retail-shelf) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [security-monitoring](/cases/security-monitoring) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [video-stream](/cases/video-stream) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## 检查规则
 
@@ -68,4 +54,4 @@
 
 ---
 
-**得分**：总分 **71/84**（85%）
+**得分**：总分 **84/84**（100%）

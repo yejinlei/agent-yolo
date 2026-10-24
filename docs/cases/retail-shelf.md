@@ -848,3 +848,8 @@ xychart-beta
 - [LoRA (arXiv 2106.09685)](https://arxiv.org/abs/2106.09685)
 - [PaddleOCR (GitHub)](https://github.com/PaddlePaddle/PaddleOCR)
 - [MobileNet-V4 (arXiv 2404.10518)](https://arxiv.org/abs/2404.10518)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

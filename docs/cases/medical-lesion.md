@@ -972,3 +972,8 @@ xychart-beta
 - [FedAvg (Geyer et al., 2017)](https://arxiv.org/abs/1610.05492)
 - [FDA AI/ML Medical Device Regulatory](https://www.fda.gov/medical-devices/digital-health-center-excellence/artificial-intelligence-and-machine-learning)
 - [NMPA 三类医疗器械申报指南](https://www.nmpa.gov.cn/)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

@@ -495,3 +495,8 @@ xychart-beta
 - [BEVFormer (arXiv 2203.17270)](https://arxiv.org/abs/2203.17270)
 - [BEVDet (arXiv 2112.11790)](https://arxiv.org/abs/2112.11790)
 - [nuScenes (arXiv 1903.11027)](https://arxiv.org/abs/1903.11027)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

@@ -611,3 +611,8 @@ xychart-beta
 - [Segment Anything Model (arXiv 2304.02643)](https://arxiv.org/abs/2304.02643)
 - [YOLO-World (arXiv 2310.00426)](https://arxiv.org/abs/2310.00426)
 - [NVIDIA TensorRT INT8 QAT Tutorial](https://docs.nvidia.com/deeplearning/tensorrt/api/c_API/usingQuantizationAPI.html)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

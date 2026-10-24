@@ -453,3 +453,8 @@ xychart-beta
 - [YOLOv5-OBB (arXiv 2106.04035)](https://arxiv.org/abs/2106.04035)
 - [DOTA: Drone View Object Detection (arXiv 2104.02514)](https://arxiv.org/abs/2104.02514)
 - [Agisoft Metashape Documentation](https://docs.agisoft.com/)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  

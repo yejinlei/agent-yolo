@@ -715,3 +715,8 @@ xychart-beta
 - [Waymo Open Dataset (CVPR 2020)](https://waymo.com/open/)
 - [YOLOv11 (arXiv 2410.17725)](https://arxiv.org/abs/2410.17725)
 - [YOLO26 SemanticSegment](/versions/v26/concepts#semanticssegment)
+
+---
+
+**案例作者**：agent-yolo 文档组  
+**最后更新**：2026-10-24  
