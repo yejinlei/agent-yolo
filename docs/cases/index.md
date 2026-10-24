@@ -120,11 +120,11 @@ reproduceLink: "experiments/edge-deployment/rpi4b/"
 
 | ID | Domain | 简述 | 状态 |
 |----|--------|------|------|
-| `case-edge-rpi4b` | edge_deployment | 树莓派 4B 实时检测 | 📖 [见边缘部署页](/cases/edge-deployment) |
-| `case-edge-jetson-orin` | edge_deployment | Jetson Orin Nano 自动驾驶 | ⏳ 待补 |
-| `case-industrial-defect` | industrial_inspection | PCB 缺陷检测（少样本 + SAM） | ⏳ 待补 |
-| `case-autonomous-lane` | autonomous_driving | 车道线多尺度检测 | ⏳ 待补 |
-| `case-retail-shelf` | retail | 货架商品 SKU 识别 | ⏳ 待补 |
+| `case-edge-rpi4b` | edge_deployment | 树莓派 4B 实时检测 · 量化对比 | 📖 [边缘部署](/cases/edge-deployment) |
+| `case-industrial-defect` | industrial_inspection | PCB 缺陷检测 · 少样本 + SAM | 📖 [工业质检](/cases/industrial-defect) |
+| `case-autonomous-lane` | autonomous_driving | 车道线多尺度 · v11x 双头 | 📖 [自动驾驶](/cases/autonomous-lane) |
+| `case-retail-shelf` | retail | 货架 3000 SKU · 两级分类 | 📖 [零售](/cases/retail-shelf) |
+| `case-medical-lesion` | medical | 皮肤癌 + 乳腺分割 · SAM + 医师闭环 | 📖 [医疗](/cases/medical-lesion) |
 
 ## 案例编写规范
 
@@ -138,6 +138,5 @@ reproduceLink: "experiments/edge-deployment/rpi4b/"
 
 ## 下一步
 
-- [边缘部署案例](/cases/edge-deployment)：详细拆解 v5n / v8n / v11n 在 RPi / Jetson / 手机上的量化对比
-- 工业质检案例：少样本 + SAM 组合方案（待补）
-- 自动驾驶案例：高分辨率 + 多尺度 neck（待补）
+- 5 个 domain 全部覆盖：[边缘部署](/cases/edge-deployment) · [工业质检](/cases/industrial-defect) · [自动驾驶](/cases/autonomous-lane) · [零售](/cases/retail-shelf) · [医疗](/cases/medical-lesion)
+- 待补子场景：多目标跟踪（MOT）、姿态估计、OBB 旋转框、开放词表检测

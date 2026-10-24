@@ -500,7 +500,11 @@ export default defineConfig({
           text: '实战',
           items: [
             { text: '案例总览', link: '/cases' },
-            { text: '边缘部署', link: '/cases/edge-deployment' }
+            { text: '边缘部署', link: '/cases/edge-deployment' },
+            { text: '工业质检', link: '/cases/industrial-defect' },
+            { text: '自动驾驶', link: '/cases/autonomous-lane' },
+            { text: '零售', link: '/cases/retail-shelf' },
+            { text: '医疗', link: '/cases/medical-lesion' }
           ]
         }
       ],
