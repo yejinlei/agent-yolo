@@ -15,7 +15,7 @@ hero:
 features:
   - icon: 🌳
     title: 全局谱系
-    details: 14 代主线 + 3 个衍生分支，纵览 YOLO 从 2015 到 2026 的完整演进。
+    details: Ultralytics 官方线 v1–v13 + v26、学术线 v9/v14、3 个衍生分支，纵览 YOLO 从 2015 到 2026 的完整演进。
   - icon: 📄
     title: 论文精读
     details: 从 YOLOv1 到 YOLO26，逐代拆解 motivation / innovation / tradeoff。

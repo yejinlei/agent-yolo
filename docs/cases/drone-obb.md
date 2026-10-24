@@ -236,6 +236,9 @@ kubectl apply -f deploy/orthomosaic-analyzer/
 
 ## 常见踩坑 Top 7
 
+> 🔗 跨案例速查：**[故障排查手册](/troubleshooting)** · 症状 → 原因 → 修复
+
+
 1. **OBB 训练不能加随机旋转**：加了反而降精度 3-5pt，因为模型学到的是相对角度
 2. **Mosaic 增强破坏几何**：4 图拼贴让 OBB 角度信息混乱，必须降到 0.2 以下
 3. **正射影像拼接误差**：地形起伏区未做 DEM 校正，正射误差从 0.5cm 恶化到 3m

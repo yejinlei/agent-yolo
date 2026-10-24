@@ -153,6 +153,9 @@ flow_loss = F.l1_loss(mask_t.warp(flow), mask_t_1, weight=0.1)
 
 ## 常见踩坑（Top 7）
 
+> 🔗 跨案例速查：**[故障排查手册](/troubleshooting)** · 症状 → 原因 → 修复
+
+
 ### 1. P2 head 显存爆炸
 
 只加 P2 就 +35% 显存，很多团队选择放弃。折衷：**只在训练时用 P2 head，推理时降级到 P3**，损失召回 3%，但显存回正常。

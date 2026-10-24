@@ -271,6 +271,9 @@ kubectl apply -f deploy/privacy-zones/
 
 ## 常见踩坑 Top 5
 
+> 🔗 跨案例速查：**[故障排查手册](/troubleshooting)** · 症状 → 原因 → 修复
+
+
 1. **NMS IoU 太小 → 目标粘连**：人群场景 IoU 0.5 会把 5 个人合并成 1 个，调到 0.65 缓解
 2. **BoT-SORT ReID 训练数据不足**：ReID embedding 只在同机数据上训会跨摄像头 ID 切换，需要全局 ReID 库
 3. **跌倒慢动作识别不到**：SlowFast 训练集必须包含"缓慢倒下"样本，纯快速动作模型会漏

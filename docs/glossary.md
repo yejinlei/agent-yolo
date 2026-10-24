@@ -511,6 +511,24 @@ v26 的**深度估计损失**：组合 `SILog + MAE + Grad` 三项——SILog �
 ### SemanticSegmentationLoss
 v26 的**语义分割损失**：`CrossEntropyLoss(ignore_index=255) + DiceLoss + FocalLoss`——三项组合解决语义分割的类别不平衡问题（忽略背景 255，用 Dice 处理小目标，用 Focal 处理难易样本）。详解：[v26 losses](/versions/v26/losses)。
 
+## 持续学习与遗忘防护
+
+> 上线后要频繁换 SKU / 新增类别 / 定期换设备时，"学了新任务忘了老任务"就是**灾难性遗忘（catastrophic forgetting）**。三件套来自 [retail-shelf](/cases/retail-shelf) 与 [medical-lesion](/cases/medical-lesion) 案例，详见 [troubleshooting §J](/troubleshooting#j-灾难性遗忘与持续学习)。
+
+### LoRA（Low-Rank Adaptation）
+把大权重矩阵 W 的更新量 ΔW 分解成两个低秩矩阵 A·B（rank 通常 8–64），只训练这两个小矩阵，主权重冻结。参数效率极高（可训参数降到 0.1% 量级），但对"梯度冲击大"的下游头（比如分类头）单独加 LoRA 也不足以解遗忘——必须配合 replay + EWC。
+
+### Replay（回放缓冲区）
+微调新任务时把老任务的少量代表性样本（比如 200 张老 SKU）放进 batch 里一起训，让模型"边学新边复习旧"。**Replay 是持续学习最便宜也最有效的补丁**，200 张老样本就能把遗忘压到 <1%。缺点：老样本需合法可存、要维护采样器。
+
+### EWC（Elastic Weight Consolidation）
+给每个参数打一个"重要性分数"（用老任务上该参数的 Fisher 信息量估计），微调时惩罚与老任务最优值偏离越大的参数——**重要的记忆不许乱动**。EWC penalty 通常 0.05–0.2。是 Fisher regularization 家族的代表，与 Replay 互补。
+
+### 三件套组合
+**LoRA（限更新幅度）+ Replay（覆盖老任务分布）+ EWC（保护重要参数）**，三者解决遗忘的三个不同侧面：更新方向 / 更新分布 / 更新幅度。案例实测新品 90% / 老品 92%（+24pt），缺任一环节都会崩。
+
+---
+
 ## darknet 源码黑话
 
 > 读快照源码时高频出现的"方言"，集中在这里。

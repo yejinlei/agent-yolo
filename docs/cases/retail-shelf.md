@@ -180,6 +180,9 @@ if mask_area / bbox_area < 0.4:
 
 ## 常见踩坑（Top 6）
 
+> 🔗 跨案例速查：**[故障排查手册](/troubleshooting)** · 症状 → 原因 → 修复
+
+
 ### 1. 8000 类 softmax 训练早期就崩塌
 
 直接 fine-tune 8000 类 head，训练前 5 epochs 就会退化为永远预测"最常见类"。**必须**：

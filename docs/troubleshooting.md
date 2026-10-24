@@ -6,6 +6,8 @@
 >
 > **数据来源**：全部来自 [industrial-defect](/cases/industrial-defect) · [edge-deployment](/cases/edge-deployment) · [autonomous-lane](/cases/autonomous-lane) · [medical-lesion](/cases/medical-lesion) · [retail-shelf](/cases/retail-shelf) · [3d-bev](/cases/3d-bev) · [drone-obb](/cases/drone-obb) · [agriculture](/cases/agriculture) · [security-monitoring](/cases/security-monitoring) 9 个案例。
 
+**配合阅读**：链路视角 → [数据流](/data-flow) · 术语速查 → [概念索引](/concepts) · 结构差异 → [对比矩阵](/compare-matrix) · 数字量级 → [基准数据](/benchmarks) · 按场景选型 → [选型决策树](/choose-a-model)
+
 ## 目录
 
 - [A. 训练 & 增强](#a-训练--增强)

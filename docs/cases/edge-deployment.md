@@ -81,6 +81,9 @@ flowchart TB
 
 ## 常见踩坑（Top 8）
 
+> 🔗 跨案例速查：**[故障排查手册](/troubleshooting)** · 症状 → 原因 → 修复
+
+
 ### 1. DFL 在 FP16 下的 NaN
 
 v8n 的 DFL 层用 `F.softmax` 后加权平均，FP16 下 exp 溢出会产生 NaN。修复方式：
