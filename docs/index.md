@@ -23,8 +23,9 @@ features:
     title: 源码走读
     details: darknet（v1–v4）与 PyTorch（v5–v26）双主线，每一行配置都有出处。
   - icon: 🛠️
-    title: 实战案例
-    details: 9 个案例：边缘 / 工业 / 医疗 / 自驾 / 无人机 全链路 TCO 反哺。
+    title: 9 实战案例
+    link: /cases
+    details: 边缘 / 工业 / 医疗 / 自驾 / 零售 / 安防 / 农业 / 无人机 OBB / 3D BEV 全链路 TCO 反哺。
   - icon: 🕸️
     title: 本体 Schema
     details: 自定义 JSON Schema + YAML 实例，非 OWL 但可校验，支持知识图谱查询。

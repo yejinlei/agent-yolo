@@ -59,17 +59,32 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '小白入门', link: '/for-beginners' },
-      { text: '系列演化', link: '/global/family' },
-      { text: '演进故事', link: '/evolution-story' },
-      { text: '对比矩阵', link: '/compare-matrix' },
-      { text: '选型决策', link: '/choose-a-model' },
-      { text: '基准数据', link: '/benchmarks' },
-      { text: '数据流', link: '/data-flow' },
-      { text: '故障排查', link: '/troubleshooting' },
-      { text: '概念索引', link: '/concepts' },
-      { text: '术语表', link: '/glossary' },
-      { text: '时间线', link: '/global/timeline' },
-      { text: '本体 Schema', link: '/ontology/schema' },
+      { text: '版本体系', items: [
+        { text: '系列家族', link: '/global/family' },
+        { text: '演进故事', link: '/evolution-story' },
+        { text: '对比矩阵', link: '/compare-matrix' },
+        { text: '演化事件', link: '/global/evolutions' },
+        { text: '时间线', link: '/global/timeline' },
+        { text: 'YOLOv1', link: '/versions/v1/index' },
+        { text: 'YOLOv3', link: '/versions/v3/index' },
+        { text: 'YOLOv4', link: '/versions/v4/index' },
+        { text: 'YOLOv5', link: '/versions/v5/index' },
+        { text: 'YOLOv8', link: '/versions/v8/index' },
+        { text: 'YOLOv11', link: '/versions/v11/index' },
+        { text: 'YOLOv13', link: '/versions/v13/index' },
+        { text: 'YOLOv14 (Omni)', link: '/versions/v14/index' },
+        { text: 'YOLO26', link: '/versions/v26/index' },
+        { text: '传统 CV 谱系', link: '/global/external-techniques' }
+      ]},
+      { text: '横向使用', items: [
+        { text: '选型决策树', link: '/choose-a-model' },
+        { text: '基准数据', link: '/benchmarks' },
+        { text: '数据流全景', link: '/data-flow' },
+        { text: '故障排查', link: '/troubleshooting' },
+        { text: '概念反向索引', link: '/concepts' },
+        { text: '术语表', link: '/glossary' }
+      ]},
+      { text: '实战案例', link: '/cases' },
       { text: '衍生分支', items: [
         { text: '总览', link: '/derivatives/index' },
         { text: 'YOLO-World', link: '/derivatives/yoloworld/index' },
@@ -77,24 +92,7 @@ export default defineConfig({
         { text: 'YOLO-Master', link: '/derivatives/master/index' },
         { text: '路线预告', link: '/derivatives/roadmap' }
       ]},
-      { text: '版本', items: [
-        { text: 'YOLOv1', link: '/versions/v1/index' },
-        { text: 'YOLOv2', link: '/versions/v2/index' },
-        { text: 'YOLOv3', link: '/versions/v3/index' },
-        { text: 'YOLOv4', link: '/versions/v4/index' },
-        { text: 'YOLOv5', link: '/versions/v5/index' },
-        { text: 'YOLOv6', link: '/versions/v6/index' },
-        { text: 'YOLOv7', link: '/versions/v7/index' },
-        { text: 'YOLOv8', link: '/versions/v8/index' },
-        { text: 'YOLOv9', link: '/versions/v9/index' },
-        { text: 'YOLOv10', link: '/versions/v10/index' },
-        { text: 'YOLOv11', link: '/versions/v11/index' },
-        { text: 'YOLOv12', link: '/versions/v12/index' },
-        { text: 'YOLOv13', link: '/versions/v13/index' },
-        { text: 'YOLOv14 (Omni)', link: '/versions/v14/index' },
-        { text: 'YOLO26', link: '/versions/v26/index' }
-      ]},
-      { text: '实战案例', link: '/cases' },
+      { text: '本体', link: '/ontology/schema' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
 
@@ -709,5 +707,25 @@ export default defineConfig({
 
   // @REASON: /source/* 链接指向仓库内的 source/ 目录（源码快照），非 VitePress 站点内页面，需忽略死链检查
   // @REASON: /groups/* 是历史遗留分组链接，v7 已迁移到 /versions/v7/ 下
-  ignoreDeadLinks: [/^\/source\//, /^\/groups\//]
+  // @REASON: 目录型链接（如 /cases）在部分 Markdown 严格模式下会误判为死链
+  ignoreDeadLinks: [/^\/source\//, /^\/groups\//, /^\/cases$/, /^\/derivatives$/, /^\/ontology$/],
+
+  // @REASON: 把 mermaid / KaTeX 这类重量级依赖切到独立 chunk，避免主 bundle 超 500KB
+  // @REASON: 用函数形式而非字面量，因为 markdown-it 由 vitepress 内部打包，不能作为入口模块
+  // @REASON: 主 bundle 仍会因 vitepress 自身 + vue 内联而超阈值，暂提高上限到 800 而非继续拆分
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('mermaid')) return 'vendor-mermaid'
+              if (id.includes('katex')) return 'vendor-katex'
+            }
+          }
+        }
+      }
+    }
+  }
 })
