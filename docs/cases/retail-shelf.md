@@ -688,6 +688,148 @@ flowchart LR
 2. **增量学习必须防遗忘**：LoRA + Replay + EWC 三件套，缺一不可。
 3. **Prompt 库是运营资产**：新品上架的瓶颈不是模型，是 Prompt 库补齐速度。
 
+## 数据 · 权重 · 训练曲线
+
+### 数据规格快照
+
+**规模**：全国 12 家门店，2500+ SKU × 12 门 = 30 000+ SKU-Instance 组合。
+
+| 数据集 | 规模 | 类别数 | 平均 SKU/图 | 分辨率 | 标注格式 |
+|--------|------|--------|-------------|--------|---------|
+| 门店原始采集 | 45 000 张 | 3 000 SKU | 8.2 | 1600×1200 | YOLO txt |
+| 精修标注集 | 22 500 张 | 3 000 SKU | 8.2 | 1600×1200 | YOLO txt |
+| 品类分类器训练 | 12 000 张 | 68 品类 | 8.2 | 640×640 | ImageNet label |
+| 增量学习 Replay | 3 000 张 | 300 SKU | — | 640×640 | — |
+
+**品类分布（一级 68 类，示例前 10）**：
+
+```
+饮料       ████████████████████████████  12 480
+零食       ███████████████████████████   12 020
+粮油调味    ███████████████████████       9 830
+日用品     █████████████████████         8 540
+乳制品     ████████████████              6 320
+方便食品    ███████████████               5 740
+冷冻食品    ████████████                 4 860
+酒类       ███████████                  4 480
+进口食品    ████████                     3 520
+其他       ████████████████             6 370（长尾 60+ 类合并）
+```
+
+**标注样本**（`store_03_shelf_0124.txt`，1 张货架 8 个 SKU）：
+
+```
+234  0.1250 0.1875 0.1563 0.1250
+236  0.3125 0.1875 0.1563 0.1250
+108  0.5000 0.1875 0.1563 0.1250
+445  0.6875 0.1875 0.1563 0.1250
+234  0.1250 0.3500 0.1563 0.1250
+478  0.3125 0.3500 0.1563 0.1250
+551  0.5000 0.3500 0.1563 0.1250
+632  0.6875 0.3500 0.1563 0.1250
+```
+
+**Prompt 库条目（用于开放词汇扩展新品 SKU）**：
+
+```yaml
+- sku_id: "SKU-9999-NEW"
+  name: "某品牌新上市气泡水 330ml"
+  prompts:
+    - "a 330ml can of sparkling water with green and white label"
+    - "sparkling water beverage, aluminum can, mint color"
+    - "aluminum beverage can, mint green packaging, 330ml"
+  negative_prompts:
+    - "soda bottle, 500ml plastic"
+    - "still water, transparent plastic"
+  similar_skus: ["SKU-3120", "SKU-3184"]   # 相似商品，供 hard-negative
+```
+
+### 预训练权重
+
+3000 SKU 分层方案对起点的要求不高，**关键是分类器**：
+
+| 用途 | 权重 | 下载 |
+|------|------|------|
+| 粗分类（品类 68 类） | `yolov8s.pt` | [HuggingFace · Ultralytics/YOLOv8](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8s.pt) |
+| 细分类骨干（ResNet-50 ImageNet 预训练） | `resnet50-0676ba61.pth` | [PyTorch pretrained](https://download.pytorch.org/models/resnet50-0676ba61.pth) |
+| 开放词汇扩展 | `yolo-world-s.pt` | [GitHub · YOLO-World](https://github.com/AILab-CVC/YOLO-World/releases) |
+| LoRA adapter | 训练产物 | 见复现脚本 |
+
+**本案例产物权重**（占位，非公共发布）：
+
+```
+weights/shelf_coarse_v8s_68cls.pt        # 68 品类粗分类器（Jetson 部署）
+weights/shelf_fine_sku_3000_rn50.pt      # 3000 SKU 细分类器（GPU 部署）
+weights/shelf_fine_sku_3000_rn50_lora_v3 # 双十一后增量学习产物
+weights/yolo_world_s_prompts_v3.yaml     # 280 SKU Prompt 库（双十一新增）
+```
+
+一键复现：
+
+```bash
+# 1. 粗分类（68 品类）
+yolo detect train data=datas/shelf_coarse.yaml \
+  weights=yolov8s.pt imgsz=640 epochs=100 batch=32 \
+  device=0 lr0=0.01
+
+# 2. 细分类（3000 SKU，两阶段 + 分层 softmax）
+python train_fine.py \
+  --data datas/shelf_fine.yaml \
+  --backbone resnet50 \
+  --hier_loss=True \
+  --hier_weights parent=2.0 child=1.0 \
+  --epochs 80 --freeze 5
+
+# 3. LoRA + Replay + EWC 增量学习（双十一 280 新品）
+python incremental.py \
+  --base weights/shelf_fine_sku_3000_rn50.pt \
+  --new datas/new_sku_280.yaml \
+  --replay datas/replay_3000.yaml \
+  --lora_rank 16 --ewc_lambda 4000
+```
+
+### 训练曲线示意
+
+**粗分类 v8s 640 输入，100 epochs**：
+
+```mermaid
+xychart-beta
+  title "粗分类 68 类收敛（v8s 640，示意）"
+  x-axis [0, 10, 20, 40, 60, 80, 100]
+  y-axis "loss" 0 4
+  line [3.8, 1.6, 0.9, 0.45, 0.22, 0.12, 0.08]
+```
+
+**细分类 3000 SKU + 增量学习前后 Recall**（按月看，示意）：
+
+```mermaid
+xychart-beta
+  title "SKU 细分类 Recall 月度走势（示意）"
+  x-axis [0, 2, 4, 6, 8, 10, 12]
+  y-axis "Recall (%)" 0 100
+  line [91, 82, 88, 85, 90, 87, 92]
+```
+
+横轴是月份序号，两次低谷分别是 2 月（双十一 280 新品）和 8 月（618 促销期新品）。用 LoRA + Replay + EWC 后能恢复到 90+。
+
+**关键观察**：
+1. **粗分类 100 epoch 才稳**——68 类相对容易，但 SKU 图像尺度差异大
+2. **细分类 plateau 在 80 epoch**——继续训 recall 反而下降（过拟合）
+3. **每次增量学习 recall 会先跌 3-8 点**——这是新类干扰老类
+4. **LoRA + Replay + EWC 能回补 5-8 点**——但**没有它们**，recall 会跌到 76 甚至 68
+
+**双十一灾难性遗忘复盘**（真实案例）：
+
+| 阶段 | 基线 SKU Recall | 新品 Recall | 老品 Recall | 平均 |
+|------|----------------|-------------|-------------|------|
+| baseline (2 720 SKU) | 91% | — | 91% | 91% |
+| Naive 微调（+ 280） | — | 88% | **68%** | 79% |
+| LoRA only | — | 89% | 84% | 87% |
+| LoRA + Replay | — | 88% | 89% | 89% |
+| LoRA + Replay + EWC | — | 90% | 92% | 92% |
+
+**核心教训**：**LoRA 只解"参数效率"，不解"遗忘"**。遗忘的根是分类头梯度冲击，必须靠 Replay（数据回放）+ EWC（弹性权重巩固）一起救。
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

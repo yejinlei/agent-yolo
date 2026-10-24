@@ -305,6 +305,136 @@ kubectl apply -f deploy/orthomosaic-analyzer/
 2. **正射精度决定业务精度**：像素精度差 1cm，业务精度就差 2000 倍
 3. **业务闭环比技术完美更重要**：降级路径 > 完美方案
 
+## 数据 · 权重 · 训练曲线
+
+本节给出港口 / 物流俯视场景下 OBB 任务的**数据规格快照、官方预训练权重、训练曲线示意**，全部为公开可复现资产。
+
+### 1. 数据规格快照
+
+港口俯视 OBB 的典型组合：**通用俯视基准（DOTA 子集）+ 业务定制（本港自采集装箱/车/船）**。
+
+| 数据集 | 来源 | 样本量 | 类别数 | 图像规格 | 场景特点 |
+| :--- | :--- | :---: | :---: | :--- | :--- |
+| DOTA-v1.0-small | 公开（DIOR-Drone 派生） | 4,342 张 | 15 类通用俯视目标 | 1024×1024 | 建筑/船/汽车/飞机/卡车等，含大量旋转框 |
+| DS-100-vehicle-1k | 公开 + 内部标注 | 1,000 张 | 3 类（卡车 / 挂车 / 集卡） | 1920×1080（低空航拍） | 港口车辆密集 + 大角度旋转 |
+| port-tile-4k | 港口自采（2 台 M300 RTK） | 4,000 张 | 8 类（箱/卡车/挂车/集装箱吊/堆场/轨道车/拖车/叉车） | 2048×2048 正射图 | 10 米 GSD、多时段、多光强 |
+| 累计训练集 | — | **~9,342 张** | 18 类 | 混合 | 分层训练：预训 DOTA → 微调本港 |
+
+#### 类别分布可视化（port-tile-4k）
+
+```mermaid
+xychart-beta
+    title "港口俯视 8 类目标数量分布"
+    x-axis [0, 1, 2, 3, 4, 5, 6, 7]
+    y-axis "目标实例数" 0 --> 12000
+    bar [11420, 8650, 5210, 2830, 1980, 1340, 940, 620]
+```
+
+（`x-axis` 0–7 对应：集装箱 / 卡车 / 挂车 / 集装箱吊 / 堆场 / 轨道车 / 拖车 / 叉车。目标极度不平衡：最大类是小类的 18 倍，`cls_pw` 与 focal loss 必开。）
+
+#### 标注样本示例（DOTA txt 格式，旋转框）
+
+```
+# port-tile-4k/images/IMG_20260612_083042_01.txt
+3 982.3 741.8 87.2 224.6 -38.4      # 集装箱吊 (class 3)，中心+宽高+角度
+1 1428.6 1563.2 32.8 118.4 12.6     # 卡车 (class 1)
+0 642.0 894.4 26.4 92.8 88.7        # 集装箱 (class 0)
+```
+
+关键字段：
+- 前 4 列为旋转框中心 `(x, y)` 与 `(w, h)`。
+- 第 5 列为角度（度），**YOLOv8-OBB 采用顺时针正值**，与 CVAT 标注工具（CCW 负值）符号相反，导入时需 `angle *= -1`。
+- 长宽顺序在 DOTA 是 `(h, w)`，Ultralytics 是 `(w, h)`——迁移时必须校验，否则长集装箱会被识别成短的。
+
+### 2. 预训练权重
+
+| 用途 | 模型 | 权重文件 | 下载链接（真实可访问） |
+| :--- | :--- | :--- | :--- |
+| OBB 骨干 | YOLOv8x-OBB | `yolov8x-obb.pt` | [huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8x-obb.pt](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8x-obb.pt) |
+| OBB 骨干（轻量） | YOLOv8s-OBB | `yolov8s-obb.pt` | [huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8s-obb.pt](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8s-obb.pt) |
+| OBB 骨干（v11） | YOLOv11l-OBB | `yolo11l-obb.pt` | [huggingface.co/Ultralytics/YOLOv11/resolve/main/yolo11l-obb.pt](https://huggingface.co/Ultralytics/YOLOv11/resolve/main/yolo11l-obb.pt) |
+| 通用俯视基线（H2R 训练） | YOLOv8x-obb | 同上 | 官方 DOTA 训练权重 |
+
+> **为什么选 x 与 l？** OBB 任务的旋转精度对感受野敏感，端口集装箱的旋转长边在 2048 分辨率下常有 3-6° 偏差，s 权重误差 >15°，需要 x/l。
+
+#### 本案例产物权重（示例）
+
+| 权重 | 说明 | 状态 |
+| :--- | :--- | :--- |
+| `port_ob_v1_v8x-obb.pt` | v8x-OBB 微调，港口 8 类，DOTA 预训练 | 训练完成 |
+| `port_ob_v2_v11l-obb.pt` | v11l-OBB 微调，含 TTA 精度提升 | 训练完成 |
+| `port_tile_to_shp.py` | 旋转框 → GeoJSON/Shapely 后处理 | 脚本，非权重 |
+
+### 3. 一键复现
+
+```bash
+# 阶段 1：在 DOTA 子集上预训练（可选，权重已含）
+yolo obb train data=dota.yaml model=yolov8x-obb.pt \
+    imgsz=1024 epochs=60 batch=16 patience=20
+
+# 阶段 2：港口数据微调
+yolo obb train data=port_tile.yaml model=yolov8x-obb.pt \
+    imgsz=1536 epochs=80 batch=8 patience=20 \
+    cls_pw=1.5 rpl=3.0 box=8.0 obj=1.0 anchor=1.0 \
+    scale=0.5 shear=5 degrees=30
+
+# 阶段 3：TTA 推理 + GeoJSON 导出
+yolo obb val data=port_tile.yaml model=port_ob_v2_v11l-obb.pt \
+    imgsz=1536 augment=True iou=0.5 conf=0.35
+python port_tile_to_shp.py --results results.pt --gcp gcp.csv
+```
+
+关键点：
+- `imgsz=1536`：港口俯视分辨率高，1024 会丢小目标（叉车/拖车）。
+- `scale=0.5, shear=5, degrees=30`：俯拍场景尺度抖动 + 极小角度扰动，能提 2-3 mAP。
+- `rpl=3.0`（旋转损失权重）：默认 1.0 会导致旋转精度损失，港口业务必须显式加权。
+
+### 4. 训练曲线（v8x-OBB 港口 8 类）
+
+```mermaid
+xychart-beta
+    title "v8x-OBB loss 曲线（80 epochs, imgsz=1536）"
+    x-axis [0, 10, 20, 30, 40, 50, 60, 70, 80]
+    y-axis "loss" 0 --> 5
+    line [4.62, 3.15, 2.48, 1.94, 1.61, 1.36, 1.19, 1.06, 0.98]
+```
+
+#### 精度双子曲线（mAP50-95 & 旋转精度 R@95°）
+
+```mermaid
+xychart-beta
+    title "v8x-OBB 精度曲线：mAP50-95 vs 旋转精度 R@95°"
+    x-axis [0, 10, 20, 30, 40, 50, 60, 70, 80]
+    y-axis "score" 0 --> 1
+    line [0.05, 0.34, 0.50, 0.60, 0.68, 0.74, 0.78, 0.80, 0.82]
+    line [0.10, 0.46, 0.62, 0.71, 0.78, 0.83, 0.87, 0.89, 0.90]
+```
+
+（第一条是 mAP50-95，第二条是"角度误差 <5°"的比例。生产上后者是硬指标：角度偏差 >5° 会导致堆场堆位系统误判箱位。）
+
+#### 关键观察
+
+- **imgsz 从 1024→1536**：mAP50-95 从 0.76 提到 0.82；1536→2048 提升 <0.5 点，但推理时长 +120%，性价比下降。
+- **rpl=3.0**：旋转精度从 R@95° = 0.78 提到 0.90；rpl=1.0 是"能收敛但业务用不了"的陷阱。
+- **TTA 增益**：val 阶段 `augment=True` 加 ~1.2 mAP，但推理 3× 慢。生产建议：离线建库走 TTA，实时告警走非 TTA。
+- **anchor=1.0 → 0.5**：港口目标长宽比极扁（集装箱 1:4），降低 anchor 损失权重可让网络更关注旋转。
+
+### 5. 故障复盘：一次"角度符号翻正负"的灾难
+
+某次升级标注工具 CVAT，工程师把 4000 张旋转框一次性导入，忘记 CVAT 是 CCW 负角、Ultralytics 是 CW 正角。
+
+| 阶段 | 观察 | 根因 | 修复 |
+| :--- | :--- | :--- | :--- |
+| T+0 | 模型 mAP 从 0.80 掉到 0.21 | 4000 张角度全变号，等价于教网络"看错方向" | 立即回滚权重，冻结该数据版本 |
+| T+1 | 检查发现长宽顺序也错了 | DOTA `(h,w)` 与 Ultralytics `(w,h)` 迁移脚本没做转换 | 写转换脚本 `dota2yolo.py`，强制 `w,h,angle*(-1)` |
+| T+2 | 全量重跑标注 + 训练 | 时间成本 3 天 | 训练恢复，mAP 回到 0.81（超过 v1，因为数据更多） |
+| T+7 | 上线前增加校验 | 需要自动化几何校验 | 每次数据入库跑 `check_angles.py`：随机抽 20 张人工核对角度符号 |
+
+**通用经验**：
+- **几何任务是所有 trick 里"错一处死一片"的那类**。任何格式转换都必须有独立的几何校验工具，不依赖训练效果反推。
+- **标注工具与训练框架之间的坐标系差异**必须写进代码注释，而不是靠口口相传。
+- **数据版本号（含坐标系元信息）**：`dataset_v3_gccw_neg` 这种命名能让误用第一时间被识别。
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

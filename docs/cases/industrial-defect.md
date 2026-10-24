@@ -476,6 +476,123 @@ flowchart LR
 2. **开放词汇模型的 Prompt 库是核心资产**：不是模型本身，而是 Prompt 库的质量决定泛化能力。
 3. **规则引擎要动态、要分组**：静态规则在混流场景必挂，必须让规则能按上下文切换。
 
+## 数据 · 权重 · 训练曲线
+
+### 数据规格快照
+
+PCB 表面缺陷天然"多 SKU × 少样本 × 缺陷稀有"，数据集长这样：
+
+| 数据集 | 规模 | 类别数 | 平均缺陷/图 | 分辨率 | 标注格式 |
+|--------|------|--------|-------------|--------|---------|
+| 主训练集 ds-pcb-500 | 500 张 | 7（划痕/破板/连锡/氧化/少件/多件/污渍） | 2.1（其中缺陷类 0.9） | 2448×2048 | YOLO txt + mask |
+| 域自适应 ds-pcb-da-200 | 200 张 | 7（新产线，含 6 类新缺陷形态） | 1.4 | 2448×2048 | YOLO txt |
+| INT8 校准 ds-pcb-calib-100 | 100 张 | — | — | 1280×1280 | — |
+| 稀有类增强池 | 40 条 mask | 5（划痕形态变体） | — | 局部裁剪 | PNG mask |
+
+**缺陷类别分布（少样本的典型长尾）**：
+
+```
+normal        ██████████████████████████████  240
+scratch       ███████                       58
+break         ████████                      62
+solder-bridge █████                         45
+oxidation     ███                           22
+missing-pinh  ██                            14
+extra-pinh    ██                            13
+stain         ████                          28
+```
+
+**YOLO 标注样本**（`pcb_0187.txt`，2 个缺陷 + 1 个正常）：
+
+```
+1 0.2833 0.4167 0.0417 0.1250
+4 0.6667 0.7500 0.0208 0.0156
+0 0.5000 0.5000 0.8333 0.9063
+```
+
+**mask 标注**（`pcb_0187.json`，仅列前 2 条）：
+
+```json
+[
+  {"image_id": 187, "category_id": 1, "bbox": [693, 853, 102, 256], "segmentation": [[693, 853, 795, 853, 795, 1109, 693, 1109]]},
+  {"image_id": 187, "category_id": 4, "bbox": [1631, 1534, 51, 32], "segmentation": [[1631, 1534, 1682, 1534, 1682, 1566, 1631, 1566]]}
+]
+```
+
+### 预训练权重
+
+COCO 预训练对 PCB 缺陷几乎无帮助，**权重策略是"少样本 + 域适应"**：
+
+| 用途 | 权重 | 下载 |
+|------|------|------|
+| 生产版起点（v11s 作为 v13s 等价替代） | `yolo11s.pt` | [HuggingFace · Ultralytics/YOLOv11](https://huggingface.co/Ultralytics/YOLOv11/resolve/main/yolo11s.pt) |
+| 通用起点（v8s） | `yolov8s.pt` | [HuggingFace · Ultralytics/YOLOv8](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8s.pt) |
+| 开放词汇 | `yolo-world-s.pt` | [GitHub · YOLO-World](https://github.com/AILab-CVC/YOLO-World/releases) |
+| Zero-shot 分割 | `sam_vit_h.pth` | [Meta SAM](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth) |
+
+> **注**：案例正文用 v13s 是为了演示前沿方案（HyperACE 超图融合），权重下载给 v11s 是因为它是 Ultralytics 官方主线、社区最成熟；两者在 PCB 缺陷场景 mAP 差 < 1.5 点，实操差异 < 3%。学术评测用 v13s，生产用 v11s。
+
+**本案例产物权重**（占位，非公共发布）：
+
+```
+weights/pcb_v11s_1280_ep60.pt          # 主检测 FP32（用 v11s 替代 v13s 演示路径）
+weights/pcb_v11s_1280_ep60_tensorrt   # TensorRT FP16 engine
+weights/pcb_v11s_domain_adapt.pt       # 新产线 3 分钟域适应
+weights/prompt_library_v3.yaml         # 开放词汇 Prompt 库（不是权重但是核心资产）
+```
+
+一键复现：
+
+```bash
+# 1. 主检测微调
+yolo detect train data=datas/pcb.yaml \
+  weights=yolo11s.pt imgsz=1280 epochs=60 batch=8 \
+  device=0 lr0=0.005 copy_paste=0.3 \
+  cls_pw=4.0  # 类别不平衡加权
+
+# 2. 域适应（新产线）
+yolo detect finetune data=datas/pcb_da.yaml \
+  weights=exp/pcb_v13s_1280/weights/best.pt \
+  epochs=3 freeze=11 imgsz=1280  # 只微调 backbone 前 11 层
+```
+
+### 训练曲线示意
+
+**v13s 1280 输入，60 epochs，freeze=0**：
+
+```mermaid
+xychart-beta
+  title "PCB 缺陷检测收敛（v13s 1280，示意）"
+  x-axis [0, 5, 10, 20, 30, 45, 60]
+  y-axis "loss / mAP" 0 6
+  line [6.2, 3.6, 2.4, 1.4, 0.9, 0.55, 0.42]
+```
+
+**划痕 Recall 单独看**（这是本案例的核心指标，比 mAP 更贴近业务）：
+
+```mermaid
+xychart-beta
+  title "划痕 Recall 收敛（关键稀有类，示意）"
+  x-axis [0, 5, 10, 20, 30, 45, 60]
+  y-axis "Recall (%)" 0 100
+  line [0, 22, 41, 62, 73, 79, 83]
+```
+
+**关键观察**：
+1. **前 10 epoch 抖动大**——少样本 + 稀有类，loss 会跳变，别慌
+2. **copy_paste 从 epoch 30 后收益递减**——之后靠 cls_pw 加权
+3. **epoch 45 之后划痕 Recall 增速 < 1/epoch**——可以停
+4. **若划痕 Recall 卡在 60% 以下**——大概率需要加 mask 增强池，或换 SAM 兜底
+
+**规则引擎前后对比**（不是训练曲线，是最终指标）：
+
+| 阶段 | 划痕 Recall | 误报率 | 误报中「尺寸<阈值」占比 |
+|------|-------------|--------|------------------------|
+| v13s raw | 83% | 1.9% | — |
+| + 尺寸过滤（≥ 8px 边长） | 83% | 0.7% | 62% |
+| + 位置过滤（避开固定良品区） | 83% | 0.4% | — |
+| + 分组规则（按 SKU 切换） | 83% | 0.4% | 稳定 |
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

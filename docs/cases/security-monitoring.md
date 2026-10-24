@@ -325,6 +325,133 @@ kubectl apply -f deploy/privacy-zones/
 - **事件引擎必须跨摄像头看全局**：单摄像头视角是短视的
 - **隐私合规是硬约束**：脱敏必须在推理前做，不能事后处理
 
+## 数据 · 权重 · 训练曲线
+
+### 数据规格快照
+
+**混合场景数据集**：园区/商场/社区/工厂的摄像头录像片段，每片段 5-30 秒，标注事件而非帧：
+
+| 数据集 | 规模 | 事件类别数 | 平均事件数/段 | 分辨率 | 标注格式 |
+|--------|------|-----------|--------------|--------|---------|
+| 入侵 (intrusion) | 8 000 段 | 1 | 1.2 | 1920×1080 | JSON (bbox + track) |
+| 跌倒 (fall) | 3 200 段 | 1 | 1.0 | 1920×1080 | JSON + 姿态 |
+| 聚集 (crowd) | 4 500 段 | 1 | 3.4 | 1920×1080 | JSON + 密度图 |
+| 徘徊 (linger) | 6 000 段 | 1 | 1.5 | 1920×1080 | JSON + track |
+| 遗留物 (left-behind) | 5 400 段 | 1 | 1.1 | 1920×1080 | JSON + 帧差 |
+
+**事件级统计**（不是帧级，业务视角）：
+
+```
+intrusion     ████████████████████        8 000
+linger        ████████████████            6 000
+left-behind   ██████████████              5 400
+crowd         ████████████                4 500
+fall          █████████                   3 200
+```
+
+**事件标注样本**（`cam_014_2025-09-15_0842.json`）：
+
+```json
+{
+  "event_id": "evt_014_0842_017",
+  "camera_id": "cam_014",
+  "zone_id": "z_entrance",
+  "event_type": "intrusion",
+  "start_frame": 4820,
+  "end_frame": 4912,
+  "timestamp_start": "2025-09-15T08:42:17+08:00",
+  "severity": "high",
+  "track_ids": [1024],
+  "keyframes": [4820, 4850, 4880, 4912],
+  "privacy_masked": true
+}
+```
+
+### 预训练权重
+
+三阶段流水线，每阶段一个权重：
+
+| 阶段 | 用途 | 权重 | 下载 |
+|------|------|------|------|
+| Stage 1 | 检测 + 跟踪起点 | `yolov8s.pt` | [HuggingFace · Ultralytics/YOLOv8](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8s.pt) |
+| Stage 2 | BoT-SORT 检测头 | `yolov8s.pt`（同 Stage 1） | 同上 |
+| Stage 3 | SlowFast 行为识别 | `slowfast_50_8x32x1_r50.kin400.pt` | [PyTorchVideo](https://dl.fbaipublicfiles.com/pythvideo-models/SLOWFAST_50_8x32x1_R50/slowfast_50_8x32x1_r50.pt) |
+
+**本案例产物权重**（占位，非公共发布）：
+
+```
+weights/security_v8s_multitrack.pt        # Stage 1+2 联合微调
+weights/bot_sort_reid_global.pt           # 全局 ReID 库（跨摄像头）
+weights/slowfast_event_recognizer.pt      # Stage 3 事件识别
+weights/motif_cross_camera.pt             # 跨摄像头 ID 融合
+weights/event_engine_rules_v3.yaml        # 事件规则库
+```
+
+一键复现：
+
+```bash
+# 1. 检测 + 跟踪微调
+yolo track train data=datas/security.yaml \
+  weights=yolov8s.pt imgsz=640 epochs=60 batch=16 \
+  tracker=botsort.yaml device=0
+
+# 2. 全局 ReID 训练
+python train_reid.py \
+  --data datas/security_reid.yaml \
+  --backbone osnet_x1_0 \
+  --epochs 40 --batch 32 \
+  --loss triplet+cls
+
+# 3. SlowFast 事件识别（只跑候选事件，非全量）
+python train_slowfast.py \
+  --data datas/security_behavior.yaml \
+  --slowfast slowfast_50_8x32x1_r50 \
+  --epochs 30 --batch 8
+```
+
+### 训练曲线示意
+
+**v8s 检测微调，60 epochs**：
+
+```mermaid
+xychart-beta
+  title "检测 loss 收敛（v8s 640，示意）"
+  x-axis [0, 5, 10, 20, 30, 45, 60]
+  y-axis "loss" 0 4
+  line [3.6, 1.9, 1.1, 0.62, 0.41, 0.26, 0.19]
+```
+
+**事件召回率 vs 误报率**（安防核心）：
+
+```mermaid
+xychart-beta
+  title "事件召回 vs 误报率（示意，随训练推进）"
+  x-axis [0, 10, 20, 30, 40, 50, 60]
+  y-axis "value (%)" 0 100
+  line [0, 42, 63, 78, 86, 90, 92]
+```
+
+第一条是事件召回率（漏报的反面），事件误报率随训练从 240/日降到 28/日（不是本曲线，见表）。
+
+**三阶段流水线各阶段耗时**（不是训练曲线，是推理延迟）：
+
+| 阶段 | 单帧耗时 | 说明 |
+|------|----------|------|
+| v8s 检测 | 22 ms | Jetson Orin Nano |
+| BoT-SORT 跟踪 | 3 ms | 只跑检测到的框 |
+| 事件候选筛选 | 1 ms | 规则引擎 |
+| SlowFast（仅候选） | 800 ms | 只对候选事件跑 |
+| **总耗时（含 SlowFast）** | **~900 ms** | 事件级，非帧级 |
+| **总耗时（无 SlowFast）** | **26 ms** | 帧级流式 |
+
+**误报率下降路径**（分阶段，不是训练曲线）：
+
+| 版本 | 事件召回 | 误报/日 | 单路成本 |
+|------|----------|---------|----------|
+| v1 (v5s + DeepSORT + SlowFast 全量) | 71% | 240 | ¥68 |
+| v2 (v8s + BoT-SORT + SlowFast 仅候选) | 88% | 82 | ¥32 |
+| v3 (v3 + 分区冷却 + 隐私脱敏) | 92% | 28 | ¥28 |
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

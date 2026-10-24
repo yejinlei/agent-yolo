@@ -580,6 +580,123 @@ flowchart LR
 2. **量化敏感层要单独处理**：不能一刀切 FP16，数值关键路径要 FP32。
 3. **动态标定 > 静态标定**：车载场景震动、温度、老化都会漂移标定，必须闭环重标。
 
+## 数据 · 权重 · 训练曲线
+
+### 数据规格快照
+
+Waymo Open Dataset 100k 帧子集，覆盖 4 天气 × 5 路况：
+
+| 数据集 | 规模 | 类别数 | 平均目标数/图 | 分辨率 | 标注格式 |
+|--------|------|--------|--------------|--------|---------|
+| Waymo-100k 训练 | 90 000 帧 | 5（左车道/中/右/停止线/人行横道） | 3.2 | 1920×1280 | COCO + lane polygon |
+| Waymo-100k 验证 | 10 000 帧 | 5 | 3.1 | 1920×1280 | — |
+| 自采-隧道/暴雨 | 8 000 帧 | 5 | 2.7 | 1920×1280 | 同 Waymo |
+| 光流配对帧 | 15 000 对 | — | — | 1920×1280 | PFM 光流 |
+| 里程计同步 | 全量 | — | — | — | IMU + GPS CSV |
+
+**类别分布（Waymo 系天然偏斜）**：
+
+```
+left_lane    ████████████████████████████  18 240
+center_lane  ████████████████████████████  18 105
+right_lane   ███████████████████████████   17 882
+stop_line    ██████████████                5 832
+crosswalk    ██████████████                5 914
+```
+
+**Waymo 标注样本（1 帧车道线，截取 1 条）**：
+
+```json
+{
+  "name": "left_lane",
+  "tokens": "c5a3...2e10",
+  "box3d": [1.15, 512.8, 1150.7, 1.02, 0.62, 25.4, 0.83],
+  "polygon_2d": [[820, 380], [835, 460], [850, 540], [866, 620], [882, 700], [898, 780]],
+  "valid": 1,
+  "truncated": 0
+}
+```
+
+**光流 PFM v2 格式**（`0004512.pfm`）：`P5\n1920 1280\n255\n` + int8 平面（u,v 交错）。
+
+### 预训练权重
+
+Waymo 场景必须重训，COCO 起点收益极小；但 v11x 的 backbone 权重值得继承：
+
+| 用途 | 权重 | 下载 |
+|------|------|------|
+| 主检测起点（v11x） | `yolo11x.pt` | [HuggingFace · Ultralytics/YOLOv11](https://huggingface.co/Ultralytics/YOLOv11/resolve/main/yolo11x.pt) |
+| 主检测起点（v11l） | `yolo11l.pt` | [HuggingFace · Ultralytics/YOLOv11](https://huggingface.co/Ultralytics/YOLOv11/resolve/main/yolo11l.pt) |
+| 通用兜底（v8x） | `yolov8x.pt` | [HuggingFace · Ultralytics/YOLOv8](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8x.pt) |
+
+**本案例产物权重**（占位，非公共发布）：
+
+```
+weights/lane_v11x_1920_dual_head.pt        # v11x 双头（检测 + P2 小目标）
+weights/lane_v11x_1920_dual_head_fp16     # TensorRT FP16（数值敏感层 FP32）
+weights/lane_v11x_1920_dual_head_qat      # QAT 后精度回补 0.4 mask mAP
+weights/optical_flow_cnn_2layers.pt       # 2 层光流约束网络
+```
+
+一键复现：
+
+```bash
+# 1. 主模型微调（双头：标准 P3/P4/P5 + 附加 P2 小目标头）
+yolo detect train data=datas/waymo_lane.yaml \
+  weights=yolo11x.pt imgsz=1920 epochs=40 batch=4 \
+  device=0,1,2,3 lr0=0.002 mosaic=0.3 \
+  mask=True loss_cls=dice loss_box=generalized
+
+# 2. 光流一致性正则（额外一个 loss）
+# 3. 数值敏感层 FP32 保真
+yolo detect export model=exp/lane_v11x/weights/best.pt \
+  format=engine half=True \
+  fp32_layers=[detect.0.0, detect.1.0]  # DFL 层保持 FP32
+```
+
+### 训练曲线示意
+
+**v11x 1920 输入，40 epochs，freeze=12**：
+
+```mermaid
+xychart-beta
+  title "车道线 mask mAP 收敛（v11x 1920，示意）"
+  x-axis [0, 5, 10, 15, 25, 35, 40]
+  y-axis "loss" 0 5
+  line [4.8, 2.6, 1.5, 1.0, 0.65, 0.42, 0.35]
+```
+
+**mask mAP 与夜间召回**（业务关键）：
+
+```mermaid
+xychart-beta
+  title "mask mAP & 夜间召回（示意）"
+  x-axis [0, 5, 10, 15, 25, 35, 40]
+  y-axis "value (%)" 0 100
+  line [0, 34, 46, 51, 55, 58, 59]
+  line [0, 42, 62, 73, 82, 88, 89]
+```
+
+第一条是 mask mAP，第二条是夜间召回。
+
+**关键观察**：
+1. **Loss 拐点在 epoch 10-15**——学习率衰减后进入精细调
+2. **前 5 epoch freeze=12**——backbone 冻结避免过拟合（100k 帧数据量下很关键）
+3. **光流一致性正则从 epoch 20 开启**——之前收敛太快反而拉低质量
+4. **mask mAP plateau 在 epoch 30**——继续训收益 < 0.3 点
+5. **夜间召回 vs 白天差 4 点**——是数据本身问题，不是模型问题，需要采样补齐
+
+**量化回补对比**（车道线抖动指标对 FP16 敏感）：
+
+| 阶段 | mask mAP | 车道抖动 (cm) | 夜间召回 |
+|------|----------|---------------|----------|
+| FP32 1920 | 0.561 | 2 | 89% |
+| FP16 全量 | 0.558 | **6**（抖动飙升） | 88% |
+| FP16 + DFL 层 FP32 | 0.559 | 2 | 88% |
+| QAT FP16 + DFL FP32 | 0.557 | 2 | 88% |
+
+**核心教训**：**DFL 层绝对不能量化**，否则车道线抖动从 2cm 涨到 6cm，直接影响控车。
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

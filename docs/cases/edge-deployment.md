@@ -548,6 +548,113 @@ flowchart LR
   C & D & E --> F[统一 pipeline.yaml<br/>跨硬件复用]
 ```
 
+## 数据 · 权重 · 训练曲线
+
+三件套是"能读"到"能跑"的桥梁。**数据规格**告诉你样本长什么样，**权重**给你起点，**曲线**告诉你收敛节奏。
+
+### 数据规格快照
+
+BDD100K 10% 子集 + RPi 4B 自采 500 张（含夜间 30%、雨天 15%）：
+
+| 数据集 | 规模 | 类别数 | 平均目标数/图 | 分辨率 | 标注格式 |
+|--------|------|--------|--------------|--------|---------|
+| BDD100K-10pct | 7 200 张 | 10（车/人/交通灯/斑马线…） | 3.4 | 1280×720 | COCO JSON |
+| RPi-自采 | 500 张 | 5（车/人/摩托/自行车/行人包） | 1.8 | 640×480 | YOLO txt |
+| 训练集 | 6 500 | — | — | 640×640 (resize) | — |
+| 验证集 | 700 | — | — | 640×640 | — |
+
+**COCO 标注样本（第一张，截取 1 条）**：
+
+```json
+{
+  "id": 39769,
+  "images": [{"id": 1, "width": 1280, "height": 720, "file_name": "val2017/000000039769.jpg"}],
+  "annotations": [{"id": 524, "image_id": 1, "category_id": 2, "bbox": [521.2, 416.7, 168.4, 148.9], "area": 25075, "iscrowd": 0, "attributes": {"moving": "yes"}}]
+}
+```
+
+**YOLO 标注样本**（`RPi_self_0142.txt`）：
+
+```
+0 0.4219 0.5833 0.2813 0.3958
+1 0.7813 0.7083 0.1146 0.2708
+2 0.6125 0.6667 0.0875 0.2083
+```
+
+### 预训练权重
+
+三个基线，都是 COCO 预训练，直接 `from_pretrained` 就能跑：
+
+| 用途 | 权重 | 下载 |
+|------|------|------|
+| 起点基线（3.6M / 4.4M） | `yolov8n.pt` | [HuggingFace · Ultralytics/YOLOv8](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt) |
+| 更瘦版本（2.6M） | `yolo11n.pt` | [HuggingFace · Ultralytics/YOLOv11](https://huggingface.co/Ultralytics/YOLOv11/resolve/main/yolo11n.pt) |
+| v5 生态兼容 | `yolov5n.pt` | [Ultralytics releases](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov5n.pt) |
+
+**本案例产物权重**（占位，指向复现产物，非公共发布）：
+
+```
+weights/rpi4b_v8n_640_coco_bdd100k10p.pt        # 起点微调后 FP32
+weights/rpi4b_v8n_320_int8_calib.pt             # 320 输入 + 128 张标定图 PTQ
+weights/rpi4b_v8n_320_qat.pt                     # QAT 版本（比 PTQ 精度回补 1.3 mAP）
+```
+
+一键复现：
+
+```bash
+# 1. 拉权重
+curl -L -o yolov8n.pt https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8n.pt
+
+# 2. 微调
+yolo detect train data=datas/bdd100k10p.yaml \
+  weights=yolov8n.pt imgsz=640 epochs=80 batch=32 \
+  device=0 lr0=0.01 work_dir=exp/rpi4b_v8n_640
+
+# 3. 量化
+yolo detect export model=exp/rpi4b_v8n_640/weights/best.pt \
+  format=tflite int8=True data=datas/calib_bdd100k.yaml
+```
+
+### 训练曲线示意
+
+**v8n 640 输入，80 epochs，4× A100**：
+
+```mermaid
+xychart-beta
+  title "Loss 与 mAP50 收敛曲线（示意）"
+  x-axis [0, 5, 10, 20, 40, 60, 80]
+  y-axis "loss / mAP50" 0 6
+  line [5.8, 3.1, 2.4, 1.7, 1.1, 0.7, 0.55]
+```
+
+上图是总损失（box + cls + dfl 加权后），**典型 S 型**。
+
+**mAP50 单独看**：
+
+```mermaid
+xychart-beta
+  title "mAP50 收敛（示意，v8n 640 输入）"
+  x-axis [0, 5, 10, 20, 40, 60, 80]
+  y-axis "mAP50 (%)" 0 60
+  line [0, 32, 40, 44, 46, 47, 47.3]
+```
+
+**epoch 60 后 mAP 进入 plateau**：继续训收益 < 0.5 点，可以早停。
+
+**曲线要看的三个信号**：
+1. **Loss 拐点在 epoch 20-30** —— 学习率衰减生效，之后进入精调
+2. **mAP 在 epoch 50 后增长 < 0.1/epoch** —— 该停了
+3. **若 loss 震荡幅度 > 0.05** —— batch 太大或学习率过大，先降 batch 试
+
+**INT8 量化回补曲线**（不是训练曲线，但一样重要）：
+
+| 阶段 | mAP50 | 相对 FP32 掉点 |
+|------|-------|--------------|
+| FP32 640 | 47.3 | — |
+| FP32 320 | 44.1 | −3.2 |
+| PTQ INT8 320 | 41.2 | −2.9（对 320） |
+| QAT INT8 320 | 42.5 | −1.6（对 320） |
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |

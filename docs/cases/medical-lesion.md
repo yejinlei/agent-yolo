@@ -798,6 +798,160 @@ flowchart LR
 2. **合规 ≠ 精度降低**：联邦学习 + DP 能保住 96% Recall，比集中训练的 97% 只低 1pt，远小于合规风险。
 3. **医师闭环是刚需**：模型上线不是终点，漏诊案例的回流机制决定长期精度。
 
+## 数据 · 权重 · 训练曲线
+
+### 数据规格快照
+
+**ISIC 2018 + Dermatology 私有集**，皮肤癌 + 乳腺病灶定位（不做诊断，只做定位）：
+
+| 数据集 | 规模 | 类别数 | 平均病灶/图 | 分辨率 | 标注格式 |
+|--------|------|--------|-------------|--------|---------|
+| ISIC 2018 train | 25 000 张 | 7（黑色素瘤/日光角化/皮肤纤维瘤/BCC/SCC/良性痣/良性角化） | 1.2 | 2048×1536 | JSON（bbox + seg） |
+| ISIC 2018 valid | 6 000 张 | 7 | 1.2 | 2048×1536 | — |
+| 皮肤科私有集 | 3 200 张 | 3（黑色素瘤/良痣/其它） | 1.1 | 1600×1200 | YOLO txt |
+| 乳腺钼靶子集 | 2 400 张 | 2（钙化点/肿块） | 1.4 | 4096×3072 | DICOM + 医师标注 |
+| 医师复核标注 | 累计 4 500 条 | — | — | — | JSON + 医师 ID |
+
+**类别分布（皮肤癌类严重不平衡，占 < 3%）**：
+
+```
+benign_nevus   ████████████████████████████  11 820
+keratinosis    ███████████████████████████   11 560
+fibroma        █████████████████████████     10 830
+bcc            ████████████████              6 120
+scc            ██████████                   4 080
+melanoma       ██████                       2 640
+actinic_kerat  █████                        2 150
+```
+
+**JSON 标注样本（皮肤癌定位）**：
+
+```json
+{
+  "image_id": "ISIC_0034821",
+  "image_path": "ISIC_2018/train/ISIC_0034821.jpg",
+  "lesions": [
+    {
+      "category": "melanoma",
+      "bbox_xywh": [812, 643, 320, 412],
+      "area_px": 81280,
+      "diameter_mm": 6.4,
+      "seg_polygon": [[812, 643], [1132, 643], [1132, 1055], [812, 1055]],
+      "physician_confirmed": true,
+      "physician_id": "dr_lz_042",
+      "reviewed_at": "2025-09-18T14:32:00+08:00"
+    }
+  ],
+  "clinical_notes_redacted": true
+}
+```
+
+**关键点**：`diameter_mm` 从相机标定参数反算，6mm 是 WHO 黑色素瘤早期筛查关键阈值。
+
+### 预训练权重
+
+医疗场景对合规和可复现要求极高，**权重必须固定版本 + hash**：
+
+| 用途 | 权重 | 下载 |
+|------|------|------|
+| 病灶定位主检测 | `yolov8m.pt` | [HuggingFace · Ultralytics/YOLOv8](https://huggingface.co/Ultralytics/YOLOv8/resolve/main/yolov8m.pt) |
+| 零样本分割 | `sam_vit_h.pth` | [Meta SAM](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth) |
+| 皮肤分类骨干 | `efficientnet_b0-08cdeb91.pth` | [PyTorch pretrained](https://download.pytorch.org/models/efficientnet_b0-08cdeb91.pth) |
+
+**本案例产物权重**（占位，联邦学习训练产物，非公共发布）：
+
+```
+weights/lesion_v8m_1280_ep120.pt           # 主检测 FP32
+weights/lesion_v8m_1280_ep120_isotonic.pt  # 置信度校准后版本
+weights/lesion_v8m_1280_ep120_tversky.pt  # Tversky loss（α=0.3, β=0.7）
+federated/shard_hospital_a/lesion.pt      # 3 家三甲各 1/3 联邦子模型
+federated/shard_hospital_b/lesion.pt
+federated/shard_hospital_c/lesion.pt
+weights/fed_avg_iter15_dp_ema.pt           # FedAvg + DP 最终聚合
+```
+
+一键复现：
+
+```bash
+# 1. 主检测训练（含 P2 小目标头，覆盖 6mm 早期病灶）
+yolo detect train data=datas/isic2018_lesion.yaml \
+  weights=yolov8m.pt imgsz=1280 epochs=120 batch=8 \
+  device=0 lr0=0.001 mosaic=0.2 \
+  mask=True loss_seg=tversky alpha=0.3 beta=0.7 \
+  p2_head=True   # 关键：6mm 病灶只在 P2 头能召回
+
+# 2. 置信度校准（isotonic regression）
+python calibrate_isotonic.py \
+  --weights exp/lesion_v8m/weights/best.pt \
+  --calib_data datas/isic2018_calib.yaml \
+  --n_bins 32
+
+# 3. 联邦学习（3 家医院 × 15 轮 FedAvg + DP）
+python federate.py \
+  --hospitals hospital_a hospital_b hospital_c \
+  --global_model weights/lesion_v8m.pt \
+  --eps 8.0 --delta 1e-5 \
+  --rounds 15 --local_epochs 5 \
+  --output weights/fed_avg_iter15_dp_ema.pt
+```
+
+### 训练曲线示意
+
+**v8m 1280 输入，120 epochs**：
+
+```mermaid
+xychart-beta
+  title "病灶 mask mAP 收敛（v8m 1280 + Tversky，示意）"
+  x-axis [0, 10, 20, 40, 60, 80, 100, 120]
+  y-axis "loss" 0 5
+  line [4.6, 2.3, 1.4, 0.85, 0.55, 0.38, 0.28, 0.22]
+```
+
+**黑色素瘤 Recall vs Precision**（业务核心）：
+
+```mermaid
+xychart-beta
+  title "黑色素瘤 Recall & Precision（示意）"
+  x-axis [0, 10, 20, 40, 60, 80, 100, 120]
+  y-axis "value (%)" 0 100
+  line [0, 42, 62, 78, 87, 91, 94, 96]
+  line [0, 78, 82, 84, 85, 86, 86, 86]
+```
+
+第一条是 Recall（漏诊的反面），第二条是 Precision。
+
+**isotonic 校准前后 ECE**（Expected Calibration Error）：
+
+```
+校准前：ECE = 0.074（confidence 0.90 时实际准确率只有 0.85）
+校准后：ECE = 0.018（confidence 0.90 时实际准确率 0.89）
+```
+
+**关键观察**：
+1. **前 20 epoch 是数据加载 + 预热**——黑色素瘤 Recall 从 0 涨到 62
+2. **epoch 60-80 是精细化阶段**——Recall 增速明显放缓
+3. **epoch 100 后 Recall 卡在 96%**——剩余 4% 是极早期病灶（< 3mm），已超出 P2 分辨率极限
+4. **isotonic 校准不改 mAP**，只改置信度分布——但业务侧看 ECE 从 0.074 降到 0.018 就是"可以上线"
+5. **联邦学习每轮 Recall 波动 ±0.5pt**——15 轮 EMA 收敛到 96.2%，比集中训练 97% 差 0.8pt，可接受
+
+**6mm 早期肺癌漏诊复盘**（真实失败案例）：
+
+| 阶段 | 病灶直径 | Recall | 漏检根因 |
+|------|----------|--------|----------|
+| v1 (P3/P4/P5 only) | 6mm | 62% | P3 网格 40px，6mm 只占 4px |
+| v2 (+ P2 head) | 6mm | 89% | P2 网格 20px，能召回 |
+| v3 (P2 + 小目标加权) | 6mm | 96% | cls_pw 加倍 + Tversky |
+| v3 上线第 47 天 | 6mm | **64%**（单点故障） | 医院 A 更换相机，图像分辨率下降 |
+
+**故障根因**：
+1. 医院 A 从 2048×1536 相机换成 1024×768，6mm 病灶在图像上变成 3px
+2. P2 头依然工作，但**输入分辨率下降让 P2 头也失效**
+3. 域适应训练集没覆盖低分辨率场景
+
+**修复**：
+- 域适应时加入低分辨率数据（200 张模拟降分辨率图）
+- 部署侧做**分辨率下限硬检**：低于 1600 边长直接报警，让医师复核
+
 ## 与其他案例的关系
 
 | 案例 | 差异 |
