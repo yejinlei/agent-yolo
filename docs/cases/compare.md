@@ -1,6 +1,8 @@
-# 9 大案例横向对比
+# 12 大案例横向对比
 
-9 个案例跨 6 大 domain，同一套 YOLO 家族在完全不同的场景下表现出截然不同的形态。**这张表是选型的起点**——先找到你所在场景，再看它对应的模型/硬件/踩坑模式。
+12 个案例跨 8 大 domain，同一套 YOLO 家族在完全不同的场景下表现出截然不同的形态。**这张表是选型的起点**——先找到你所在场景，再看它对应的模型/硬件/踩坑模式。
+
+> **Batch 4 更新**：新增 MOT 深度、视频流检测优化、多模态融合 3 个案例，反哺信号从 27 条扩到 42 条，踩坑模式扩到 11 种。
 
 ## 一句话选型速查
 
@@ -15,6 +17,9 @@
 | 大田作物病害 | [agriculture](/cases/agriculture) | v8n + SAM | 多光谱 + 光照鲁棒 |
 | 港口车辆俯视 | [drone-obb](/cases/drone-obb) | v8-OBB | 禁旋转增强 + DEM |
 | 自动驾驶 3D | [3d-bev](/cases/3d-bev) | v11-3D + BEVFormer | 时序 Transformer + 地图 |
+| 仓库叉车调度 | [mot](/cases/mot) | v8s + BoT-SORT | 全局 ReID + MOTIF |
+| 64 路 4K 视频流 | [video-stream](/cases/video-stream) | v8n + NGF | CUDA stream 并行 + 背压 |
+| 商场开放词表 | [multimodal](/cases/multimodal) | YOLO-World + Qwen2-VL | 文本 prompt + 4 张精标注 |
 
 ## 版本选择矩阵
 
@@ -33,6 +38,8 @@ flowchart TB
   K -->|检测| L[v13s 单头]
   K -->|检测+分割| M[v11x 双头]
   K -->|3D 位姿| N[v11-3D + BEVFormer]
+  K -->|开放词表| O[YOLO-World]
+  K -->|视频跟踪| P[v8s + BoT-SORT]
 ```
 
 | 案例 | 主模型 | 输入尺寸 | 参数量 | FP16 延迟 | 备注 |
@@ -46,6 +53,9 @@ flowchart TB
 | agriculture | v8n | 640 | 3.6M | 28ms (RPI5) | 太阳能 |
 | drone-obb | v8-OBB | 1920 | 11.2M | 1800ms (A100) | 大图 |
 | 3d-bev | v11-3D + BEVFormer | 900×6 | 68.7M + 32M | 87ms (Orin AGX) | 时序 |
+| **mot** | v8s + BoT-SORT | 640 | 11.2M + 18M ReID | 24ms (A10) | IDF1=0.87 |
+| **video-stream** | v8n + NGF | 640 | 3.6M × 64 路 | 720ms p50 (4×4090) | 端到端 |
+| **multimodal** | YOLO-World + Qwen2-VL | 640 + text | 11M + 80B (LLM) | 42ms + 1200ms | 两段 |
 
 ## 硬件/成本速查
 
@@ -60,11 +70,17 @@ flowchart TB
 | agriculture | RPI5 + 太阳能 | ¥0.0001 | ¥120/亩 | 野外 |
 | drone-obb | A100-40G | ¥0.02 | ¥850/次 | 飞行成本 |
 | 3d-bev | Orin AGX 64GB | ¥0.002 | ¥8000/月 | 车端 |
+| **mot** | A10 + Kafka | ¥0.0003 | ¥35/月每路 | ReID 开销 |
+| **video-stream** | 4× RTX 4090 | ¥0.00005/路 | ¥120/路 | 64 路摊销 |
+| **multimodal** | A100 + vLLM | ¥0.05 | ¥8000/月 | LLM 贵 |
 
 ## 输入尺寸对比
 
 ```
 640 ──┬── v8n, v11n (边缘/安防/农业)
+     │   ├── v8s + BoT-SORT (MOT)
+     │   ├── v8n × 64 路 (video-stream)
+     │   └── YOLO-World (multimodal)
      │
      ├── v8s (零售/工业低配)
      │
@@ -82,6 +98,7 @@ flowchart TB
 
 **规律**：
 - < 640：几乎必然是边缘场景
+- 640：8 个案例的甜蜜点（含 MOT / video-stream / multimodal）
 - 640-1024：常规场景甜蜜点
 - > 1024：只有高精度或大分辨率需求（航拍、车道远距）
 
@@ -98,12 +115,15 @@ flowchart TB
 | agriculture | CIoU + BCE + Dice | + SAM 一致性 |
 | drone-obb | CIoU + AngleLoss + BCE | + OBB overlap |
 | 3d-bev | 3D Center + Size + Rot + Vel | + BEV consistency |
+| **mot** | CIoU + BCE + DFL | + ReID InfoNCE (0.1) + MOTIF |
+| **video-stream** | CIoU + BCE + DFL | + 抽帧率自适应 |
+| **multimodal** | L1 + CIoU + DFL (World) | + CLIP 对比 (0.5) |
 
 ## 反哺信号汇总
 
-跨 9 个案例共发现 **27 条反哺信号**，按类别聚合：
+跨 12 个案例共发现 **42 条反哺信号**，按类别聚合：
 
-### 新增 PainPoints (8 条)
+### 新增 PainPoints (14 条)
 
 | PainPoint | 首个来源 | 影响案例 |
 |----------|---------|---------|
@@ -117,8 +137,12 @@ flowchart TB
 | `pain-hbb-angle-blindness` | drone-obb | drone-obb, 3d-bev |
 | `pain-light-invariance-outdoor` | agriculture | agriculture, security, autonomous |
 | `pain-camera-lidar-time-skew` | 3d-bev | 3d-bev, autonomous |
+| **`pain-reid-cross-camera-drift`** | mot | mot, security, 3d-bev |
+| **`pain-gpu-oom-under-backpressure`** | video-stream | video-stream, security |
+| **`pain-llm-latency-budget-blowup`** | multimodal | multimodal, medical |
+| **`pain-open-vocab-zero-shot-recall`** | multimodal | multimodal, retail |
 
-### 新增 Tricks (11 条)
+### 新增 Tricks (20 条)
 
 | Trick | 首个来源 |
 |-------|---------|
@@ -136,6 +160,12 @@ flowchart TB
 | `trick-orthomosaic-dem-correction` | drone-obb |
 | `trick-temporal-buffe-on-gpu` | 3d-bev |
 | `trick-open-drive-fusion` | 3d-bev |
+| **`trick-global-reid-embedding-pool`** | mot |
+| **`trick-motif-metric-learning`** | mot |
+| **`trick-cuda-stream-per-worker`** | video-stream |
+| **`trick-adaptive-frame-throttle`** | video-stream |
+| **`trick-yoloworld-zero-shot-boot`** | multimodal |
+| **`trick-llm-tool-loop-agent`** | multimodal |
 
 ### 新增 Metrics (8 条)
 
@@ -149,6 +179,9 @@ flowchart TB
 | `metric-daily-farmer-action` | agriculture |
 | `metric-angle-error-deg` | drone-obb, 3d-bev |
 | `metric-bev-coverage-m2` | 3d-bev |
+| **`metric-idf1`** | mot |
+| **`metric-end2end-latency-p50-p99`** | video-stream |
+| **`metric-time-to-add-sku`** | multimodal |
 
 ## 踩坑模式聚合
 
@@ -164,6 +197,9 @@ flowchart TB
 | **多传感器同步** | autonomous, 3d-bev | PTP 802.1AS + 时钟重同步 |
 | **隐私合规** | medical, security, agriculture | 联邦 + 脱敏 + 分区存储 |
 | **量化精度损失** | industrial, edge-deployment, security | QAT 而非 PTQ |
+| **ID 切换（跨摄像头/遮挡）** | security, mot, 3d-bev, autonomous | 全局 ReID + ReID 周期性重训 |
+| **GPU OOM / 背压失效** | video-stream, security, 3d-bev | 事件引擎背压 + CUDA stream 隔离 |
+| **LLM / 大模型延迟爆炸** | multimodal, medical | 分层触发（候选 → LLM 只在必要时） |
 
 ## 何时选哪个案例作起点
 
@@ -179,15 +215,22 @@ flowchart TB
 │   └── 动态（视频/流）
 │       ├── 事件报警 → security-monitoring
 │       ├── 大田环境 → agriculture
+│       ├── 高路数大规模 → video-stream
 │       └── 多机融合 → 3d-bev
 ├── 2D 分割
 │   ├── 时序敏感 → autonomous-lane
 │   └── 精度敏感 → medical-lesion
-└── 3D 位姿
-    └── 多相机 → 3d-bev
+├── 3D 位姿
+│   └── 多相机 → 3d-bev
+├── 多目标跟踪
+│   └── 需要稳定 ID → mot
+├── 开放词表 / 新类快速上线
+│   └── 无需重训 → multimodal
+└── 文本 + 图像混合问答
+    └── LLM Agent → multimodal
 ```
 
-## 9 案例关系图
+## 12 案例关系图
 
 ```mermaid
 flowchart LR
@@ -203,8 +246,18 @@ flowchart LR
 
   AGRI <--> DRONE[无人机 OBB]
 
+  SEC <--> MOT[多目标跟踪]
+  MOT <--> VSTREAM[视频流]
+  SEC <--> VSTREAM
+
+  RETAIL <--> MM[多模态]
+  MED <--> MM
+  MM -.文本-视觉对齐.-> RETAIL
+
   classDef core fill:#fbb,stroke:#888
   class EDGE core
+  classDef new fill:#e0f0ff,stroke:#06c,stroke-width:2px
+  class MOT,VSTREAM,MM new
 ```
 
 **阅读顺序建议**：
@@ -212,9 +265,45 @@ flowchart LR
 - **进阶**：找最接近你场景的案例，看它的 YAML 和踩坑
 - **专家**：看 [反哺信号汇总](#反哺信号汇总) 和 [踩坑模式聚合](#踩坑模式聚合)，学跨案例的通用模式
 
+## 12 案例踩坑速查（按踩坑模式索引）
+
+反过来看——**已经遇到某个坑了**，直接搜下面这张表找到同类案例的解法：
+
+| 你遇到的坑 | 首先看 | 次看 |
+|-----------|-------|------|
+| 跨摄像头 ID 切换、ID 频繁跳变 | [mot](/cases/mot) | [security-monitoring](/cases/security-monitoring) |
+| 视频流 OOM / worker 被 kill | [video-stream](/cases/video-stream) | [security-monitoring](/cases/security-monitoring) |
+| 新 SKU / 新类别上线周期太长 | [multimodal](/cases/multimodal) | [retail-shelf](/cases/retail-shelf) |
+| 小目标漏检、精度上不去 | [industrial-defect](/cases/industrial-defect) | [medical-lesion](/cases/medical-lesion) |
+| 边缘设备跑不动、延迟太高 | [edge-deployment](/cases/edge-deployment) | [agriculture](/cases/agriculture) |
+| 隐私合规 / 数据出域 | [medical-lesion](/cases/medical-lesion) | [security-monitoring](/cases/security-monitoring) |
+| 多相机/多传感器时间不同步 | [3d-bev](/cases/3d-bev) | [autonomous-lane](/cases/autonomous-lane) |
+| 光照变化导致精度掉 | [agriculture](/cases/agriculture) | [drone-obb](/cases/drone-obb) |
+| LLM 响应太慢 | [multimodal](/cases/multimodal) | - |
+| 64 路以上流拉不动 | [video-stream](/cases/video-stream) | [security-monitoring](/cases/security-monitoring) |
+
+## 案例横向指标矩阵
+
+12 个案例的**核心 KPI** 横向对齐，方便一眼看哪个案例离你的目标最近：
+
+| 案例 | 核心 KPI | 目标值 | 实测 | 达标 |
+|-----|---------|-------|-----|------|
+| edge-deployment | FPS @ Orin | ≥ 30 | 82 FPS | ✅ |
+| industrial-defect | 缺陷召回率 | ≥ 98% | 99.2% | ✅ |
+| autonomous-lane | 定位误差 (cm) | < 5 | 3.2 | ✅ |
+| retail-shelf | SKU 识别准确率 | ≥ 99.5% | 99.7% | ✅ |
+| medical-lesion | Dice (病灶分割) | ≥ 0.85 | 0.89 | ✅ |
+| security-monitoring | 事件误报/小时 | < 5 | 3.2 | ✅ |
+| agriculture | 病害 F1 | ≥ 0.90 | 0.92 | ✅ |
+| drone-obb | 角度误差 (°) | < 3 | 1.8 | ✅ |
+| 3d-bev | BEV 覆盖 (m²) | ≥ 1600 | 2050 | ✅ |
+| **mot** | IDF1 | ≥ 0.85 | 0.87 | ✅ |
+| **video-stream** | 端到端延迟 p99 | < 1.2s | 1.05s | ✅ |
+| **multimodal** | 新 SKU 上线时间 | < 3 天 | 2.5 天 | ✅ |
+
 ## 未覆盖的高价值场景
 
-以下场景值得作为 v2 案例补充：
+以下场景值得作为 v3 案例补充：
 
 | 场景 | 潜在价值 | 复杂度 |
 |-----|---------|-------|
@@ -223,12 +312,12 @@ flowchart LR
 | 全景/立体视觉 | AR 导航/室内定位 | ⭐⭐⭐⭐ |
 | 遥感地表变化检测 | 城市/环境/灾害 | ⭐⭐⭐⭐ |
 | 视频异常检测 (Anomaly) | 通用安防 | ⭐⭐⭐⭐⭐ |
-| 开放词表检测 (YOLO-World) | 少样本快速上手 | ⭐⭐ |
 | 医学影像 3D CT/MRI | 器官/肿瘤分割 | ⭐⭐⭐⭐⭐ |
-| 边缘多模态 (VLM) | 视觉语言模型 | ⭐⭐⭐⭐⭐ |
+| 工业 AGV 调度 | 工厂物流 + MOT + 路径 | ⭐⭐⭐⭐ |
+| 边缘多模态 VLM 推理 | 手机侧 LLM 融合 | ⭐⭐⭐⭐⭐ |
 
 ## 下一步
 
-- **对比矩阵**：把 9 案例的定量结果做成可交互表格
 - **场景迁移模板**：给一个"从 A 案例迁移到 B 案例"的操作手册
 - **踩坑案例库**：把每个案例的失败复盘抽成独立页
+- **量化对比**：把 12 案例的定量结果做成可交互筛选表格

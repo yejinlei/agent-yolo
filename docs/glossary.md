@@ -139,6 +139,174 @@ YOLO 系列文档共用的"人话词典"。**每个术语只给一两句白话**
 
 ---
 
+## 🌐 术语中英对照总表
+
+> 快速查英文名的对照表——**技术讨论、论文阅读、代码检索时常用**。按主题分组，与下方详细条目一一对应。
+
+### 检测基础（Detection Basics）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 目标检测 | Object Detection | v1 |
+| 边界框 | Bounding Box (bbox) | v1 |
+| 交并比 | Intersection over Union (IoU) | v1 |
+| 置信度 / 目标分数 | Confidence / Objectness | v1 |
+| 非极大值抑制 | Non-Maximum Suppression (NMS) | v1 |
+| 无 NMS | NMS-free | v10 |
+| 平均精度 | mean Average Precision (mAP) | — |
+| 精确率 / 召回率 | Precision / Recall | — |
+| 单阶段检测 | Single-shot Detection | v1 |
+| 多尺度检测 | Multi-scale Detection | v3 |
+| 旋转框 | Oriented Bounding Box (OBB) | v5+ |
+| 关键点检测 | Key Point Detection (Pose) | v5 |
+| 实例分割 | Instance Segmentation | v5 |
+
+### 网络结构（Network Architecture）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 骨干网络 | Backbone | v1 |
+| 检测头 | Head | v1 |
+| 颈部（融合层） | Neck | v3 |
+| 网格 / 格子 | Grid / Cell | v1 |
+| 锚框 / 先验框 | Anchor / Prior Box | v2 |
+| 无锚框 | Anchor-free | v6 |
+| K 均值聚类 | K-means Clustering | v2 |
+| 感受野 | Receptive Field | — |
+| 1×1 卷积 | 1×1 Convolution | — |
+| 全连接层 | Fully Connected (FC) Layer | v1 |
+| 最大池化 | Max Pooling (maxpool) | v2 |
+| 批归一化 | Batch Normalization (BN) | v2 |
+| 细粒度特征搬运 | Passthrough / Route / Reorg | v2 |
+| 特征金字塔 | Feature Pyramid Network (FPN) | v3 |
+| 残差连接 | Shortcut / Residual Connection | v3 |
+| Darknet-53 | Darknet-53 | v3 |
+| 跨阶段部分连接 | Cross Stage Partial (CSP) | v4 |
+| Mish 激活 | Mish Activation | v4 |
+| 空间金字塔池化 | Spatial Pyramid Pooling (SPP / SPPF) | v4 / v5 |
+| 路径聚合网络 | Path Aggregation Network (PANet) | v4 |
+| 结构重参数化 | Structural Reparameterization (RepVGG) | v6 |
+| 高效层聚合 | Efficient Layer Aggregation (ELAN / E-ELAN) | v7 |
+| 无锚框（v6+） | Anchor-free | v6 |
+| C2f（梯度分流） | C2f (Cross Stage Partial with more gradient paths) | v8 |
+| 部分自注意力 | Partial Self-Attention (PSA) | v10 |
+| AAttn（区域注意力） | Area Attention (AAttn) | v12 |
+| FlashAttention | FlashAttention | v12 |
+| 深度可分离卷积 | Depthwise Separable Conv (DSConv) | v12+ |
+| 超图融合 | Hypergraph Fusion (HyperACE) | v13 |
+| 环状卷积 | Circular Convolution (CircularConv) | v14 |
+| 视角嵌入 | View Embedding | v14 |
+| 域自适应层 | Domain Adaptive Layer (DAL) | v14 |
+| 可变形注意力 | Deformable Attention (DeformableAAttn) | v14 |
+| 可逆流模型 | Normalizing Flow (RealNVP) | v26 |
+
+### 训练与损失（Training & Loss）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 损失函数 | Loss Function | v1 |
+| 梯度 / 反向传播 | Gradient / Backpropagation | v1 |
+| 平方差损失 | L2 Loss | v1 |
+| 交叉熵 | Softmax / Cross Entropy | v2 |
+| Sigmoid / Logistic | Sigmoid / Logistic | v2 |
+| One-hot 编码 | One-hot Encoding | v2 |
+| 学习率 / 衰减 | Learning Rate (lr) / Decay | v1 |
+| 热身阶段 | Warmup | v1 |
+| 数据增强 | Data Augmentation (jitter) | v2 |
+| 预训练 / 微调 | Pretrain / Fine-tune | v3 |
+| Complete IoU 损失 | Complete IoU Loss (CIoU) | v4 |
+| 缩放网格 | Scale x y | v4 |
+| 多正样本 | Multi-positive Samples | v4 |
+| 焦点模块 | Focus | v5 |
+| C3 模块 | C3 | v5 |
+| Swish / SiLU | Swish / Sigmoid-Linear Unit (SiLU) | v5 |
+| 自动锚框 | Autoanchor | v5 |
+| 指数移动平均 | Exponential Moving Average (EMA) | v5 |
+| 自动混合精度 | Automatic Mixed Precision (AMP) | v5 |
+| Yaml 驱动架构 | Yaml-driven Architecture | v5 |
+| 任务对齐学习 | Task Alignment Learning (TAL) | v6 |
+| 自适应训练样本选择 | Adaptive Training Sample Selection (ATSS) | v6 |
+| 变化焦点损失 | Varifocal Loss (VFL) | v6 |
+| 分布焦点损失 | Distribution Focal Loss (DFL) | v6 |
+| 训练期免费涨点 | Trainable Bag-of-Freebies | v7 |
+| 引导头标签分配 | Lead Head Guided Label Assigner | v7 |
+| 粗到细标签分配 | Coarse-to-fine Label Assignment | v7 |
+| 末期关闭增广 | Close Mosaic | v8 |
+| 一致性双分配 | Consistent Dual Assignments | v10 |
+| 梯度反转层 | Gradient Reversal Layer (GRL) | v14 |
+| 域对抗损失 | Domain Adversarial Loss | v14 |
+| 跨视角一致性损失 | Cross-view Consistency Loss | v14 |
+| 尺度不变对数损失 | Scale-Invariant Log Loss (SILog) | v26 |
+| 游程编码 | Run-Length Encoding (RLE) | v26 |
+
+### 部署与优化（Deployment & Optimization）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 量化 | Quantization | — |
+| 后训练量化 | Post-Training Quantization (PTQ) | — |
+| 量化感知训练 | Quantization-Aware Training (QAT) | — |
+| 8 位整数 | 8-bit Integer (INT8) | — |
+| 16 位浮点 | 16-bit Floating Point (FP16 / Half) | — |
+| 8 位浮点 | 8-bit Floating Point (FP8) | — |
+| 张量并行 | Tensor Parallelism | — |
+| 混合精度训练 | Mixed Precision Training (AMP) | v5 |
+| 蒸馏 | Knowledge Distillation (KD) | — |
+| 剪枝 | Pruning | — |
+| LoRA 微调 | Low-Rank Adaptation (LoRA) | — |
+| 端到端导出 | End-to-End Export | — |
+| 张量加速推理 | Tensor Acceleration (TensorRT / ONNX Runtime) | — |
+| 边缘部署 | Edge Deployment | — |
+
+### 多目标跟踪（Multiple Object Tracking）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 多目标跟踪 | Multiple Object Tracking (MOT) | — |
+| 联合检测与嵌入 | Joint Detection & Embedding (JDE) | — |
+| 数据关联 | Data Association | — |
+| 重识别 | Re-Identification (ReID) | — |
+| 匈牙利算法 | Hungarian Algorithm | — |
+| IoU 匹配 | IoU Matching | ByteTrack |
+| 关联损失 | Association Loss | JDE |
+| ID 切换 | ID Switch | — |
+| 多目标跟踪精度 | Multiple Object Tracking Accuracy (MOTA) | — |
+| 半重叠目标精度 | Half Overlap Tracking Accuracy (HOTA) | — |
+| 半密度跟踪精度 | Identity F1 (IDF1) | — |
+| 匹配信息流损失 | Matching Info Loss (MOTIF) | MOTIF |
+
+### 多模态与开放词表（Multimodal & Open-vocab）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 开放词表检测 | Open-vocabulary Detection | YOLO-World |
+| 文本嵌入 | Text Embedding | YOLO-World |
+| 对比学习 | Contrastive Learning | YOLO-World |
+| 图像+文本理解 | Vision-Language Understanding | — |
+| 视觉语言模型 | Vision-Language Model (VLM) | — |
+| 提示学习 | Prompt Learning | YOLO-World |
+| 类别名称提示 | Class-name Prompt | YOLO-World |
+| 无提示推理 | Prompt-free Inference | YOLOE |
+| 大语言模型 | Large Language Model (LLM) | — |
+| 视觉推理 | Visual Reasoning | — |
+
+### 视频流与工程化（Video Stream & Engineering）
+
+| 中文 | English | 首次出现 |
+|------|---------|---------|
+| 视频流检测 | Video Stream Detection | — |
+| 帧间插值 | Frame Interpolation | — |
+| 抽帧 | Frame Throttling / Subsampling | — |
+| 消息队列 | Message Queue (Kafka) | — |
+| 生产者/消费者 | Producer / Consumer | — |
+| 背压 | Backpressure | — |
+| GPU 显存溢出 | GPU Out-of-Memory (OOM) | — |
+| CUDA 流并行 | CUDA Stream Parallelism | — |
+| 端到端延迟 | End-to-End Latency (p50/p99) | — |
+| 吞吐率 | Throughput (FPS) | — |
+
+---
+
 ## 检测基础
 
 ### 目标检测（object detection）

@@ -189,10 +189,13 @@ xychart-beta
 | v14n | 未大规模实测 | ⚠️ | CircularConv 需自定义 kernel | 学术线，工业部署谨慎 |
 | v26 | 0.5-1.5 | ✅ | End2End 头量化后 topk 需重调 | 官方线，TensorRT 支持中 |
 
-**关键教训**（来自 9 个实战案例）：
+**关键教训**（来自 12 个实战案例）：
 - **DFL 层必须保持 FP32**——量化会让车道线抖动从 2cm 涨到 6cm（[autonomous-lane](/cases/autonomous-lane) 事故复盘）
 - **NMS IoU 阈值在 INT8 下需重新校准**——量化让分数曲线整体右移，原本 0.5 的阈值变得过严（[edge-deployment](/cases/edge-deployment)）
 - **稀疏注意力 AAttn 在 INT8 下不可用**——FlashAttention 依赖 FP16/BF16，v12 骨干的 AAttn 层在 INT8 下必须回退到普通 Attention（[medical-lesion](/cases/medical-lesion)）
+- **Kafka 反压下 GPU OOM 是视频流杀手**——4×4090 集群背压堆积 + CUDA stream 未隔离，会撑爆显存；必须做抽帧率自适应降级（[video-stream](/cases/video-stream)）
+- **LLM 侧延迟预算是 3s，超过就崩**——多模态栈里 VLM 首 token 常 500-1500ms，需要 tool-loop 提前收敛，不能等 LLM 一次跑完所有推理（[multimodal](/cases/multimodal)）
+- **开放词表零样本 recall 比闭集掉 15-25%**——YOLO-World 冷启动可用但精度不够，需要小样本 fine-tune 或 CLIP embedding 池化补偿（[multimodal](/cases/multimodal)）
 
 ## 任务广度对比
 
@@ -219,13 +222,34 @@ xychart-beta
 - **要 INT8 稳定部署**：v8s 或 v11s
 - **要多相机/多视角**：v14（学术线，谨慎）
 
-**如果你不知道要什么**：从 [compare.md](/cases/compare) 的 9 大场景速查开始。
+**如果你不知道要什么**：从 [compare.md](/cases/compare) 的 12 大场景速查开始。
+
+## 实战案例与版本匹配
+
+12 个实战案例各自落到哪个版本上——这是从"看版本矩阵"过渡到"看场景怎么用"的桥梁：
+
+| 案例 | 推荐版本 | 推荐原因 |
+|------|---------|---------|
+| [retail-shelf](/cases/retail-shelf) | v8s / v11s | 货架密集场景 + CSP 骨干，精度/速度平衡最好 |
+| [drone-obb](/cases/drone-obb) | v8n + OBB | P2 高分辨率头 + OBB 旋转框，无人机倾斜目标专用 |
+| [industrial-defect](/cases/industrial-defect) | v8s + SAM | 缺陷分割必须走 Segment 任务，v8/v11 稳定 |
+| [medical-lesion](/cases/medical-lesion) | v12s（谨慎）/ v11s（回退） | v12 的 AAttn 精度略高，但 INT8 部署困难 |
+| [autonomous-lane](/cases/autonomous-lane) | v13s | 高精度要求 + DSC3k2 参数效率高 |
+| [agriculture](/cases/agriculture) | v11m | 中等精度 + 中等算力，兼顾成本 |
+| [security-monitoring](/cases/security-monitoring) | v8s + OBB | 广角监控 + OBB 旋转框，覆盖非正对目标 |
+| [edge-deployment](/cases/edge-deployment) | v11n / v8n | 极端边缘设备，n 档 2.4-2.6M 参数 |
+| [3d-bev](/cases/3d-bev) | v8s + BEV | 3D 感知需要 BEV 头，v8 生态成熟 |
+| **[mot](/cases/mot)** | v8s + BoT-SORT / ByteTrack | MOT 需要 ReID embedding 分支，v8s 精度足够 |
+| **[video-stream](/cases/video-stream)** | v8n + NGF + Kafka | 64 路 4K@25fps 需极轻量骨干 + NGF 优化 |
+| **[multimodal](/cases/multimodal)** | YOLO-World + Qwen2-VL | 开放词表零样本 + VLM 语义理解组合栈 |
+
+**读法**：v8s 是"稳态工作马"（5 案例命中），v11s 是"下一代默认"（4 案例），v12+ 只出现在"精度优先且 INT8 非必需"的特殊场景。
 
 ## 与家族总览的关系
 
 - 想看**技术演进故事**（为什么这么改）：[global/family.md](/global/family)
 - 想看**每代具体做了什么**：v1→v26 各版本页
-- 想看**场景怎么选**：[cases/compare](/cases/compare) 9 大场景速查
+- 想看**场景怎么选**：[cases/compare](/cases/compare) 12 大场景速查
 - 想看**时间线**：[global/timeline](/global/timeline)
 - 想看**演进决策叙事**：[evolution-story](/evolution-story)
 
