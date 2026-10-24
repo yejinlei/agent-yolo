@@ -65,6 +65,9 @@ export default defineConfig({
         { text: '对比矩阵', link: '/compare-matrix' },
         { text: '演化事件', link: '/global/evolutions' },
         { text: '时间线', link: '/global/timeline' },
+        { text: '传统 CV 谱系', link: '/global/external-techniques' }
+      ]},
+      { text: '版本详解', items: [
         { text: 'YOLOv1', link: '/versions/v1/index' },
         { text: 'YOLOv3', link: '/versions/v3/index' },
         { text: 'YOLOv4', link: '/versions/v4/index' },
@@ -73,8 +76,14 @@ export default defineConfig({
         { text: 'YOLOv11', link: '/versions/v11/index' },
         { text: 'YOLOv13', link: '/versions/v13/index' },
         { text: 'YOLOv14 (Omni)', link: '/versions/v14/index' },
-        { text: 'YOLO26', link: '/versions/v26/index' },
-        { text: '传统 CV 谱系', link: '/global/external-techniques' }
+        { text: 'YOLO26', link: '/versions/v26/index' }
+      ]},
+      { text: '衍生分支', items: [
+        { text: '总览', link: '/derivatives/index' },
+        { text: 'YOLO-World', link: '/derivatives/yoloworld/index' },
+        { text: 'YOLOE', link: '/derivatives/yoloe/index' },
+        { text: 'YOLO-Master', link: '/derivatives/master/index' },
+        { text: '路线预告', link: '/derivatives/roadmap' }
       ]},
       { text: '横向使用', items: [
         { text: '选型决策树', link: '/choose-a-model' },
@@ -85,13 +94,6 @@ export default defineConfig({
         { text: '术语表', link: '/glossary' }
       ]},
       { text: '实战案例', link: '/cases' },
-      { text: '衍生分支', items: [
-        { text: '总览', link: '/derivatives/index' },
-        { text: 'YOLO-World', link: '/derivatives/yoloworld/index' },
-        { text: 'YOLOE', link: '/derivatives/yoloe/index' },
-        { text: 'YOLO-Master', link: '/derivatives/master/index' },
-        { text: '路线预告', link: '/derivatives/roadmap' }
-      ]},
       { text: '本体', link: '/ontology/schema' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
