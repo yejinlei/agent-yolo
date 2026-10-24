@@ -195,6 +195,14 @@ agent-yolo/
 - **版本一句话差异卡片**（`/versions/deltas`）：v1→v27 Preview 共 16 张卡片 · 3 张速查表 · 三代范式
 - **反哺信号自动同步脚本**（`scripts/sync-feedback.js`）：扫描全站 markdown，生成 `/concepts-feedback` 汇总页（41 条信号 · PainPoint 14 / Trick 18 / Metric 9）
 
+### 已完成（Batch 7 · 2026-10-25）
+
+- **部署后端对比页**（`/recipes/deploy-compare`）：7 个推理后端横向对比（ONNX Runtime / TensorRT / OpenVINO / CoreML / TFLite / PyTorch / TorchServe）+ 决策树 + PyTorch 直推适用场景
+- **训练成本计算器**（`/interactive/cost-calculator`）：5 档模型 × 6 款 GPU × 多卡效率，估算训练时长 / 显存 / 费用
+- **案例健康度审计**（`scripts/audit-cases.js` + `/cases/health`）：7 项检查（更新日期 / 反哺信号 / 信号同步 / 横向对比 / sidebar / 死链 / 版本页），当前 12 案例平均 85%
+- **站内搜索增强**：中文 i18n 翻译 + 术语别名注入（`_render` 钩子），中英文双向关键词可搜（anchor-free ↔ 无锚框、nms ↔ 非极大值抑制）
+- **反哺信号增长**：41 → 53 条（新增 12 条：deploy-compare 7 条 + cost-calculator 4 条 + 1 关联）
+
 ---
 
 ## 训练配方约定：三种文档的边界
@@ -293,6 +301,9 @@ A：如果你是纯使用者（跑模型、改参数），本体层不重要，�
 - 想系统学习 → [mid-level-path](/mid-level-path)
 - 想查术语 → [glossary](/glossary)
 - 想在浏览器内试模型 → [interactive/compare](/interactive/compare)
+- 想估算训练成本 → [interactive/cost-calculator](/interactive/cost-calculator)
+- 想看部署后端怎么选 → [recipes/deploy-compare](/recipes/deploy-compare)
+- 想看案例健康度 → [cases/health](/cases/health)
 - 想看版本差异 → [versions/deltas](/versions/deltas)
 - 想贡献内容 → [CONTRIBUTING](/CONTRIBUTING)
 - 想看本体细节 → [ontology/schema](/ontology/schema)

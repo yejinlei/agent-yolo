@@ -2,18 +2,18 @@
 
 > 自动生成，请勿手改。运行 `node scripts/sync-feedback.js` 重新生成。
 > 最后更新：2026-10-25
-> 扫描范围：`docs/**/*.md` · 共扫描 **341** 个 md 文件，检出 **42** 条信号（分布在 **14** 个文件）
+> 扫描范围：`docs/**/*.md` · 共扫描 **344** 个 md 文件，检出 **53** 条信号（分布在 **16** 个文件）
 
 ## 分类速览
 
 | 类型 | 数量 |
 |-----|-----|
-| PainPoint | 14 |
-| Trick | 19 |
-| Metric | 9 |
-| **合计** | **42** |
+| PainPoint | 18 |
+| Trick | 24 |
+| Metric | 11 |
+| **合计** | **53** |
 
-## PainPoint（14 条）
+## PainPoint（18 条）
 
 | 名称 | 说明 | 来源 |
 |------|------|------|
@@ -24,43 +24,53 @@
 |`pain-cnn-vs-transformer-deployment`| N/S 与 M/L 双族架构是折中 | `[models/v27-preview.md](/models/v27-preview)`<br>`[versions/deltas.md](/versions/deltas)` |
 |`pain-confidence-miscalibration`| 医疗置信度必须校准 | `[cases/medical-lesion.md](/cases/medical-lesion)` |
 |`pain-data-leakage-medical`| 医疗标注一致性陷阱 | `[cases/medical-lesion.md](/cases/medical-lesion)` |
+|`pain-deploy-backend-selection-fatigue`| 7 个后端每次选型都要查一遍基准 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`pain-hbb-angle-blindness`| 水平框对任意角度目标无能为力 | `[cases/drone-obb.md](/cases/drone-obb)` |
 |`pain-light-invariance-outdoor`| 户外光照剧烈变化难对抗 | `[cases/agriculture.md](/cases/agriculture)` |
 |`pain-mask-edge-fragmentation`| FP16 下分割 mask 边缘锯齿 | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
 |`pain-multi-camera-id-switch`| 多摄像头 ID 切换率难以接受 | `[cases/security-monitoring.md](/cases/security-monitoring)` |
+|`pain-pytorch-export-torch-compile-conflict`| torch.compile 后导出 ONNX 报错 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`pain-sofmax-huge-num-classes`| 千级类别 softmax 训练崩塌 | `[cases/retail-shelf.md](/cases/retail-shelf)` |
 |`pain-temporal-inconsistency`| 相邻帧预测抖动 | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
+|`pain-tensorrt-version-pin`| TensorRT 引擎化后跨版本不通用，回滚困难 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
+|`pain-training-cost-estimate-noise`| 估算与实际偏差大，硬件驱动版本影响明显 | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 |`pain-wasm-sharedarraybuffer-cors`| 浏览器需要 COOP/COEP header 才能开 SharedArrayBuffer | `[interactive/compare.md](/interactive/compare)` |
 
-## Trick（19 条）
+## Trick（24 条）
 
 | 名称 | 说明 | 来源 |
 |------|------|------|
 |`trick-browser-onnx-warmup`| 首次推理会因 JIT 慢，预热一次即可稳定 | `[interactive/compare.md](/interactive/compare)` |
 |`trick-browser-ort-wasm-threads`| `numThreads=4` + `proxy=true` 是稳定组合，2 线程以上需 SAB | `[interactive/compare.md](/interactive/compare)` |
+|`trick-coreml-op-coverage-check`| 用 `coremltools` 加载时抓 warning 检查算子覆盖 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`trick-edge-cloud-candidate-only`| 边缘粗筛 + 云精定位，省带宽 90% | `[cases/agriculture.md](/cases/agriculture)` |
 |`trick-event-cooldown-per-zone`| 事件冷却按 zone 分区，不按全局 | `[cases/security-monitoring.md](/cases/security-monitoring)` |
 |`trick-federated-doctor-loop`| 联邦 + 医师闭环合规方案 | `[cases/medical-lesion.md](/cases/medical-lesion)` |
 |`trick-foreground-alignment`| Query-based 与 one-to-one 的精度补偿 | `[models/v27-preview.md](/models/v27-preview)` |
+|`trick-gpu-utilization-plateau`| >90% 后加卡边际收益递减 | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 |`trick-log-affine-calibration`| `calibrate()` 闭式解 | `[tasks/depth.md](/tasks/depth)` |
 |`trick-lora-prompt-incremental`| LoRA + Prompt 支持新类免重训 | `[cases/retail-shelf.md](/cases/retail-shelf)` |
 |`trick-mask-non-overlap-aug`| 增强时保证 mask 不交叠 | `[cases/industrial-defect.md](/cases/industrial-defect)` |
+|`trick-mixed-precision-batch-double`| AMP 能等效把 batch size 翻倍而不 OOM | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 |`trick-multispectral-band-fusion`| 多光谱融合捕捉早期病害 | `[cases/agriculture.md](/cases/agriculture)` |
 |`trick-obb-no-rotation-aug`| OBB 训练禁用旋转增强 | `[cases/drone-obb.md](/cases/drone-obb)` |
+|`trick-onnx-runtime-ep-fallback`| 用 `session.get_providers()` 检查 EP fallback 到 CPU 的算子 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`trick-open-drive-fusion`| 高精地图融合过滤和稳定 | `[cases/3d-bev.md](/cases/3d-bev)` |
 |`trick-optic-flow-consistency-loss`| 光流一致性正则项 | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
 |`trick-orthomosaic-dem-correction`| 正射必须做 DEM 校正 | `[cases/drone-obb.md](/cases/drone-obb)` |
+|`trick-quantize-calibration-distribution`| 校准集分布必须覆盖真实使用场景 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`trick-roi-padding-expansion`| ROI 外扩保留边缘特征 | `[cases/retail-shelf.md](/cases/retail-shelf)` |
 |`trick-slowfast-candidate-only`| 只对候选事件跑行为识别，省 20× 算力 | `[cases/security-monitoring.md](/cases/security-monitoring)` |
 |`trick-temporal-buffe-on-gpu`| BEV 时序 buffer 存 GPU 加速 | `[cases/3d-bev.md](/cases/3d-bev)` |
 |`trick-tversky-loss-recall-first`| α<β Tversky 惩罚漏检 | `[cases/medical-lesion.md](/cases/medical-lesion)` |
 |`trick-version-delta-card`| 版本差异卡片：每代 3 行的极简形式，避免读者陷入版本页细节 | `[versions/deltas.md](/versions/deltas)` |
 
-## Metric（9 条）
+## Metric（11 条）
 
 | 名称 | 说明 | 来源 |
 |------|------|------|
 |`metric-angle-error-deg`| 角度误差（度），OBB 必备指标 | `[cases/drone-obb.md](/cases/drone-obb)` |
+|`metric-backend-latency-yolo11n-640`| yolo11n/640 各后端延迟基准 | `[recipes/deploy-compare.md](/recipes/deploy-compare)` |
 |`metric-bev-coverage-m2`| BEV 有效覆盖面积 | `[cases/3d-bev.md](/cases/3d-bev)` |
 |`metric-browser-inference-ms`| WASM 单张 640×640 端到端耗时 | `[interactive/compare.md](/interactive/compare)` |
 |`metric-daily-farmer-action`| 每日农户可执行动作数（业务指标） | `[cases/agriculture.md](/cases/agriculture)` |
@@ -69,6 +79,7 @@
 |`metric-jitter-cm`| 跨帧位置抖动，单位 cm | `[cases/autonomous-lane.md](/cases/autonomous-lane)` |
 |`metric-physician-review-time`| 医师复核时间（秒） | `[cases/medical-lesion.md](/cases/medical-lesion)` |
 |`metric-time-to-online`| 新类上线时间（分钟） | `[cases/retail-shelf.md](/cases/retail-shelf)` |
+|`metric-training-gpu-hour`| 单 epoch 单卡 A100 耗时 | `[interactive/cost-calculator.md](/interactive/cost-calculator)` |
 
 ---
 

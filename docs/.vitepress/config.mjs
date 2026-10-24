@@ -1,6 +1,45 @@
 import { defineConfig } from 'vitepress'
 import markdownItKatex from '@traptitech/markdown-it-katex'
 
+// @AI_GUARD: 全站术语别名（中英双语）— 用于站内搜索增强
+// 每页末尾会追加一个隐藏 <div>，把这些别名喂给 miniSearch 索引。
+// 目的：用户搜索 "nms"、"非极大值抑制"、"anchor-free"、"无锚框" 都能命中相应页面。
+// 用 <div style="display:none"> 保证渲染不可见，但 markdown-it 仍会解析为文本进入索引。
+const SEARCH_ALIAS_BLOCK = '<div style="display:none" class="vp-search-alias">'
+  + 'YOLO YOLOv1 YOLOv2 YOLOv3 YOLOv4 YOLOv5 YOLOv6 YOLOv7 YOLOv8 YOLOv9 YOLOv10 YOLOv11 YOLOv12 YOLOv13 YOLOv14 YOLO26 YOLO27 '
+  + 'YOLOWorld YOLO-World YOLOE YOLO-Master Ultralytics RT-DETR PaddlePaddle PyTorch TensorFlow '
+  + 'anchor anchor-free 锚框 无锚框 NMS non-maximum suppression 非极大值抑制 IoU intersection over union '
+  + 'letterbox padding 填充 preprocessing 预处理 normalization 归一化 '
+  + 'detection 检测 segmentation 分割 semantic 语义 instance 实例 '
+  + 'classification 分类 pose 姿态 keypoints 关键点 skeleton 骨架 '
+  + 'obb oriented bounding box 定向框 rotated detection 旋转检测 '
+  + 'object detection 目标检测 image classification 图像分类 '
+  + 'ONNX ONNX Runtime TensorRT CoreML OpenVINO TensorFlow Lite TFLite NCNN MNN NCNN MNN '
+  + 'PTQ post training quantization 训练后量化 QAT quantization aware training 量化感知训练 '
+  + 'INT8 FP16 FP32 mixed precision 混合精度 AMP automatic mixed precision '
+  + 'backbone neck head C3 C2f CSP Darknet backbone '
+  + 'attention attention mechanism transformer CNN convolutional neural network 卷积神经网络 '
+  + 'C2PSA C2SP C2-L C3-k 模块 module block '
+  + 'data augmentation 数据增强 Mosaic 马赛克 MixUp Copy-Paste Random Erasing 随机擦除 '
+  + 'hyperparameter 超参数 learning rate 学习率 momentum 动量 weight decay 权重衰减 '
+  + 'SGD Adam AdamW optimizer 优化器 warmup scheduler 调度器 cosine annealing 余弦退火 '
+  + 'batch size 批次大小 epoch 迭代 iteration 迭代 loss 损失函数 conf 置信度 prob 概率 '
+  + 'mAP mAP50 mAP50-95 precision 精确率 recall 召回率 F1 分数 '
+  + 'COCO Voc Pascal dataset 数据集 annotation 标注 labelme CVAT LabelImg Roboflow '
+  + 'deploy deployment 部署 inference 推理 latency 延迟 FPS frames per second throughput 吞吐量 '
+  + 'edge device 边缘设备 Jetson Raspberry Pi 树莓派 RK3588 Xavier Orin '
+  + 'GPU NVIDIA A100 RTX 4090 3090 L40S T4 CUDA ROCm OpenCL Vulkan '
+  + 'CPU Intel AMD ARM OpenMP AVX512 CoreML AppKit iOS Android '
+  + 'multimodal 多模态 CLIP text prompt 提示词 open-vocabulary 开放词表 '
+  + 'few-shot zero-shot 少样本 零样本 prompt learning prompt 学习 '
+  + 'self-supervised self-attention positional embedding 位置编码 '
+  + 'distillation knowledge distillation 知识蒸馏 ensemble 集成 '
+  + 'YOLO11 C2f E-ELAN 模块 YOLO26 单阶段 多任务多模态 '
+  + 'YOLO27 Foreground Alignment 前景对齐 UltraViT Preview 预览 '
+  + 'track MOT multi object tracking 多目标跟踪 ByteTrack BoT-SORT DeepSORT CentroidSORT '
+  + 'calibration 校准 letterbox padding 长宽比 preserved aspect ratio 保持长宽比 '
+  + '</div>'
+
 // @REASON: markdown-it-container 已被 VitePress 内部打包、无法直接 import，这里用零依赖的 mini block rule 实现
 // 用法：::: figure 图注文字  ...（通常是 mermaid 块）...  :::
 function figurePlugin(md) {
@@ -94,15 +133,17 @@ export default defineConfig({
         { text: '单目深度估计', link: '/tasks/depth' }
       ]},
       { text: '实操', items: [
-        { text: '训练与微调', link: '/recipes/train' },
-        { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
-        { text: '量化深度指南', link: '/recipes/quantization' },
-        { text: '边缘设备实战', link: '/recipes/edge-deploy' },
-        { text: '数据标注避坑', link: '/recipes/data-annotation' },
-        { text: '高级训练技巧', link: '/recipes/advanced-train' },
-        { text: '生产化落地', link: '/recipes/production' },
-        { text: '交互式对比（浏览器 ONNX）', link: '/interactive/compare' }
-      ]},
+          { text: '训练与微调', link: '/recipes/train' },
+          { text: '部署后端对比', link: '/recipes/deploy-compare' },
+          { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
+          { text: '量化深度指南', link: '/recipes/quantization' },
+          { text: '边缘设备实战', link: '/recipes/edge-deploy' },
+          { text: '数据标注避坑', link: '/recipes/data-annotation' },
+          { text: '高级训练技巧', link: '/recipes/advanced-train' },
+          { text: '生产化落地', link: '/recipes/production' },
+          { text: '交互式对比（浏览器 ONNX）', link: '/interactive/compare' },
+          { text: '训练成本计算器', link: '/interactive/cost-calculator' }
+        ]},
       { text: '问答', link: '/faq' },
       { text: '翻车案例', link: '/bad-cases' },
       { text: '进阶路线', link: '/mid-level-path' },
@@ -162,6 +203,7 @@ export default defineConfig({
           text: '实操手册',
           items: [
             { text: '训练与微调', link: '/recipes/train' },
+            { text: '部署后端对比', link: '/recipes/deploy-compare' },
             { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' }
           ]
         },
@@ -622,6 +664,7 @@ export default defineConfig({
           items: [
             { text: '案例总览', link: '/cases' },
             { text: '横向对比（选型速查）', link: '/cases/compare' },
+            { text: '案例健康度报告', link: '/cases/health' },
             { text: '案例模板（新案例写作）', link: '/cases/_template' },
             { divider: true },
             { text: '边缘部署', link: '/cases/edge-deployment' },
@@ -748,7 +791,8 @@ export default defineConfig({
         {
           text: '交互式',
           items: [
-            { text: '交互式模型对比（浏览器 ONNX）', link: '/interactive/compare' }
+            { text: '交互式模型对比（浏览器 ONNX）', link: '/interactive/compare' },
+            { text: '训练成本计算器', link: '/interactive/cost-calculator' }
           ]
         }
       ],
@@ -792,6 +836,7 @@ export default defineConfig({
           text: '实操手册',
           items: [
             { text: '训练与微调', link: '/recipes/train' },
+            { text: '部署后端对比', link: '/recipes/deploy-compare' },
             { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
             { divider: true },
             { text: '量化深度指南', link: '/recipes/quantization' },
@@ -823,7 +868,39 @@ export default defineConfig({
     },
 
     search: {
-      provider: 'local'
+      provider: 'local',
+      options: {
+        locales: {
+          zh: {
+            translations: {
+              button: { buttonText: '搜索', buttonAriaLabel: '搜索文档' },
+              modal: {
+                searchBox: {
+                  displayDetails: '详细搜索',
+                  resetButtonTitle: '清空',
+                  backButtonTitle: '关闭搜索',
+                  noResultsText: '未找到结果',
+                  footer: {
+                    selectText: '选择', selectKeyAriaLabel: '回车',
+                    navigateText: '上下导航', navigateUpKeyAriaLabel: '上箭头', navigateDownKeyAriaLabel: '下箭头',
+                    closeText: '关闭', closeKeyAriaLabel: 'esc'
+                  }
+                }
+              }
+            }
+          }
+        },
+        // @AI_GUARD: 术语别名注入 —— 让 miniSearch 索引可命中中英文双向关键词
+        // 每页末尾追加一个隐藏 <details>（无展开），包含全站常用术语别名。
+        // 用户在站内搜索 "anchor-free" / "无锚框" / "nms" / "非极大值抑制" 等都能命中对应页面。
+        async _render(src, env, md) {
+          // @AI_GUARD: VitePress 传入的 md 是 markdown-it（同步），非 markdown-it-async
+          // 官方示例用 renderAsync 但实际不可用，用 render 同步即可
+          const html = md.render(src, env)
+          if (!SEARCH_ALIAS_BLOCK) return html
+          return html + '\n' + SEARCH_ALIAS_BLOCK
+        }
+      }
     },
 
     footer: {
