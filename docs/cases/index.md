@@ -40,19 +40,10 @@ subgraph L1[L1 论文]
 P[paper-2015-yolo-single-shot]
 end
 subgraph L2[L2 理论]
-C1[concept-single-shot]
-C2[concept-grid-decomposition]
-C3[concept-decoupled-head]
+C1[concept-single-shot] ; C2[concept-grid-decomposition] ; C3[concept-decoupled-head]
 end
 subgraph L3[L3 实现]
-M[yolo-v5n<br/>4.4M params]
-L1c[layer-csp-block]
-L2c[layer-c3-block]
-Ls1[loss-bcecls]
-Ls2[loss-dfl]
-Ls3[loss-ciou]
-T1[trick-mosaic]
-T2[trick-coslr]
+M[yolo-v5n<br/>4.4M params] ; L1c[layer-csp-block] ; L2c[layer-c3-block] ; Ls1[loss-bcecls] ; Ls2[loss-dfl] ; Ls3[loss-ciou] ; T1[trick-mosaic] ; T2[trick-coslr]
 end
 subgraph L4[L4 实战]
 CS[case-edge-rpi4b<br/>4.4M / 25 fps / INT8]
@@ -60,12 +51,9 @@ end
 P --> C1 & C2
 M -.derivedFrom.-> yolo-v1
 M --> C3
-M -.hasLayer.-> L1c & L2c
-M -.usesLoss.-> Ls1 & Ls2 & Ls3
-M -.usesTrick.-> T1 & T2
+M -.hasLayer.-> L1c & L2c ; M -.usesLoss.-> Ls1 & Ls2 & Ls3 ; M -.usesTrick.-> T1 & T2
 M --> CS
-CS -.solvesPainPoint.-> pain-small-objects
-CS -.exacerbatesPainPoint.-> pain-nms-threshold
+CS -.solvesPainPoint.-> pain-small-objects ; CS -.exacerbatesPainPoint.-> pain-nms-threshold
 ```
 
 ## CaseStudy YAML 完整模板

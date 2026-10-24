@@ -109,98 +109,52 @@ v13 也不是 ultralytics 官方发布，而是第三方 fork（`iMoonLab/yolov1
 ```mermaid
 flowchart LR
 subgraph V1[v1 定调]
-A1[single-shot 端到端]
-A2[网格 + 直接回归]
-A3[SSE 全家桶]
+A1[single-shot 端到端] ; A2[网格 + 直接回归] ; A3[SSE 全家桶]
 end
 subgraph V2[v2 继承 + 修正]
-B1[继承网格回归]
-B2[+ anchor / BN / log 回归]
-B3[+ passthrough 浅层融合]
+B1[继承网格回归] ; B2[+ anchor / BN / log 回归] ; B3[+ passthrough 浅层融合]
 end
 subgraph V3[v3 继承 + 放大]
-C1[继承 anchor + BN]
-C2[+ Darknet-53 残差]
-C3[+ 三头 FPN 多尺度]
-C4[类别 softmax→logistic]
+C1[继承 anchor + BN] ; C2[+ Darknet-53 残差] ; C3[+ 三头 FPN 多尺度] ; C4[类别 softmax→logistic]
 end
 subgraph V4[v4 继承 + 重构]
-D1[继承三头 + logistic]
-D2[+ CSP 骨干 / SPP / PANet]
-D3[坐标 SSE→CIoU]
-D4[+ Mosaic / multi-positive]
+D1[继承三头 + logistic] ; D2[+ CSP 骨干 / SPP / PANet] ; D3[坐标 SSE→CIoU] ; D4[+ Mosaic / multi-positive]
 end
 subgraph V5[v5 继承 + 工程化]
-E1[继承 CIoU / CSP / SPP / PANet]
-E2[+ PyTorch 化 / yaml 驱动]
-E3[+ Focus / SiLU / autoanchor]
-E4[+ EMA / AMP / 多正样本]
+E1[继承 CIoU / CSP / SPP / PANet] ; E2[+ PyTorch 化 / yaml 驱动] ; E3[+ Focus / SiLU / autoanchor] ; E4[+ EMA / AMP / 多正样本]
 end
 subgraph V6[v6 继承 + 重参数化]
-F1[继承三头 + PAN 双向 + SPP]
-F2[+ RepVGG 重参数化骨干与 Neck]
-F3[anchor-free 解耦头 · 无 objectness]
-F4[+ TAL 分配 / VFL / DFL 蒸馏]
+F1[继承三头 + PAN 双向 + SPP] ; F2[+ RepVGG 重参数化骨干与 Neck] ; F3[anchor-free 解耦头 · 无 objectness] ; F4[+ TAL 分配 / VFL / DFL 蒸馏]
 end
 subgraph V7[v7 继承 + trainable BoF]
-G1[继承 v5 PyTorch + CIoU + anchor]
-G2[+ ELAN / E-ELAN 聚合]
-G3[+ planned re-param RepConv]
-G4[+ coarse-to-fine 双头标签分配]
+G1[继承 v5 PyTorch + CIoU + anchor] ; G2[+ ELAN / E-ELAN 聚合] ; G3[+ planned re-param RepConv] ; G4[+ coarse-to-fine 双头标签分配]
 end
 subgraph V8[v8 继承 + anchor-free 收敛]
-H1[继承 v5 yaml 驱动 + CIoU + SiLU]
-H2[+ C2f 取代 C3 梯度分流]
-H3[anchor-free 解耦头 · 无 objectness]
-H4[+ TAL topk=10 / DFL 内建 / 软标签]
+H1[继承 v5 yaml 驱动 + CIoU + SiLU] ; H2[+ C2f 取代 C3 梯度分流] ; H3[anchor-free 解耦头 · 无 objectness] ; H4[+ TAL topk=10 / DFL 内建 / 软标签]
 end
 subgraph V9[v9 继承 + 梯度路径规划]
-I1[回归 v7 代码库结构 + CIoU + TAL]
-I2[+ GELAN 两级级联取代 C2f]
-I3[+ PGI 辅助可逆分支 CBLinear/CBFuse]
-I4[+ DualDDetect 双头与双 assigner]
+I1[回归 v7 代码库结构 + CIoU + TAL] ; I2[+ GELAN 两级级联取代 C2f] ; I3[+ PGI 辅助可逆分支 CBLinear/CBFuse] ; I4[+ DualDDetect 双头与双 assigner]
 end
 subgraph V10["v10 继承 + NMS-free 收口"]
-J1[继承 v8 yaml 驱动 + CIoU + SiLU]
-J2[+ 一致性双分配 one2many topk=10 + one2one topk=1]
-J3[+ v10postprocess 纯 topk 推理去 NMS]
-J4[+ SCDown / CIB 大核 / PSA / 轻量分类头]
+J1[继承 v8 yaml 驱动 + CIoU + SiLU] ; J2[+ 一致性双分配 one2many topk=10 + one2one topk=1] ; J3[+ v10postprocess 纯 topk 推理去 NMS] ; J4[+ SCDown / CIB 大核 / PSA / 轻量分类头]
 end
 subgraph V11["v11 继承 + 结构性减法"]
-K1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
-K2[+ C3k2 骨干内瓶取代 C2f（8 处）]
-K3[+ C2PSA 收骨干尾（一体化 PSABlock）]
-K4[+ TAL topk=13 α=1.0（类默认）/ 单 yolo11.yaml 五档]
+K1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS] ; K2[+ C3k2 骨干内瓶取代 C2f（8 处）] ; K3[+ C2PSA 收骨干尾（一体化 PSABlock）] ; K4[+ TAL topk=13 α=1.0（类默认）/ 单 yolo11.yaml 五档]
 end
 subgraph V12["v12 继承 + 注意力进骨干"]
-L1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
-L2[+ A2C2f（R-ELAN）取代 P4/P5 主通路]
-L3[+ AAttn（Area Attention）/ FlashAttention 硬依赖]
-L4[+ 去 SPPF / DW-separable cv3 / 分档配方]
+L1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS] ; L2[+ A2C2f（R-ELAN）取代 P4/P5 主通路] ; L3[+ AAttn（Area Attention）/ FlashAttention 硬依赖] ; L4[+ 去 SPPF / DW-separable cv3 / 分档配方]
 end
 subgraph V13["v13 继承 + 超图融合 + 深度可分离"]
-M1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS]
-M2[+ HyperACE（超图）骨干后首层做 P3/P4/P5 融合]
-M3[+ 7×FullPAD_Tunnel 门控连接（gate 从 0 学起）]
-M4[+ DS 深度可分离体系（DSConv + DSC3k2）/ 缩到四档无 m]
+M1[继承 v8 yaml 驱动 + CIoU + SiLU + Detect 单头 + NMS] ; M2[+ HyperACE（超图）骨干后首层做 P3/P4/P5 融合] ; M3[+ 7×FullPAD_Tunnel 门控连接（gate 从 0 学起）] ; M4[+ DS 深度可分离体系（DSConv + DSC3k2）/ 缩到四档无 m]
 end
 subgraph V14["v14 · 学术线 · YOLO-Omni"]
-N1[fork 自 iMoonLab/yolov13 · 8.3.63 基线 · AGPL-3.0]
-N2[骨干 CircularConv + ViewEmbedding + DAL 多视角感知]
-N3[DeformableA2C2f 变形注意力进骨干]
-N4[Detect + v14DetectionLoss · GRL 域对抗 · 4 条 schedule]
+N1[fork 自 iMoonLab/yolov13 · 8.3.63 基线 · AGPL-3.0] ; N2[骨干 CircularConv + ViewEmbedding + DAL 多视角感知] ; N3[DeformableA2C2f 变形注意力进骨干] ; N4[Detect + v14DetectionLoss · GRL 域对抗 · 4 条 schedule]
 end
 subgraph V26["v26 · 官方线 · End2End 双分支"]
-O1[Ultralytics 官方 @ 2e241d0 · AGPL-3.0 + Enterprise 双许可]
-O2[骨干 Conv-C3k2×4-SPPF-C2PSA · 回归 v8/v10/v11 家族]
-O3[Detect end2end=True · reg_max=1 · copy.deepcopy 双分支]
-O4[Depth/Semantic/OBB/CLS/YOLOE 六任务同 backbone]
+O1[Ultralytics 官方 @ 2e241d0 · AGPL-3.0 + Enterprise 双许可] ; O2[骨干 Conv-C3k2×4-SPPF-C2PSA · 回归 v8/v10/v11 家族] ; O3[Detect end2end=True · reg_max=1 · copy.deepcopy 双分支] ; O4[Depth/Semantic/OBB/CLS/YOLOE 六任务同 backbone]
 end
 V1 --> V2 --> V3 --> V4 --> V5 --> V6
-V4 -.BoF 路线延续.-> V7
-V5 -.Ultralytics 产品线延续.-> V8
-V6 -.anchor-free 与 TAL 收敛.-> V8
-V7 -.ELAN 思想轻量化.-> V8
+V4 -.BoF 路线延续.-> V7 ; V5 -.Ultralytics 产品线延续.-> V8 ; V6 -.anchor-free 与 TAL 收敛.-> V8 ; V7 -.ELAN 思想轻量化.-> V8
 V8 --> V9
 V7 -.v9 回归 v7 代码库 + Elan 拓扑化.-> V9
 V8 -.->|"Ultralytics 8.1.34 fork"| V10 ; V9 --> V10 ; V8 -.->|"8.3.0 官方回归 + C3k2/C2PSA 增补"| V11 ; V11 --> V12 ; V8 -.->|"8.3.63 fork · 注意力进骨干"| V12 ; V12 -.->|"8.3.63 fork · 超图融合 + DS 体系"| V13 ; V13 -.->|"学术线：多相机感知"| V14 ; V13 -.->|"官方线：六任务统一 backbone + End2End"| V26

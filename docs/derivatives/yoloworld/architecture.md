@@ -7,22 +7,17 @@ YOLO-World 的架构可以概括为「**YOLOv8 骨干不动、Neck 换成 VL 融
 ```mermaid
 flowchart TB
 subgraph INPUT["输入"]
-IMG["图像 B×3×640×640"]
-TXT["文本 ['dog','cat']"]
+IMG["图像 B×3×640×640"] ; TXT["文本 ['dog','cat']"]
 end
 subgraph BB["Backbone（YOLOv8 原样）"]
 C0["Conv 3×3 s2"] --> C1["C2f 128"]
 C1 --> C2["Conv 3×3 s2"] ; C2 --> C3["C2f 256"] ; C3 --> C4["Conv 3×3 s2"] ; C4 --> C5["C2f 512"] ; C5 --> C6["Conv 3×3 s2"] ; C6 --> C7["C2f 1024"] ; C7 --> C8["SPPF"]
 end
 subgraph NECK["Neck（RepVL-PAN）"]
-N1["Upsample + Cat + C2fAttn"]
-N2["Upsample + Cat + C2fAttn"]
-N3["Conv + Cat + C2fAttn"]
-N4["Conv + Cat + C2fAttn"]
+N1["Upsample + Cat + C2fAttn"] ; N2["Upsample + Cat + C2fAttn"] ; N3["Conv + Cat + C2fAttn"] ; N4["Conv + Cat + C2fAttn"]
 end
 subgraph HEAD["Head（PHF / Promptable Head）"]
-H1["cv2 → DFL 64ch"]
-H2["cv3 → 512ch → cv4 BNContrastiveHead"]
+H1["cv2 → DFL 64ch"] ; H2["cv3 → 512ch → cv4 BNContrastiveHead"]
 end
 IMG --> BB ; BB --> NECK ; TXT --> CLIP["CLIP ViT-B/32 frozen"] ; CLIP -->|txt_feats 512-dim| NECK ; NECK --> HEAD ; HEAD --> OUT["P3/P4/P5 boxes + class logits"]
 ```

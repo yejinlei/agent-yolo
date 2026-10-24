@@ -351,19 +351,16 @@ class SemanticSegmentationLoss(nn.Module):
 ```mermaid
 flowchart TB
 subgraph 检测
-E2E[E2E 双分支<br/>end2end=True]
-DFL[DFL → Identity<br/>reg_max=1]
+E2E[E2E 双分支<br/>end2end=True] ; DFL[DFL → Identity<br/>reg_max=1]
 end
 subgraph 分割
-SEG[Segment26 + Proto26]
-SEM[SemanticSegment<br/>CE+Dice+Cityscapes]
+SEG[Segment26 + Proto26] ; SEM[SemanticSegment<br/>CE+Dice+Cityscapes]
 end
 subgraph 深度
 DEPTH[Depth head<br/>SILog + cal_a/cal_b]
 end
 subgraph 姿态
-POSE[Pose26 + PoseLoss26]
-RLE[RLE + RealNVP]
+POSE[Pose26 + PoseLoss26] ; RLE[RLE + RealNVP]
 end
 subgraph 分类
 CLS[Classify]

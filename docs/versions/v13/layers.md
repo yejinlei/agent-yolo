@@ -100,25 +100,10 @@
 ```mermaid
 flowchart LR
 subgraph BB["Backbone #0-#8"]
-B4["#4 DSC3k2<br/>P3 · 256×80×80"]
-B6["#6 A2C2f area=4<br/>P4 · 512×40×40"]
-B8["#8 A2C2f area=1<br/>P5 · 1024×20×20"]
+B4["#4 DSC3k2<br/>P3 · 256×80×80"] ; B6["#6 A2C2f area=4<br/>P4 · 512×40×40"] ; B8["#8 A2C2f area=1<br/>P5 · 1024×20×20"]
 end
 subgraph HEAD["Head #9-#31"]
-H9["#9 HyperACE<br/>3×1024 → 512"]
-H11["#11 DownsampleConv<br/>512→1024"]
-T12["#12 Tunnel<br/>gate×B6"]
-T13["#13 Tunnel<br/>gate×B4"]
-T14["#14 Tunnel<br/>gate×B8"]
-H17["#17 DSC3k2 512"]
-T18["#18 Tunnel<br/>gate×H9"]
-H21["#21 DSC3k2 256"]
-T23["#23 Tunnel<br/>gate×L22"]
-H26["#26 DSC3k2 512"]
-T27["#27 Tunnel<br/>gate×H9"]
-H30["#30 DSC3k2 1024"]
-T31["#31 Tunnel<br/>gate×H11"]
-D["#32 Detect<br/>P3/P4/P5"]
+H9["#9 HyperACE<br/>3×1024 → 512"] ; H11["#11 DownsampleConv<br/>512→1024"] ; T12["#12 Tunnel<br/>gate×B6"] ; T13["#13 Tunnel<br/>gate×B4"] ; T14["#14 Tunnel<br/>gate×B8"] ; H17["#17 DSC3k2 512"] ; T18["#18 Tunnel<br/>gate×H9"] ; H21["#21 DSC3k2 256"] ; T23["#23 Tunnel<br/>gate×L22"] ; H26["#26 DSC3k2 512"] ; T27["#27 Tunnel<br/>gate×H9"] ; H30["#30 DSC3k2 1024"] ; T31["#31 Tunnel<br/>gate×H11"] ; D["#32 Detect<br/>P3/P4/P5"]
 end
 B4 --> H9 ; B6 --> H9 ; B8 --> H9 ; H9 --> H11 ; H11 --> T12 ; B6 --> T12 ; H11 --> T13 ; B4 --> T13 ; H11 --> T14 ; B8 --> T14 ; T12 --> H17 ; T18 --> H17 ; H9 --> T18 ; H17 --> H21 ; H21 --> T23 ; H21 --> H26 ; T27 --> H26 ; H9 --> T27 ; H26 --> H30 ; H11 --> T31 ; T31 --> H30 ; H21 --> D ; H26 --> D ; H30 --> D
 ```
