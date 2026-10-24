@@ -3,6 +3,19 @@
  * 配色通过 CSS 变量驱动，html.dark 下整体切换
  * ============================================================ */
 
+/* @REASON: 收窄 sidebar + 加宽内容区，避免宽视口下正文挤压。
+ * VitePress 默认 sidebar 272px / doc-inner 800px；本仓库 sidebar 项多，
+ * 保持 248px 足够容纳；正文放宽到 900px（大屏 1080px）视觉更舒展。 */
+:root {
+  --vp-sidebar-width: 248px;
+  --vp-doc-layout-inner-width: 900px;
+}
+@media (min-width: 1440px) {
+  :root {
+    --vp-doc-layout-inner-width: 1080px;
+  }
+}
+
 :root {
   /* 原理图通用 */
   --d-panel: #f8fafc;
