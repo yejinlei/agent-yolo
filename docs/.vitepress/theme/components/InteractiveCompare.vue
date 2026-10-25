@@ -39,9 +39,9 @@ const COCO_CLASSES = [
 // ort.min.js 会在加载时根据 window.ort.env.wasm.wasmFiles 拼出 wasm 文件路径
 const ORT_CDN_LOCAL = () => siteBase() + 'ort/'
 const ORT_CDN_FALLBACKS = [
-  'https://registry.npmmirror.com/onnxruntime-web/1.20.0/files/dist/',
-  'https://fastly.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/',
-  'https://unpkg.com/onnxruntime-web@1.20.0/dist/'
+  'https://registry.npmmirror.com/onnxruntime-web/1.22.0/files/dist/',
+  'https://fastly.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/',
+  'https://unpkg.com/onnxruntime-web@1.22.0/dist/'
 ]
 
 // 内置示例图（本地打包，避开 Unsplash 外链）
