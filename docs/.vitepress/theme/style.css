@@ -5,14 +5,37 @@
 
 /* @REASON: 收窄 sidebar + 加宽内容区，避免宽视口下正文挤压。
  * VitePress 默认 sidebar 272px / doc-inner 800px；本仓库 sidebar 项多，
- * 保持 248px 足够容纳；正文放宽到 900px（大屏 1080px）视觉更舒展。 */
+ * 保持 248px 足够容纳；正文放宽到 900px（大屏 1080px）视觉更舒展。
+ * !important 是为了压过 VitePress 内置 .VPSidebar{width:var(--vp-sidebar-width)}
+ * 及任何 inline/style 优先级 —— 之前不加 !important 时首页偶发回归到默认 272px。 */
 :root {
-  --vp-sidebar-width: 248px;
-  --vp-doc-layout-inner-width: 900px;
+  --vp-sidebar-width: 248px !important;
+  --vp-doc-layout-inner-width: 900px !important;
 }
 @media (min-width: 1440px) {
   :root {
-    --vp-doc-layout-inner-width: 1080px;
+    --vp-doc-layout-inner-width: 1080px !important;
+  }
+}
+
+/* @REASON: 修复首页「左侧栏遮挡右侧内容」回归。
+ * VitePress 在 SSR 时给首页输出 <div class="VPContent is-home">（不带 has-sidebar），
+ * 客户端 hydrate 后 sidebar 才以浮层出现 —— 此时 .VPContent.has-sidebar{padding-left}
+ * 规则不匹配，正文从视口左缘开始，被 sidebar 遮挡（截图表现：「agent-yolo」被切成「nt-yolo」）。
+ * 这里对首页 sidebar 场景做显式 padding-left 兜底，不依赖 has-sidebar class。 */
+@media (min-width: 768px) {
+  .VPContent.is-home {
+    padding-left: var(--vp-sidebar-width) !important;
+  }
+  /* sidebar 显式定位到左上角固定区域（VPSidebar 默认 position:fixed/absolute 已处理，
+     此处再压一遍 width 确保 248px 生效，避免 CSS 变量被覆盖回归 272px）。 */
+  .VPSidebar {
+    width: var(--vp-sidebar-width) !important;
+  }
+  /* 顶部导航同步错开 sidebar，防止 nav 菜单项挤压。 */
+  .VPNavBar.has-sidebar .content,
+  .VPNavBar .content {
+    padding-left: var(--vp-sidebar-width) !important;
   }
 }
 
