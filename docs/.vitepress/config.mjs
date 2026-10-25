@@ -95,6 +95,11 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/logo.svg',
+    // @REASON: 顶部导航合并为 9 项扁平项，避免菜单溢出遮挡右侧内容。
+    // 高频入口（首页/小白入门/YOLO 家族/实操/横向使用）保留顶层；
+    // 低频或元信息类（翻车案例/本体/论文索引/贡献指南/反哺信号/版本差异/关于）合并到「更多」下拉；
+    // 「任务」5 项合入「实操」下拉底部，用 divider 视觉分组；
+    // 「问答/进阶路线/实战案例/即用配方」合入「横向使用」下拉，保持「使用/学习」语义。
     nav: [
       { text: '首页', link: '/' },
       { text: '小白入门', link: '/for-beginners' },
@@ -125,47 +130,85 @@ export default defineConfig({
         { text: 'YOLO-Master', link: '/derivatives/master/index' },
         { text: '路线预告', link: '/derivatives/roadmap' }
       ]},
-      { text: '任务', items: [
-        { text: '实例分割', link: '/tasks/segment' },
-        { text: '姿态估计', link: '/tasks/pose' },
-        { text: '定向框 OBB', link: '/tasks/obb' },
-        { text: '旋转检测', link: '/tasks/rotated' },
-        { text: '单目深度估计', link: '/tasks/depth' }
-      ]},
+      // @REASON: VitePress 下拉菜单里 divider 会触发 SSR isChildActive bug
+      // （TypeError: Cannot read properties of undefined (reading 'some')），
+      // 因此 nav items 内不放 divider，仅 sidebar 支持 divider。
+      // 用嵌套 items 分组替代 divider：把「任务」5 项和「交互式」2 项
+      // 拆成两个嵌套分组，视觉上自然分段。
       { text: '实操', items: [
-          { text: '训练与微调', link: '/recipes/train' },
-          { text: '部署后端对比', link: '/recipes/deploy-compare' },
-          { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
-          { text: '量化深度指南', link: '/recipes/quantization' },
-          { text: '边缘设备实战', link: '/recipes/edge-deploy' },
-          { text: '数据标注避坑', link: '/recipes/data-annotation' },
-          { text: '高级训练技巧', link: '/recipes/advanced-train' },
-          { text: '生产化落地', link: '/recipes/production' },
-          { text: '交互式对比（浏览器 ONNX）', link: '/interactive/compare' },
-          { text: '训练成本计算器', link: '/interactive/cost-calculator' }
-        ]},
-      { text: '问答', link: '/faq' },
-      { text: '翻车案例', link: '/bad-cases' },
-      { text: '进阶路线', link: '/mid-level-path' },
+        {
+          text: '训练与部署',
+          items: [
+            { text: '训练与微调', link: '/recipes/train' },
+            { text: '部署后端对比', link: '/recipes/deploy-compare' },
+            { text: 'ONNX / TensorRT 部署', link: '/recipes/export-onnx' },
+            { text: '量化深度指南', link: '/recipes/quantization' },
+            { text: '边缘设备实战', link: '/recipes/edge-deploy' },
+            { text: '数据标注避坑', link: '/recipes/data-annotation' },
+            { text: '高级训练技巧', link: '/recipes/advanced-train' },
+            { text: '生产化落地', link: '/recipes/production' }
+          ]
+        },
+        {
+          text: '任务扩展',
+          items: [
+            { text: '实例分割', link: '/tasks/segment' },
+            { text: '姿态估计', link: '/tasks/pose' },
+            { text: '定向框 OBB', link: '/tasks/obb' },
+            { text: '旋转检测', link: '/tasks/rotated' },
+            { text: '单目深度估计', link: '/tasks/depth' }
+          ]
+        },
+        {
+          text: '交互式',
+          items: [
+            { text: '交互式对比（浏览器 ONNX）', link: '/interactive/compare' },
+            { text: '训练成本计算器', link: '/interactive/cost-calculator' }
+          ]
+        }
+      ]},
       { text: '横向使用', items: [
-        { text: '选型决策树', link: '/choose-a-model' },
-        { text: '基准数据', link: '/benchmarks' },
-        { text: '数据流全景', link: '/data-flow' },
-        { text: '故障排查', link: '/troubleshooting' },
-        { text: '概念反向索引', link: '/concepts' },
-        { text: '术语表', link: '/glossary' }
+        {
+          text: '工具与参考',
+          items: [
+            { text: '选型决策树', link: '/choose-a-model' },
+            { text: '基准数据', link: '/benchmarks' },
+            { text: '数据流全景', link: '/data-flow' },
+            { text: '故障排查', link: '/troubleshooting' },
+            { text: '概念反向索引', link: '/concepts' },
+            { text: '术语表', link: '/glossary' }
+          ]
+        },
+        {
+          text: '案例与配方',
+          items: [
+            { text: '常见问题 FAQ', link: '/faq' },
+            { text: '进阶路线', link: '/mid-level-path' },
+            { text: '实战案例总览', link: '/cases' },
+            { text: '即用配方（Solutions）', link: '/solutions/recipes' }
+          ]
+        }
       ]},
-      { text: '实战案例', link: '/cases' },
-      { text: '即用配方', link: '/solutions/recipes' },
-      { text: '本体', link: '/ontology/schema' },
-      { text: '论文索引', link: '/references' },
-      { text: '贡献指南', link: '/CONTRIBUTING' },
-      { text: '反哺信号', items: [
-        { text: '汇总', link: '/concepts-feedback' },
-        { text: '看板', link: '/feedback-dashboard' }
+      { text: '更多', items: [
+        {
+          text: '参考',
+          items: [
+            { text: '翻车案例', link: '/bad-cases' },
+            { text: '本体 Schema', link: '/ontology/schema' },
+            { text: '论文索引', link: '/references' },
+            { text: '版本差异卡片', link: '/versions/deltas' }
+          ]
+        },
+        {
+          text: '社区',
+          items: [
+            { text: '贡献指南', link: '/CONTRIBUTING' },
+            { text: '反哺信号 · 汇总', link: '/concepts-feedback' },
+            { text: '反哺信号 · 看板', link: '/feedback-dashboard' }
+          ]
+        },
+        { text: '关于', link: '/about' }
       ]},
-      { text: '版本差异卡片', link: '/versions/deltas' },
-      { text: '关于', link: '/about' },
       { text: 'GitHub', link: 'https://github.com/yejinlei/agent-yolo' }
     ],
 
