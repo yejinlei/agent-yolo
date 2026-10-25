@@ -158,10 +158,21 @@ function loadImageFromFile(file) {
   loadImage(url).then(() => URL.revokeObjectURL(url))
 }
 
+function isCrossOrigin(url) {
+  try {
+    const u = new URL(url, location.href)
+    return u.origin !== location.origin
+  } catch {
+    return false
+  }
+}
+
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
+    // 只有跨域时才设 crossOrigin=anonymous；同域设置会强制 CORS 预检，
+    // 导致 VitePress dev/prod 未配 ACAO 头时 onerror 直接触发。
+    if (isCrossOrigin(src)) img.crossOrigin = 'anonymous'
     img.onload = () => {
       image.value = img
       imageSize.value = { w: img.naturalWidth, h: img.naturalHeight }
@@ -171,7 +182,7 @@ function loadImage(src) {
       drawBase()
       resolve(img)
     }
-    img.onerror = () => reject(new Error('图片加载失败（可能是 CORS 或格式不支持）'))
+    img.onerror = () => reject(new Error('图片加载失败：' + src))
     img.src = src
   })
 }

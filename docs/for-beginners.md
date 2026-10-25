@@ -24,6 +24,7 @@
 
 <script>
 (function () {
+  if (typeof document === 'undefined') return  // VitePress SSR 阶段跳过
   function restore() {
     var raw = localStorage.getItem('beginner-progress')
     var done = []
